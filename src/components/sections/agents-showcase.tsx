@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial, MeshWobbleMaterial, Sphere, Box, TorusKnot, Environment, PerspectiveCamera } from "@react-three/drei";
@@ -128,13 +128,13 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         )}
       </div>
 
-      <h3 className="font-headline text-3xl font-bold mb-1">{agent.name}</h3>
-      <p className="text-primary font-medium mb-4">{agent.role}</p>
+      <h3 className="font-pixel text-lg font-bold mb-1">{agent.name}</h3>
+      <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4">{agent.role}</p>
       <p className="text-foreground/60 text-sm mb-6 flex-grow">{agent.desc}</p>
       
       <div className="flex flex-wrap gap-2">
         {agent.powers.map(p => (
-          <Badge key={p} variant="secondary" className="bg-white/10 text-xs py-0.5">
+          <Badge key={p} variant="secondary" className="bg-white/10 text-[8px] py-0.5 font-pixel uppercase">
             {p}
           </Badge>
         ))}
@@ -144,6 +144,19 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
 }
 
 export function AgentsShowcase() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 20, stiffness: 150 };
+  const glowX = useSpring(mouseX, springConfig);
+  const glowY = useSpring(mouseY, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
   return (
     <section id="agents" className="py-48 px-6 bg-black relative overflow-hidden">
       <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -152,9 +165,27 @@ export function AgentsShowcase() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-24">
-          <h2 className="font-headline text-5xl md:text-7xl font-bold mb-6">Meet Your New <br /><span className="text-primary">Autonomous Team</span></h2>
-          <p className="text-foreground/60 max-w-2xl mx-auto">Three specialized AI entities working in perfect harmony to handle everything from your focus sessions to your viral marketing.</p>
+        <div className="text-center mb-24 flex flex-col items-center">
+          <motion.div 
+            onMouseMove={handleMouseMove}
+            className="relative group inline-block p-4"
+          >
+            <motion.div
+              style={{
+                left: glowX,
+                top: glowY,
+                background: "radial-gradient(circle, rgba(163,107,238,0.3) 0%, transparent 70%)",
+              }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
+            />
+            <h2 className="font-pixel text-2xl md:text-4xl font-bold mb-6 relative z-10 leading-tight">
+              Meet Your New <br />
+              <span className="text-primary">Autonomous Team</span>
+            </h2>
+          </motion.div>
+          <p className="text-foreground/60 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-tighter">
+            Three specialized AI entities working in perfect harmony to handle everything from your focus sessions to your viral marketing.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
