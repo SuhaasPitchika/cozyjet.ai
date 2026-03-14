@@ -2,17 +2,17 @@
 
 import React, { useRef, useEffect, useCallback, memo } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const IMAGES = PlaceHolderImages.filter((img) => img.id.startsWith("workspace")).slice(0, 12);
 
-// Configuration for the 3D Parabola Perspective
+// Configuration for the 3D Perspective
 const VISIBLE_COUNT = 9;
-const CARD_WIDTH = 300; // Base width
-const DEPTH_STRENGTH = 800; // How far back the center goes
-const AUTO_ROTATION_SPEED = 0.0008; // Slower speed
+const CARD_WIDTH = 320; 
+const DEPTH_STRENGTH = 900; 
+const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
-const DRAG_SENSITIVITY = 150;
 
 const ThreeSlideshowComponent = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,18 +37,15 @@ const ThreeSlideshowComponent = () => {
     cards.forEach((card, i) => {
       if (!card) return;
 
-      // Calculate position in the circular loop
       const basePos = (i / total);
       let currentPos = (basePos + rotationRef.current) % 1;
       if (currentPos < 0) currentPos += 1;
 
-      // Normalize focus: -0.5 to 0.5, where 0 is dead center
       let focus = currentPos - 0.5;
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
 
-      // Visible range: we want 9 cards to fill the screen
-      const visibleSpan = 0.45; 
+      const visibleSpan = 0.48; 
       const isVisible = Math.abs(focus) < visibleSpan;
 
       if (!isVisible) {
@@ -57,53 +54,49 @@ const ThreeSlideshowComponent = () => {
         return;
       }
 
-      // Parabolic calculation for the "Inward Semicircle"
       const normalizedFocus = focus / visibleSpan; 
       
-      // Horizontal spread
-      const x = focus * (window.innerWidth + CARD_WIDTH);
+      // Calculate horizontal spread to join edges with 1px gap
+      // The images join by calculating x as a function of their normalized position
+      const x = focus * (window.innerWidth + CARD_WIDTH * 0.8);
       
-      // Depth: Center (0) is deep in the screen (-DEPTH), Edges (1) are at the front (0)
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
-
-      // Scale: Middle is shortest/smallest, Ends are tallest/largest
-      const scaleBase = 0.55;
-      const scaleGrowth = 1.35;
+      const scaleBase = 0.45;
+      const scaleGrowth = 1.45;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
-      
-      // Rotation: Face inward toward the vanishing point
-      const rotateY = normalizedFocus * -45;
+      const rotateY = normalizedFocus * -55;
 
-      // Opacity: Fade out images as they exit the visible span
       const fadeDist = visibleSpan - Math.abs(focus);
-      const opacity = Math.min(1, fadeDist * 12);
+      const opacity = Math.min(1, fadeDist * 15);
 
-      // Trapezoid Clip Path: Inner side (closer to center) is shorter, Outer side is taller
+      // Isosceles Trapezoid Clip Path Logic
       let p1, p2, p3, p4, p5, p6, p7, p8;
-      const trapAmount = Math.abs(normalizedFocus) * 25;
+      const trapAmount = Math.abs(normalizedFocus) * 32;
 
       if (normalizedFocus < 0) {
-        // Left side: Outer (left) is taller than inner (right)
-        p1 = 0; p2 = 0; // Top-left
-        p3 = 100; p4 = trapAmount; // Top-right (shorter)
-        p5 = 100; p6 = 100 - trapAmount; // Bottom-right (shorter)
-        p7 = 0; p8 = 100; // Bottom-left
+        // Left side: Outer is taller, inner is shorter
+        p1 = 0; p2 = 0;
+        p3 = 100; p4 = trapAmount;
+        p5 = 100; p6 = 100 - trapAmount;
+        p7 = 0; p8 = 100;
       } else {
-        // Right side: Outer (right) is taller than inner (left)
-        p1 = 0; p2 = trapAmount; // Top-left (shorter)
-        p3 = 100; p4 = 0; // Top-right
-        p5 = 100; p6 = 100; // Bottom-right
-        p7 = 0; p8 = 100 - trapAmount; // Bottom-left (shorter)
+        // Right side: Inner is shorter, outer is taller
+        p1 = 0; p2 = trapAmount;
+        p3 = 100; p4 = 0;
+        p5 = 100; p6 = 100;
+        p7 = 0; p8 = 100 - trapAmount;
       }
 
       const clipPath = `polygon(${p1}% ${p2}%, ${p3}% ${p4}%, ${p5}% ${p6}%, ${p7}% ${p8}%)`;
 
       card.style.opacity = opacity.toString();
-      card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+      card.style.pointerEvents = opacity > 0.6 ? "auto" : "none";
       card.style.zIndex = Math.round((1 - Math.abs(normalizedFocus)) * 100).toString();
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
-      card.style.margin = "0 1px"; 
+      // 1px gap is ensured by the combination of absolute position x and margin
+      card.style.marginLeft = "0.5px";
+      card.style.marginRight = "0.5px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
@@ -125,7 +118,7 @@ const ThreeSlideshowComponent = () => {
     if (!isDraggingRef.current) return;
     const x = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
     const deltaX = x - lastMouseXRef.current;
-    const rotationOffset = deltaX / (window.innerWidth * 0.6);
+    const rotationOffset = deltaX / (window.innerWidth * 0.7);
     rotationRef.current -= rotationOffset;
     velocityRef.current = -rotationOffset;
     lastMouseXRef.current = x;
@@ -150,18 +143,59 @@ const ThreeSlideshowComponent = () => {
 
   return (
     <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
+      
+      {/* 3D Glassmorphic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div 
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 10, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[15%] left-[10%] w-64 h-64 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/20 shadow-2xl rotate-12"
+        />
+        <motion.div 
+          animate={{ 
+            y: [0, 30, 0],
+            rotate: [0, -15, 0],
+            scale: [1, 1.05, 1]
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[20%] right-[12%] w-80 h-80 bg-white/10 backdrop-blur-2xl rounded-full border border-white/20 shadow-inner"
+        />
+        <div className="absolute top-[40%] right-[5%] w-32 h-32 bg-primary/5 backdrop-blur-xl rounded-2xl border border-white/10 -rotate-45" />
+      </div>
+
       {/* Cinematic Header */}
-      <div className="relative z-20 text-center mb-2 px-6">
-        <p className="text-primary/40 font-bold text-[10px] uppercase tracking-[0.3em] mb-4">Behind the Designs</p>
-        <h2 className="text-[42px] md:text-[64px] font-extrabold text-black leading-none tracking-tighter font-headline mb-4">
+      <div className="relative z-20 text-center mb-6 px-6 max-w-3xl">
+        <motion.p 
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="text-primary/40 font-bold text-[10px] uppercase tracking-[0.4em] mb-4"
+        >
+          Behind the Designs
+        </motion.p>
+        <motion.h2 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          className="text-[48px] md:text-[72px] font-extrabold text-black leading-none tracking-tighter font-headline mb-6 drop-shadow-sm"
+        >
           Curious What Else<br />I&apos;ve Created?
-        </h2>
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 0.5 }}
+          className="text-sm font-medium text-black max-w-md mx-auto leading-relaxed"
+        >
+          A seamless orbit through my latest architectural and digital prototypes.
+        </motion.p>
       </div>
 
       {/* Full Screen 3D Perspective Stage */}
       <div 
         ref={containerRef}
-        className="relative w-full h-[75vh] flex items-center justify-center cursor-grab active:cursor-grabbing perspective-[2500px]"
+        className="relative w-full h-[80vh] flex items-center justify-center cursor-grab active:cursor-grabbing perspective-[3000px]"
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
         style={{ transformStyle: "preserve-3d" }}
@@ -177,7 +211,7 @@ const ThreeSlideshowComponent = () => {
               className="absolute bg-black will-change-transform overflow-hidden shadow-2xl"
               style={{
                 width: `${CARD_WIDTH}px`,
-                height: `500px`,
+                height: `520px`,
                 transformStyle: "preserve-3d",
                 backfaceVisibility: "hidden",
                 transition: "none",
@@ -187,18 +221,23 @@ const ThreeSlideshowComponent = () => {
                 src={img.imageUrl}
                 alt={img.description}
                 fill
-                className="object-cover"
+                className="object-cover brightness-90 hover:brightness-100 transition-all duration-500"
                 sizes="600px"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none" />
+              
+              {/* Internal Card Text Reflection */}
+              <div className="absolute bottom-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <p className="text-[10px] font-bold text-white uppercase tracking-widest">{img.description}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Perspective Guide Lines */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 flex items-center justify-center">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 flex items-center justify-center">
         <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
           <line x1="0" y1="0" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
           <line x1="1000" y1="0" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
@@ -208,10 +247,10 @@ const ThreeSlideshowComponent = () => {
       </div>
 
       {/* Static CTA Button */}
-      <div className="relative z-20 mt-8">
-        <button className="group flex items-center gap-4 bg-black text-white px-8 py-4 rounded-full font-bold text-xs hover:scale-105 transition-all shadow-2xl">
+      <div className="relative z-20 mt-12">
+        <button className="group flex items-center gap-4 bg-black text-white px-10 py-5 rounded-full font-bold text-[10px] hover:scale-105 transition-all shadow-2xl active:scale-95">
           See more Projects
-          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform">
+          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform">
             <span className="text-white text-[10px]">→</span>
           </div>
         </button>
