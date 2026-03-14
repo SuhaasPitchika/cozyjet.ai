@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useSpring, useMotionValue } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,19 +31,24 @@ const Card = memo(({
 
   const absOffset = Math.abs(offset);
   
-  // REVERSE PARABOLIC LOGIC:
-  // Center (offset 0) is recessed and small. 
-  // Ends (offset ±4) are largest and come forward.
-  const scale = 1 + (absOffset * 0.18); 
-  const horizontalSpacing = isMobile ? 120 : 260;
+  // PERSPECTIVE LOGIC:
+  // Center (offset 0) is smallest and furthest (receded).
+  // Sides grow larger and rotate towards the viewer in trapezoid form.
+  const baseScale = isMobile ? 0.8 : 1.0;
+  const scale = baseScale + (absOffset * (isMobile ? 0.15 : 0.22)); 
+  const horizontalSpacing = isMobile ? 90 : 220;
   const x = offset * horizontalSpacing;
   
-  // Fading logic: Hide the wrap-around "jump" by fading cards that are at the edge of the screen
+  // Hide the wrap-around "jump" by fading cards that are at the edge
   const fadeThreshold = (total / 2) - 0.5;
   const opacity = absOffset > fadeThreshold ? 0 : 1;
 
-  // Depth effect using translateZ and z-index
-  const translateZ = absOffset * 120;
+  // Trapezoid effect using rotateY
+  // Left cards rotate positive Y, Right cards rotate negative Y
+  const rotateY = offset * (isMobile ? -8 : -15);
+  
+  // Depth effect: move larger edge cards forward
+  const translateZ = absOffset * (isMobile ? 50 : 150);
 
   return (
     <motion.div
@@ -51,20 +57,22 @@ const Card = memo(({
         x,
         scale,
         opacity,
-        zIndex: Math.floor(10 + absOffset), 
+        rotateY,
         translateZ,
+        zIndex: Math.floor(10 + absOffset), 
       }}
       transition={{
         type: "spring",
-        stiffness: 100,
+        stiffness: 120,
         damping: 25,
         mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[32px] overflow-hidden bg-white shadow-[0_32px_80px_rgba(0,0,0,0.2)] border border-white/20 will-change-transform"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[24px] overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/40 will-change-transform"
       style={{
-        width: isMobile ? "140px" : "260px",
-        height: isMobile ? "200px" : "400px",
-        perspective: "1200px",
+        width: isMobile ? "120px" : "240px",
+        height: isMobile ? "180px" : "360px",
+        perspective: "1000px",
+        transformStyle: "preserve-3d",
       }}
     >
       <Image
@@ -73,10 +81,10 @@ const Card = memo(({
         fill
         priority={absOffset < 2}
         className="object-cover"
-        sizes="(max-width: 768px) 140px, 260px"
+        sizes="(max-width: 768px) 120px, 240px"
       />
-      {/* Subtle depth overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/15 pointer-events-none" />
+      {/* Subtle vignette for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10 pointer-events-none" />
     </motion.div>
   );
 });
@@ -109,12 +117,7 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative pt-0 pb-32 bg-background overflow-visible flex flex-col items-center">
-      {/* Background Bluish Glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)] opacity-50" />
-      </div>
-
+    <section className="relative pt-0 pb-20 bg-background overflow-visible flex flex-col items-center">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10 relative">
         <motion.h2 
@@ -127,16 +130,17 @@ export function ThreeSlideshow() {
         </motion.h2>
       </div>
 
-      {/* Slideshow Container - Reduced height and negative margin to tighten space */}
+      {/* Slideshow Container */}
       <div 
-        className="relative h-[400px] md:h-[650px] w-full cursor-grab active:cursor-grabbing md:-mt-12 -mt-8"
+        className="relative h-[450px] md:h-[650px] w-full cursor-grab active:cursor-grabbing -mt-10"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        style={{ perspective: "1200px" }}
       >
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.05}
+          dragElastic={0.1}
           onDragEnd={handleDragEnd}
           className="relative w-full h-full flex items-center justify-center"
           style={{ transformStyle: "preserve-3d" }}
