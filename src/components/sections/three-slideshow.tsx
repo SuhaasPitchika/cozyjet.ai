@@ -24,35 +24,36 @@ const Card = memo(({
   // Calculate circular offset relative to active index
   let offset = index - activeIndex;
   
-  // Circular wrap logic to find shortest path
+  // Circular wrap logic to find shortest path for the loop
   if (offset > total / 2) offset -= total;
   if (offset < -total / 2) offset += total;
 
   const absOffset = Math.abs(offset);
   
   // REVERSE PERSPECTIVE LOGIC:
-  // Center (offset 0) is the smallest, receded rectangle vanishing point.
-  // Edge images grow significantly larger (trapezoid) and move towards the viewer.
+  // Center (offset 0) is a small, focused rectangle receding into the depth.
+  // Edge images grow aggressively larger (trapezoid) and zoom towards the viewer.
   
-  const baseScale = isMobile ? 0.6 : 0.8;
-  // Scale increases aggressively as we move away from the center
-  const scale = baseScale + (absOffset * (isMobile ? 0.15 : 0.3)); 
+  // Scale increases significantly as we move away from the center
+  const baseScale = isMobile ? 0.5 : 0.65;
+  const scale = baseScale + (absOffset * (isMobile ? 0.15 : 0.28)); 
   
   // Horizontal spacing
-  const horizontalSpacing = isMobile ? 65 : 190;
+  const horizontalSpacing = isMobile ? 60 : 210;
   const x = offset * horizontalSpacing;
   
-  // Hide the wrap-around "jump" by fading cards that are at the edge
-  // This ensures the loop happens in a "hidden layer"
-  const fadeThreshold = (total / 2) - 0.5;
+  // Perspective Shading & Opacity
+  // We fade cards that are at the edge to hide the jump
+  const fadeThreshold = (total / 2) - 0.4;
   const opacity = absOffset > fadeThreshold ? 0 : 1;
 
   // Trapezoid effect using rotateY
-  // Outer cards rotate towards the center vanishing point
-  const rotateY = offset * (isMobile ? -12 : -28);
+  // Cards at edges rotate inward to create the perspective drawing effect
+  const rotateY = offset * (isMobile ? -18 : -35);
   
-  // Depth effect: move larger edge cards forward closer to the screen
-  const translateZ = absOffset * (isMobile ? 100 : 350);
+  // Depth effect: move larger edge cards forward closer to the screen (zoom in)
+  // Center card (absOffset 0) has translateZ 0 (receded)
+  const translateZ = absOffset * (isMobile ? 120 : 450);
 
   return (
     <motion.div
@@ -67,15 +68,15 @@ const Card = memo(({
       }}
       transition={{
         type: "spring",
-        stiffness: 140,
-        damping: 28,
+        stiffness: 120,
+        damping: 24,
         mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[16px] md:rounded-[36px] overflow-hidden bg-white shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-white/30 will-change-transform"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[20px] md:rounded-[48px] overflow-hidden bg-white shadow-[0_40px_80px_rgba(0,0,0,0.3)] border border-white/40 will-change-transform"
       style={{
-        width: isMobile ? "100px" : "240px",
-        height: isMobile ? "140px" : "360px",
-        perspective: "1800px",
+        width: isMobile ? "110px" : "280px",
+        height: isMobile ? "150px" : "400px",
+        perspective: "2000px",
         transformStyle: "preserve-3d",
       }}
     >
@@ -85,12 +86,12 @@ const Card = memo(({
         fill
         priority={absOffset < 3}
         className="object-cover"
-        sizes="(max-width: 768px) 100px, 240px"
+        sizes="(max-width: 768px) 110px, 280px"
       />
-      {/* Perspective Shading - darker as they move away from center */}
+      {/* Dynamic shading based on distance from center */}
       <motion.div 
-        animate={{ opacity: (1 - (absOffset / total)) * 0.1 }}
-        className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity" 
+        animate={{ opacity: (1 - (absOffset / total)) * 0.15 }}
+        className="absolute inset-0 bg-black/50 pointer-events-none" 
       />
     </motion.div>
   );
@@ -113,46 +114,46 @@ export function ThreeSlideshow() {
 
   useEffect(() => {
     if (isPaused) return;
-    const interval = setInterval(nextSlide, 3000);
+    const interval = setInterval(nextSlide, 3500);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
   const handleDragEnd = (event: any, info: any) => {
-    const threshold = 40;
+    const threshold = 30;
     if (info.offset.x < -threshold) nextSlide();
     else if (info.offset.x > threshold) prevSlide();
   };
 
   return (
-    <section className="relative pt-0 pb-0 bg-background overflow-visible flex flex-col items-center">
-      {/* Tightened Header Spacing */}
+    <section className="relative pt-0 pb-12 bg-background flex flex-col items-center overflow-visible">
+      {/* Section Header */}
       <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10 relative">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl md:text-[52px] font-extrabold text-black leading-tight tracking-tighter font-headline"
+          className="text-3xl md:text-[56px] font-extrabold text-black leading-tight tracking-tighter font-headline"
         >
           Curious What Else<br />I've Created?
         </motion.h2>
       </div>
 
-      {/* 3D Perspective Container - Tall enough to avoid clipping zooming cards */}
+      {/* 3D Perspective Gallery Container */}
       <div 
-        className="relative h-[450px] md:h-[750px] w-full cursor-grab active:cursor-grabbing -mt-6 md:-mt-12"
+        className="relative h-[550px] md:h-[850px] w-full cursor-grab active:cursor-grabbing -mt-10 md:-mt-20"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        style={{ perspective: "2000px" }}
+        style={{ perspective: "2500px" }}
       >
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.1}
+          dragElastic={0.05}
           onDragEnd={handleDragEnd}
           className="relative w-full h-full flex items-center justify-center"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {/* Render all 9 images to fulfill the one-view requirement */}
+          {/* Ensure 9 images are rendered for the panoramic view */}
           {CAROUSEL_IMAGES.slice(0, 9).map((img, i) => (
             <Card 
               key={img.id} 
