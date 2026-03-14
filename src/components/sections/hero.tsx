@@ -2,12 +2,24 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Youtube, Twitter, Mail, Instagram, Linkedin, Hash } from "lucide-react";
+import { Youtube, Twitter, Mail, Instagram, Linkedin } from "lucide-react";
+
+const ThreadsIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    className={className}
+    style={style}
+  >
+    <path d="M14.823 12.961c-.119.695-.454 1.208-.882 1.554a3.12 3.12 0 0 1-2.012.653c-1.454 0-2.311-.854-2.311-2.238 0-1.51.985-2.217 2.374-2.217.514 0 .964.12 1.312.338l.102-.916a2.692 2.692 0 0 0-1.446-.359c-2.1 0-3.647 1.131-3.647 3.153 0 2.257 1.512 3.438 3.535 3.438 1.057 0 1.943-.24 2.536-.783.545-.513.889-1.306.941-2.33h-1.002z"/>
+    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10c3.11 0 5.867-1.417 7.682-3.633l-.782-.625C17.28 19.721 14.777 21 12 21c-4.963 0-9-4.037-9-9s4.037-9 9-9c2.427 0 4.625.966 6.242 2.531l.711-.703A9.957 9.957 0 0 0 12 2z"/>
+  </svg>
+);
 
 const TIMELINE_NODES = [
   { icon: Youtube, label: "Scripts", func: "Viral Video Drafting", color: "#FF0000", note: "SCRIPTS" },
   { icon: Twitter, label: "Tweets", func: "Viral Hook Engine", color: "#1DA1F2", note: "TWEETS" },
-  { icon: Hash, label: "Threads", func: "Knowledge Stacking", color: "#000000", note: "THREADS" },
+  { icon: ThreadsIcon, label: "Threads", func: "Knowledge Stacking", color: "#000000", note: "THREADS" },
   { icon: Mail, label: "Mails", func: "High-CR Outreach", color: "#EA4335", note: "MAILS" },
   { icon: Instagram, label: "Posts", func: "Visual Storytelling", color: "#E4405F", note: "POSTS" },
   { icon: Linkedin, label: "Blogs", func: "Professional Authority", color: "#0A66C2", note: "BLOGS" },
@@ -84,41 +96,44 @@ export function Hero() {
       </motion.div>
 
       {/* Horizontal Timeline */}
-      <div className="relative mt-48 w-full max-w-6xl mx-auto px-12 pb-32">
-        {/* Main Connector Line - Passes exactly through center back of each icon */}
-        <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-black/80 -translate-y-1/2 z-0" />
-        
-        <div className="flex justify-between items-center relative z-10">
-          {TIMELINE_NODES.map((node, i) => {
-            const isTop = i % 2 === 0;
-            return (
-              <motion.div
-                key={node.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex flex-col items-center group relative"
-              >
-                {/* Threaded Stable Note */}
-                <StableNote text={node.note} isTop={isTop} />
+      <div className="relative mt-48 w-full max-w-6xl mx-auto px-12 pb-48">
+        {/* Sub-container for vertical centering logic */}
+        <div className="relative flex items-center min-h-[64px]">
+          {/* Main Connector Line - Passes exactly through center back of each icon */}
+          <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-black/80 -translate-y-1/2 z-0" />
+          
+          <div className="w-full flex justify-between items-center relative z-10">
+            {TIMELINE_NODES.map((node, i) => {
+              const isTop = i % 2 === 0;
+              return (
+                <motion.div
+                  key={node.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex flex-col items-center group relative"
+                >
+                  {/* Threaded Stable Note */}
+                  <StableNote text={node.note} isTop={isTop} />
 
-                {/* Branded Logo Node - bg-white hides the line behind it */}
-                <div className="bg-white p-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:scale-110 cursor-pointer relative z-30">
-                  <node.icon className="w-6 h-6" style={{ color: node.color }} />
-                </div>
-                
-                {/* Tooltip Description */}
-                <div className={`absolute ${isTop ? 'top-[-45px]' : 'bottom-[-45px]'} opacity-0 group-hover:opacity-100 transition-opacity z-40 pointer-events-none`}>
-                  <div className="bg-black text-white px-2 py-1 rounded-sm">
-                    <p className="font-pixel text-[6px] whitespace-nowrap uppercase tracking-tighter">
-                      {node.func}
-                    </p>
+                  {/* Branded Logo Node - bg-white hides the line behind it */}
+                  <div className="bg-white p-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:scale-110 cursor-pointer relative z-30">
+                    <node.icon className="w-6 h-6" style={{ color: node.color }} />
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                  
+                  {/* Tooltip Description */}
+                  <div className={`absolute ${isTop ? 'top-[-45px]' : 'bottom-[-45px]'} opacity-0 group-hover:opacity-100 transition-opacity z-40 pointer-events-none`}>
+                    <div className="bg-black text-white px-2 py-1 rounded-sm">
+                      <p className="font-pixel text-[6px] whitespace-nowrap uppercase tracking-tighter">
+                        {node.func}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
