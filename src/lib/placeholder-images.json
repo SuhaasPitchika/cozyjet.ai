@@ -49,6 +49,18 @@
       "imageHint": "architecture office"
     },
     {
+      "id": "workspace-8",
+      "description": "A futuristic holographic workstation in a dark room",
+      "imageUrl": "https://picsum.photos/seed/ws8/800/600",
+      "imageHint": "holographic workspace"
+    },
+    {
+      "id": "workspace-9",
+      "description": "Industrial design lab with 3D printers and prototypes",
+      "imageUrl": "https://picsum.photos/seed/ws9/800/600",
+      "imageHint": "industrial design"
+    },
+    {
       "id": "agent-skippy",
       "description": "Skippy agent character placeholder",
       "imageUrl": "https://picsum.photos/seed/skippy/400/400",

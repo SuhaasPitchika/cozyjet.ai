@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,22 +25,25 @@ const Card = memo(({
   // Calculate circular offset relative to active index
   let offset = index - activeIndex;
   
-  // Handle circularity logic to ensure shortest distance
+  // Circular wrap logic to find shortest path
   if (offset > total / 2) offset -= total;
   if (offset < -total / 2) offset += total;
 
   const absOffset = Math.abs(offset);
   
   // REVERSE PARABOLIC LOGIC:
-  // Center (offset 0) is smallest. Ends are largest/longest.
-  const scale = 1 + (absOffset * 0.15); 
-  const horizontalSpacing = isMobile ? 180 : 340;
+  // Center (offset 0) is recessed and small. 
+  // Ends (offset ±4) are largest and come forward.
+  const scale = 1 + (absOffset * 0.18); 
+  const horizontalSpacing = isMobile ? 140 : 280;
   const x = offset * horizontalSpacing;
   
-  // Fading logic: Hide the jump by fading cards that are far from the center
-  // If the absolute offset is close to half the total, it's about to wrap around.
-  const fadeThreshold = (total / 2) - 0.5;
-  const opacity = absOffset > fadeThreshold ? 0 : 1 - (absOffset * 0.15);
+  // Fading logic: Hide the wrap-around "jump" by fading cards that are at the edge of the screen
+  const fadeThreshold = (total / 2) - 0.7;
+  const opacity = absOffset > fadeThreshold ? 0 : 1;
+
+  // Depth effect using translateZ and z-index
+  const translateZ = absOffset * 100;
 
   return (
     <motion.div
@@ -47,19 +51,21 @@ const Card = memo(({
       animate={{
         x,
         scale,
-        opacity: Math.max(opacity, 0),
-        zIndex: Math.floor(10 - absOffset), // Higher z-index for outer cards to overlap center if needed
+        opacity,
+        zIndex: Math.floor(10 + absOffset), // Outer cards overlap inner cards to show growth
+        translateZ,
       }}
       transition={{
         type: "spring",
-        stiffness: 120,
-        damping: 20,
+        stiffness: 100,
+        damping: 25,
         mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[24px] overflow-hidden bg-white shadow-2xl border border-white/10 will-change-transform"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[32px] overflow-hidden bg-white shadow-[0_32px_80px_rgba(0,0,0,0.2)] border border-white/20 will-change-transform"
       style={{
-        width: isMobile ? "160px" : "280px",
-        height: isMobile ? "220px" : "420px",
+        width: isMobile ? "140px" : "260px",
+        height: isMobile ? "200px" : "400px",
+        perspective: "1200px",
       }}
     >
       <Image
@@ -68,9 +74,10 @@ const Card = memo(({
         fill
         priority={absOffset < 2}
         className="object-cover"
-        sizes="(max-width: 768px) 160px, 280px"
+        sizes="(max-width: 768px) 140px, 260px"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+      {/* Subtle depth overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10 pointer-events-none" />
     </motion.div>
   );
 });
@@ -103,16 +110,16 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative pt-12 pb-32 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
-      {/* Background Glow */}
+    <section className="relative pt-0 pb-32 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
+      {/* Background Bluish Glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.1)_0%,transparent_60%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)] opacity-50" />
       </div>
 
-      {/* Header - Only Title */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-12 z-10">
+      {/* Header - Minimal Spacing */}
+      <div className="max-w-7xl mx-auto px-6 text-center mb-8 z-10">
         <motion.h2 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-4xl md:text-[52px] font-extrabold text-black leading-tight tracking-tighter font-headline"
@@ -123,7 +130,7 @@ export function ThreeSlideshow() {
 
       {/* Slideshow Container */}
       <div 
-        className="relative h-[350px] md:h-[650px] w-full cursor-grab active:cursor-grabbing"
+        className="relative h-[300px] md:h-[600px] w-full cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -133,6 +140,7 @@ export function ThreeSlideshow() {
           dragElastic={0.05}
           onDragEnd={handleDragEnd}
           className="relative w-full h-full flex items-center justify-center"
+          style={{ transformStyle: "preserve-3d" }}
         >
           {CAROUSEL_IMAGES.map((img, i) => (
             <Card 
