@@ -74,7 +74,7 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[120vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
+    <section className="relative min-h-[100vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
       {/* Background Subtle Glow Layers */}
       <div className="absolute inset-0 blue-glow pointer-events-none z-0" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-sky-400/10 blur-[120px] rounded-full pointer-events-none z-0" />
@@ -96,7 +96,7 @@ export function Hero() {
       </motion.div>
 
       {/* Horizontal Timeline */}
-      <div className="relative mt-48 w-full max-w-6xl mx-auto px-12 pb-48">
+      <div className="relative mt-32 w-full max-w-6xl mx-auto px-12 pb-32">
         {/* Sub-container for vertical centering logic */}
         <div className="relative flex items-center min-h-[64px]">
           {/* Main Connector Line - Passes exactly through center back of each icon */}

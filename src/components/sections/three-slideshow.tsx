@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, useCallback, memo, useState } from "react";
@@ -78,7 +77,7 @@ const ThreeSlideshowComponent = () => {
       const x = focus * (window.innerWidth * spreadFactor);
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Edge images are 3/4 size
+      // Edge images are 3/4 size of their previous dramatic size
       const scaleBase = 0.4;
       const scaleGrowth = 0.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
@@ -180,7 +179,7 @@ const ThreeSlideshowComponent = () => {
         onTouchStart={handleMouseDown}
         style={{ 
           transformStyle: "preserve-3d",
-          // Global U-Shaped Cut
+          // Global U-Shaped Cut applied to the whole animation
           clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" 
         }}
       >
