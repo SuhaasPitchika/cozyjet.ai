@@ -15,7 +15,7 @@ export function Navbar() {
       <motion.nav
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white/70 backdrop-blur-xl border border-black/5 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
+        className="bg-white/30 backdrop-blur-2xl border border-white/40 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]"
       >
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
