@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, useCallback, memo } from "react";
@@ -11,7 +10,7 @@ const IMAGES = PlaceHolderImages.filter((img) => img.id.startsWith("workspace"))
 const VISIBLE_COUNT = 9;
 const CARD_WIDTH = 300; // Base width
 const DEPTH_STRENGTH = 800; // How far back the center goes
-const AUTO_ROTATION_SPEED = 0.0008; // Slower speed as requested
+const AUTO_ROTATION_SPEED = 0.0008; // Slower speed
 const MOMENTUM_DAMPING = 0.96;
 const DRAG_SENSITIVITY = 150;
 
@@ -59,7 +58,6 @@ const ThreeSlideshowComponent = () => {
       }
 
       // Parabolic calculation for the "Inward Semicircle"
-      // normalizedFocus: -1 (left edge) to 0 (center) to 1 (right edge)
       const normalizedFocus = focus / visibleSpan; 
       
       // Horizontal spread
@@ -68,8 +66,7 @@ const ThreeSlideshowComponent = () => {
       // Depth: Center (0) is deep in the screen (-DEPTH), Edges (1) are at the front (0)
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
 
-      // Scale: Middle is shortest/smallest, Ends are tallest/largest (zoomed out)
-      // Center scale is small, Edge scale is large
+      // Scale: Middle is shortest/smallest, Ends are tallest/largest
       const scaleBase = 0.55;
       const scaleGrowth = 1.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
@@ -78,14 +75,12 @@ const ThreeSlideshowComponent = () => {
       const rotateY = normalizedFocus * -45;
 
       // Opacity: Fade out images as they exit the visible span
-      const opacityThreshold = 0.35;
       const fadeDist = visibleSpan - Math.abs(focus);
       const opacity = Math.min(1, fadeDist * 12);
 
       // Trapezoid Clip Path: Inner side (closer to center) is shorter, Outer side is taller
-      // This creates the "disturbed" joining effect requested
       let p1, p2, p3, p4, p5, p6, p7, p8;
-      const trapAmount = Math.abs(normalizedFocus) * 25; // How aggressive the trapezoid is
+      const trapAmount = Math.abs(normalizedFocus) * 25;
 
       if (normalizedFocus < 0) {
         // Left side: Outer (left) is taller than inner (right)
@@ -103,13 +98,12 @@ const ThreeSlideshowComponent = () => {
 
       const clipPath = `polygon(${p1}% ${p2}%, ${p3}% ${p4}%, ${p5}% ${p6}%, ${p7}% ${p8}%)`;
 
-      // Apply transformations directly to DOM for performance
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       card.style.zIndex = Math.round((1 - Math.abs(normalizedFocus)) * 100).toString();
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
-      card.style.margin = "0 1px"; // Joins images with a tight 2px total gap
+      card.style.margin = "0 1px"; 
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
@@ -155,7 +149,7 @@ const ThreeSlideshowComponent = () => {
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen bg-[#fdfaf5] overflow-hidden flex flex-col items-center justify-center py-20">
+    <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
       {/* Cinematic Header */}
       <div className="relative z-20 text-center mb-2 px-6">
         <p className="text-primary/40 font-bold text-[10px] uppercase tracking-[0.3em] mb-4">Behind the Designs</p>

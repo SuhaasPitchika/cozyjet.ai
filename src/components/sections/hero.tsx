@@ -67,6 +67,7 @@ export function Hero() {
       <div className="absolute inset-0 blue-glow pointer-events-none z-0" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-sky-400/10 blur-[120px] rounded-full pointer-events-none z-0" />
       <div className="absolute top-48 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/5 blur-[80px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none z-0" />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -84,8 +85,8 @@ export function Hero() {
 
       {/* Horizontal Timeline */}
       <div className="relative mt-48 w-full max-w-6xl mx-auto px-12 pb-32">
-        {/* Main Connector Line */}
-        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black -translate-y-1/2" />
+        {/* Main Connector Line - Passes exactly through center back of each icon */}
+        <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-black/80 -translate-y-1/2 z-0" />
         
         <div className="flex justify-between items-center relative z-10">
           {TIMELINE_NODES.map((node, i) => {
@@ -102,7 +103,7 @@ export function Hero() {
                 {/* Threaded Stable Note */}
                 <StableNote text={node.note} isTop={isTop} />
 
-                {/* Branded Logo Node */}
+                {/* Branded Logo Node - bg-white hides the line behind it */}
                 <div className="bg-white p-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:scale-110 cursor-pointer relative z-30">
                   <node.icon className="w-6 h-6" style={{ color: node.color }} />
                 </div>
