@@ -63,8 +63,10 @@ function StableNote({
 export function Hero() {
   return (
     <section className="relative min-h-[120vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
-      {/* Background Subtle Glow */}
-      <div className="absolute inset-0 blue-glow pointer-events-none" />
+      {/* Background Subtle Glow Layers */}
+      <div className="absolute inset-0 blue-glow pointer-events-none z-0" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-sky-400/10 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/5 blur-[80px] rounded-full pointer-events-none z-0" />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
