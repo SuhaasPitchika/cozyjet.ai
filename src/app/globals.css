@@ -50,6 +50,18 @@
   font-family: 'Press Start 2P', cursive;
 }
 
+.font-caveat {
+  font-family: 'Caveat', cursive;
+}
+
+.font-indie {
+  font-family: 'Indie Flower', cursive;
+}
+
+.font-gloria {
+  font-family: 'Gloria Hallelujah', cursive;
+}
+
 @keyframes grid-move-up {
   from {
     background-position: 0 0;
