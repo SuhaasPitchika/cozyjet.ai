@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -11,23 +11,22 @@ import * as THREE from "three";
 const SkippyModel = () => {
   const group = useRef<THREE.Group>(null!);
   useFrame((state) => {
-    group.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1;
+    if (group.current) {
+      group.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1;
+    }
   });
 
   return (
     <group ref={group}>
-      {/* Robot Head */}
       <Box args={[1.2, 1, 1]} position={[0, 0, 0]}>
         <meshStandardMaterial color="#C9B8FF" roughness={0.2} metalness={0.8} />
       </Box>
-      {/* Eyes */}
       <Sphere args={[0.15, 16, 16]} position={[-0.3, 0.1, 0.5]}>
         <meshBasicMaterial color="white" />
       </Sphere>
       <Sphere args={[0.15, 16, 16]} position={[0.3, 0.1, 0.5]}>
         <meshBasicMaterial color="white" />
       </Sphere>
-      {/* Antenna */}
       <Box args={[0.05, 0.5, 0.05]} position={[0, 0.6, 0]}>
         <meshStandardMaterial color="#A36BEE" />
       </Box>
@@ -41,8 +40,10 @@ const SkippyModel = () => {
 const FlippoModel = () => {
   const mesh = useRef<THREE.Mesh>(null!);
   useFrame((state) => {
-    mesh.current.rotation.x = state.clock.elapsedTime * 0.5;
-    mesh.current.rotation.y = state.clock.elapsedTime * 0.2;
+    if (mesh.current) {
+      mesh.current.rotation.x = state.clock.elapsedTime * 0.5;
+      mesh.current.rotation.y = state.clock.elapsedTime * 0.2;
+    }
   });
 
   return (
@@ -55,7 +56,9 @@ const FlippoModel = () => {
 const SnooksModel = () => {
   const mesh = useRef<THREE.Mesh>(null!);
   useFrame((state) => {
-    mesh.current.rotation.z = state.clock.elapsedTime * 0.5;
+    if (mesh.current) {
+      mesh.current.rotation.z = state.clock.elapsedTime * 0.5;
+    }
   });
 
   return (
@@ -93,6 +96,12 @@ const AGENTS = [
 ];
 
 function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -101,18 +110,22 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       
       <div 
-        className="w-full aspect-square rounded-2xl mb-6 relative overflow-hidden bg-black/40"
+        className="w-full aspect-square rounded-2xl mb-6 relative overflow-hidden bg-black/40 flex items-center justify-center"
       >
-        <Canvas shadow={false} dpr={[1, 2]}>
-          <PerspectiveCamera makeDefault position={[0, 0, 4]} />
-          <ambientLight intensity={1.5} />
-          <pointLight position={[10, 10, 10]} intensity={2} />
-          <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-          <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
-            <agent.Model />
-          </Float>
-          <Environment preset="city" />
-        </Canvas>
+        {mounted ? (
+          <Canvas shadow={false} dpr={[1, 2]}>
+            <PerspectiveCamera makeDefault position={[0, 0, 4]} />
+            <ambientLight intensity={1.5} />
+            <pointLight position={[10, 10, 10]} intensity={2} />
+            <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+            <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
+              <agent.Model />
+            </Float>
+            <Environment preset="city" />
+          </Canvas>
+        ) : (
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        )}
       </div>
 
       <h3 className="font-headline text-3xl font-bold mb-1">{agent.name}</h3>
