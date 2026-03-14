@@ -5,45 +5,35 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 330 100% 85%; /* Light Pink */
-    --primary-foreground: 0 0% 0%;
-    --secondary: 200 100% 90%; /* Light Blue */
-    --secondary-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 220 10% 20%; /* Dark Grey/Charcoal */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%; /* Very Light Blue */
+    --secondary-foreground: 0 0% 10%;
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 200 100% 90%;
-    --accent-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 210 100% 98%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 330 100% 85%;
-    --radius: 1rem;
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 220 10% 20%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 330 100% 85%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 200 100% 90%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 200 100% 90%;
-    --accent-foreground: 0 0% 0%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 330 100% 85%;
+    --background: 220 10% 5%;
+    --foreground: 0 0% 98%;
+    --card: 220 10% 10%;
+    --card-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 220 10% 10%;
+    --border: 220 10% 20%;
   }
 }
 
@@ -52,7 +42,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-pixel antialiased selection:bg-primary/30;
+    @apply bg-background text-foreground font-pixel antialiased selection:bg-blue-100;
   }
 }
 
@@ -63,60 +53,62 @@
 .hero-grid {
   background-color: #ffffff;
   background-image: radial-gradient(#e5e7eb 1.5px, transparent 0);
-  background-size: 40px 40px;
+  background-size: 32px 32px;
+}
+
+.blue-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 60%);
 }
 
 .sticky-note {
-  @apply bg-[#fff9c4] p-3 shadow-xl border border-[#fbc02d]/20 relative;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+  @apply bg-white p-4 shadow-sm border border-black/5 relative;
+  box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05);
   transform-style: preserve-3d;
 }
 
 .sticky-note-hole {
-  @apply absolute top-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/60 border border-black/5;
+  @apply absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-black/5 border border-black/10;
 }
 
 .neumorphic-card-light {
   background: #ffffff;
-  box-shadow: 6px 6px 12px #f0f0f0,
-             -6px -6px 12px #ffffff;
+  box-shadow: 4px 4px 10px #f3f4f6, -4px -4px 10px #ffffff;
   @apply rounded-xl;
 }
 
 .neumorphic-inset-light {
   background: #ffffff;
-  box-shadow: inset 3px 3px 6px #f0f0f0,
-              inset -3px -3px 6px #ffffff;
+  box-shadow: inset 2px 2px 5px #f3f4f6, inset -2px -2px 5px #ffffff;
   @apply rounded-xl;
 }
 
 @keyframes float-up-down {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-4px); }
 }
 
 .animate-float-note {
-  animation: float-up-down 4s ease-in-out infinite;
+  animation: float-up-down 6s ease-in-out infinite;
 }
 
 .wavy-thread {
-  stroke-dasharray: 4 2;
-  animation: dash 10s linear infinite;
+  stroke-dasharray: 2 4;
+  animation: dash 20s linear infinite;
 }
 
 @keyframes dash {
   to {
-    stroke-dashoffset: 20;
+    stroke-dashoffset: 100;
   }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-background;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/40 rounded-full hover:bg-primary/60 transition-colors;
+  @apply bg-black/10 rounded-full hover:bg-black/20 transition-colors;
 }

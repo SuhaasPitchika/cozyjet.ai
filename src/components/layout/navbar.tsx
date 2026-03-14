@@ -15,7 +15,7 @@ export function Navbar() {
       <motion.nav
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="glass-nav max-w-3xl w-full h-14 flex items-center justify-between px-6 rounded-full"
+        className="bg-white/80 backdrop-blur-md border border-black/5 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-sm"
       >
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
@@ -28,15 +28,15 @@ export function Navbar() {
               data-ai-hint="plane cloud"
             />
           </div>
-          <span className="font-pixel text-[12px] font-bold tracking-tighter text-foreground">
-            CozyJet<span className="text-primary">.AI</span>
+          <span className="font-pixel text-[10px] font-bold tracking-tighter text-black">
+            CozyJet.AI
           </span>
         </Link>
 
         <div className="flex items-center gap-4">
           <Button
             asChild
-            className="bg-primary text-white hover:bg-primary/90 px-6 h-9 rounded-full font-pixel text-[8px] shadow-lg shadow-primary/20 transition-all hover:scale-105"
+            className="bg-black text-white hover:bg-black/80 px-6 h-9 rounded-full font-pixel text-[8px] transition-all hover:scale-105"
           >
             <Link href="/auth">Explore</Link>
           </Button>
