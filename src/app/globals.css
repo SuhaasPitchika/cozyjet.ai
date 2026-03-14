@@ -68,7 +68,7 @@
 }
 
 .blue-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.25) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.2) 0%, transparent 70%);
 }
 
 .sticky-note {
