@@ -10,7 +10,7 @@ const IMAGES = PlaceHolderImages.filter((img) => img.id.startsWith("workspace"))
 
 // Configuration for the 3D Perspective Ribbon
 const CARD_WIDTH = 340; 
-const DEPTH_STRENGTH = 1200; 
+const DEPTH_STRENGTH = 1000; 
 const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
 
@@ -46,7 +46,7 @@ const ThreeSlideshowComponent = () => {
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
 
-      // Span of visibility across the perspective arc (9 images)
+      // Exactly 9 images visible (0.5 span / 9 * 2)
       const visibleSpan = 0.45; 
       const isVisible = Math.abs(focus) < visibleSpan;
 
@@ -59,74 +59,36 @@ const ThreeSlideshowComponent = () => {
       const normalizedFocus = focus / visibleSpan; 
       
       // Horizontal positioning - Spread factor ensures background is visible between images
-      const spreadFactor = 1.45;
+      const spreadFactor = 1.6;
       const x = focus * (window.innerWidth * spreadFactor);
       
       // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
       // Scaling: Center is small, Ends are zoomed but reduced to 3/4 of previous dramatic size
-      const scaleBase = 0.35;
-      const scaleGrowth = 0.8; // Adjusted to be 3/4 of the previous 1.15ish range
+      const scaleBase = 0.4;
+      const scaleGrowth = 0.45; // Reduced to 3/4 of previous range
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
-      const rotateY = normalizedFocus * -65;
+      const rotateY = normalizedFocus * -60;
 
-      // Visibility fade threshold
+      // Visibility fade threshold at the very edges of the visibility span
       const fadeDist = visibleSpan - Math.abs(focus);
-      const opacity = Math.min(1, fadeDist * 12);
-
-      // Trapezoid + GLOBAL U-Shaped Concave Cut Logic
-      // trapAmount handles the individual image perspective slant
-      const trapAmount = Math.abs(normalizedFocus) * 28;
-      
-      // curveDepth creates the mandatory global "U" indentation across the whole slideshow
-      // Higher value = more aggressive concave cut
-      const curveDepth = 22; 
-
-      let topL, topR, botL, botR;
-
-      if (normalizedFocus < 0) {
-        // Left side: Left edge (outer) is taller, Right edge (inner) is shorter
-        topL = 0;
-        topR = trapAmount;
-        botL = 100;
-        botR = 100 - trapAmount;
-      } else {
-        // Right side: Right edge (outer) is taller, Left edge (inner) is shorter
-        topL = trapAmount;
-        topR = 0;
-        botL = 100 - trapAmount;
-        botR = 100;
-      }
-
-      // 10-point polygon to approximate the global concave "U" shape
-      // The curve logic is applied relative to normalizedFocus so all images align to the same arc
-      const clipPath = `polygon(
-        0% ${topL}%, 
-        25% ${((topL + topR) / 2) + (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
-        50% ${((topL + topR) / 2) + (curveDepth * 1.5)}%, 
-        75% ${((topL + topR) / 2) + (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
-        100% ${topR}%, 
-        100% ${botR}%, 
-        75% ${((botL + botR) / 2) - (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
-        50% ${((botL + botR) / 2) - (curveDepth * 1.5)}%, 
-        25% ${((botL + botR) / 2) - (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
-        0% ${botL}%
-      )`;
+      const opacity = Math.min(1, fadeDist * 10);
 
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Z-Index: Ensure edge images sitting "forward" stay on top
+      // Z-Index: Edge images zooming "forward" sit on top of receding center ones
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
-      card.style.clipPath = clipPath;
       
-      // Background gap
-      card.style.margin = "0 8px";
+      // Individual images no longer have their own U-shaped clip path.
+      // They are instead rectangles being clipped by the global container.
+      card.style.clipPath = "none";
+      card.style.margin = "0"; 
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
@@ -190,13 +152,6 @@ const ThreeSlideshowComponent = () => {
         >
           Curious What Else<br />I&apos;ve Created?
         </motion.h2>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 0.5 }}
-          className="text-[14px] font-medium text-black/60 max-w-md mx-auto leading-relaxed mb-8"
-        >
-          Explore our latest architectural and digital prototypes through this seamless 3D elliptical ribbon.
-        </motion.p>
         
         <button className="group flex items-center gap-4 bg-black text-white px-10 py-5 rounded-full font-bold text-[10px] hover:scale-105 transition-all shadow-2xl mx-auto">
           See more Projects
@@ -206,13 +161,20 @@ const ThreeSlideshowComponent = () => {
         </button>
       </div>
 
-      {/* Full Screen 3D Perspective Stage */}
+      {/* 
+          Full Screen 3D Perspective Stage 
+          GLOBAL CONCAVE CLIP-PATH APPLIED HERE 
+          This polygon creates a U-shaped dip in the center (top and bottom)
+      */}
       <div 
         ref={containerRef}
-        className="relative w-full h-[65vh] flex items-center justify-center cursor-grab active:cursor-grabbing perspective-[2500px]"
+        className="relative w-full h-[65vh] flex items-center justify-center cursor-grab active:cursor-grabbing perspective-[2500px] overflow-hidden"
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
-        style={{ transformStyle: "preserve-3d" }}
+        style={{ 
+          transformStyle: "preserve-3d",
+          clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" 
+        }}
       >
         <div 
           className="relative w-full h-full flex items-center justify-center"
@@ -239,7 +201,6 @@ const ThreeSlideshowComponent = () => {
                 sizes="800px"
                 loading="lazy"
               />
-              {/* Specular Shine Overlay */}
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none opacity-40" />
             </div>
           ))}
@@ -261,16 +222,6 @@ const ThreeSlideshowComponent = () => {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Perspective Guide Lines (Subtle) */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02] z-0 flex items-center justify-center">
-        <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-          <line x1="0" y1="0" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
-          <line x1="1000" y1="0" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
-          <line x1="0" y1="1000" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
-          <line x1="1000" y1="1000" x2="500" y2="500" stroke="black" strokeWidth="0.5" />
-        </svg>
       </div>
     </section>
   );
