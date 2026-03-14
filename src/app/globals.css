@@ -24,7 +24,7 @@
     --border: 262 15% 22%;
     --input: 262 15% 22%;
     --ring: 266 79% 68%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 }
 
@@ -40,28 +40,52 @@
   }
 }
 
-.glass {
-  @apply bg-background/60 backdrop-blur-xl border border-white/10;
+.glass-nav {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.pixel-text {
+  font-family: 'Press Start 2P', cursive;
+  @apply tracking-tighter uppercase;
+}
+
+.neumorphic-card {
+  background: #231F2A;
+  box-shadow: 6px 6px 12px #1a171f,
+             -6px -6px 12px #2c2735;
+  @apply rounded-2xl;
+}
+
+.neumorphic-inset {
+  background: #231F2A;
+  box-shadow: inset 4px 4px 8px #1a171f,
+              inset -4px -4px 8px #2c2735;
+  @apply rounded-2xl;
 }
 
 .hero-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
-  background-size: 28px 28px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 32px 32px;
 }
 
-.neumeric-node {
-  @apply bg-[#231F2A] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.5),inset_-2px_-2px_5px_rgba(255,255,255,0.05),4px_4px_10px_rgba(0,0,0,0.3)];
+@keyframes type-blink {
+  from, to { border-color: transparent }
+  50% { border-color: hsl(var(--primary)) }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.animate-typewriter {
+  border-right: 3px solid;
+  animation: type-blink 1s step-end infinite;
 }
 
-.shimmer-text {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 8s infinite linear;
+@keyframes drift {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(5px, -5px); }
+  100% { transform: translate(0, 0); }
+}
+
+.animate-drift {
+  animation: drift 4s ease-in-out infinite;
 }
 
 /* Custom Scrollbar */
