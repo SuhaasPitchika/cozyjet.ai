@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,28 +31,23 @@ const Card = memo(({
 
   const absOffset = Math.abs(offset);
   
-  // REVERSE PERSPECTIVE LOGIC:
-  // Center (offset 0) is smallest (vanishing point)
-  // Edges grow significantly larger (zoom towards user)
+  // Base dimensions for full-screen feel
+  const baseWidth = isMobile ? 120 : 280;
+  const baseHeight = isMobile ? 180 : 420;
   
-  const baseWidth = isMobile ? 60 : 100;
-  const baseHeight = isMobile ? 80 : 140;
+  // Scale logic: Center is smallest (vanishing point), edges grow massive (zoom in)
+  // Center is ~0.4, Edges grow to ~1.8
+  const scale = 0.4 + (Math.pow(absOffset, 1.5) * (isMobile ? 0.3 : 0.45)); 
   
-  // Scale increases as we move away from the center (reverse parabolic)
-  // Center is ~0.5, Edges grow to ~2.2
-  const scale = 0.5 + (Math.pow(absOffset, 1.8) * (isMobile ? 0.15 : 0.25)); 
-  
-  // Rotation creates the "Trapezoid" shape via perspective projection
-  // Cards tilt inward toward the center vanishing point
-  const rotateY = offset * (isMobile ? -25 : -45);
+  // Rotation creates the inward trapezoid tilt
+  const rotateY = offset * (isMobile ? -20 : -35);
   
   // Tight 2px visual gap calculation
-  // We multiply by scale and account for the perspective tilt to keep them "joined"
-  const horizontalSpacing = (baseWidth * 0.8) + 2; 
+  const horizontalSpacing = (baseWidth * 0.7) + 2; 
   const x = offset * horizontalSpacing;
   
-  // Depth effect: Edge cards move forward aggressively (translateZ)
-  const translateZ = Math.pow(absOffset, 2.5) * (isMobile ? 40 : 80);
+  // Depth effect: Edge cards move forward aggressively towards the user
+  const translateZ = Math.pow(absOffset, 2.2) * (isMobile ? 100 : 250);
 
   // Hidden transition logic: fade out at the boundaries to hide the loop jump
   const fadeThreshold = (total / 2) - 0.5;
@@ -70,15 +66,15 @@ const Card = memo(({
       }}
       transition={{
         type: "spring",
-        stiffness: 120,
-        damping: 25,
-        mass: 0.8,
+        stiffness: 80,
+        damping: 20,
+        mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-white shadow-2xl border border-white/40 will-change-transform"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-white shadow-[0_0_50px_rgba(0,0,0,0.1)] border border-white/40 will-change-transform"
       style={{
         width: `${baseWidth}px`,
         height: `${baseHeight}px`,
-        perspective: "1200px",
+        perspective: "2000px",
         transformStyle: "preserve-3d",
         backfaceVisibility: "hidden",
       }}
@@ -89,11 +85,11 @@ const Card = memo(({
         fill
         priority={absOffset < 3}
         className="object-cover"
-        sizes="(max-width: 768px) 60px, 100px"
+        sizes="(max-width: 768px) 120px, 280px"
       />
       {/* Perspective Shading: edges are darker to emphasize the depth/tilt */}
       <motion.div 
-        animate={{ opacity: (absOffset / (total/2)) * 0.3 }}
+        animate={{ opacity: (absOffset / (total/2)) * 0.4 }}
         className="absolute inset-0 bg-black pointer-events-none" 
       />
     </motion.div>
@@ -117,39 +113,46 @@ export function ThreeSlideshow() {
 
   useEffect(() => {
     if (isPaused) return;
-    const interval = setInterval(nextSlide, 3000);
+    const interval = setInterval(nextSlide, 3500);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
   return (
-    <section className="relative pt-8 pb-16 bg-background flex flex-col items-center overflow-visible">
+    <section className="relative h-screen w-full bg-background flex flex-col items-center justify-center overflow-hidden">
+      {/* Perspective Guide Lines (Hidden triangle effect) */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] flex items-center justify-center z-0">
+          <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="0" y1="0" x2="500" y2="500" stroke="black" strokeWidth="2" />
+              <line x1="1000" y1="0" x2="500" y2="500" stroke="black" strokeWidth="2" />
+              <line x1="0" y1="1000" x2="500" y2="500" stroke="black" strokeWidth="2" />
+              <line x1="1000" y1="1000" x2="500" y2="500" stroke="black" strokeWidth="2" />
+              <line x1="500" y1="0" x2="500" y2="1000" stroke="black" strokeWidth="1" />
+              <line x1="0" y1="500" x2="1000" y2="500" stroke="black" strokeWidth="1" />
+          </svg>
+      </div>
+
       {/* Section Header */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-20 relative pointer-events-none">
+      <div className="absolute top-12 left-0 right-0 px-6 text-center z-20 pointer-events-none">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-xl md:text-3xl font-extrabold text-black leading-tight tracking-tighter font-headline uppercase"
+          className="text-2xl md:text-5xl font-extrabold text-black leading-tight tracking-tighter font-headline uppercase"
         >
-          Curious What Else<br />I've Created?
+          The Collective Vision
         </motion.h2>
+        <p className="font-pixel text-[10px] text-black/40 mt-2 uppercase tracking-[0.2em]">
+          Explore the immersive 3D workspace gallery
+        </p>
       </div>
 
       {/* 3D Perspective Gallery Container */}
       <div 
-        className="relative h-[300px] md:h-[450px] w-full mt-[-20px] md:mt-[-40px]"
+        className="relative w-full h-full flex-1 flex items-center justify-center"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        style={{ perspective: "2500px" }}
+        style={{ perspective: "3000px" }}
       >
-        {/* Subtle Perspective Guide Lines (Hidden triangle-like effect) */}
-        <div className="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
-            <svg width="100%" height="100%" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0L500 250L1000 0" stroke="black" strokeWidth="1" />
-                <path d="M0 500L500 250L1000 500" stroke="black" strokeWidth="1" />
-            </svg>
-        </div>
-
         <motion.div
           className="relative w-full h-full flex items-center justify-center"
           style={{ transformStyle: "preserve-3d" }}
@@ -166,11 +169,18 @@ export function ThreeSlideshow() {
         </motion.div>
       </div>
 
-      <div className="mt-8 flex gap-4 z-30">
-        <button onClick={prevSlide} className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:bg-black hover:text-white transition-colors">
+      {/* Controls */}
+      <div className="absolute bottom-12 flex gap-6 z-30">
+        <button 
+          onClick={prevSlide} 
+          className="w-12 h-12 rounded-full border border-black/10 flex items-center justify-center bg-white/50 backdrop-blur-md hover:bg-black hover:text-white transition-all hover:scale-110 active:scale-90"
+        >
             ←
         </button>
-        <button onClick={nextSlide} className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center hover:bg-black hover:text-white transition-colors">
+        <button 
+          onClick={nextSlide} 
+          className="w-12 h-12 rounded-full border border-black/10 flex items-center justify-center bg-white/50 backdrop-blur-md hover:bg-black hover:text-white transition-all hover:scale-110 active:scale-90"
+        >
             →
         </button>
       </div>
