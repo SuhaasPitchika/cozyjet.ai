@@ -50,10 +50,20 @@
   font-family: 'Press Start 2P', cursive;
 }
 
+@keyframes grid-move-up {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -32px;
+  }
+}
+
 .hero-grid {
   background-color: #ffffff;
   background-image: radial-gradient(#e5e7eb 1.5px, transparent 0);
   background-size: 32px 32px;
+  animation: grid-move-up 4s linear infinite;
 }
 
 .blue-glow {
