@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, useCallback, memo } from "react";
@@ -40,6 +41,7 @@ const ThreeSlideshowComponent = () => {
       let currentPos = (basePos + rotationRef.current) % 1;
       if (currentPos < 0) currentPos += 1;
 
+      // focus 0 is center, -0.5 is left, 0.5 is right
       let focus = currentPos - 0.5;
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
@@ -99,7 +101,8 @@ const ThreeSlideshowComponent = () => {
 
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
-      card.style.zIndex = Math.round((1 - Math.abs(normalizedFocus)) * 100).toString();
+      // Edges are "outwards" (closer), so they get higher z-index than the center
+      card.style.zIndex = Math.round(Math.abs(normalizedFocus) * 100).toString();
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
       
