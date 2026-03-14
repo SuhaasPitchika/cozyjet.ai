@@ -35,15 +35,17 @@ const Card = memo(({
   // Center (offset 0) is recessed and small. 
   // Ends (offset ±4) are largest and come forward.
   const scale = 1 + (absOffset * 0.18); 
-  const horizontalSpacing = isMobile ? 140 : 280;
+  const horizontalSpacing = isMobile ? 120 : 260;
   const x = offset * horizontalSpacing;
   
   // Fading logic: Hide the wrap-around "jump" by fading cards that are at the edge of the screen
-  const fadeThreshold = (total / 2) - 0.7;
+  // Since we show 9 images, we want the 5th card away to be invisible as it swaps
+  const fadeThreshold = (total / 2) - 0.5;
   const opacity = absOffset > fadeThreshold ? 0 : 1;
 
   // Depth effect using translateZ and z-index
-  const translateZ = absOffset * 100;
+  // Higher absOffset means closer to the camera
+  const translateZ = absOffset * 120;
 
   return (
     <motion.div
@@ -52,7 +54,7 @@ const Card = memo(({
         x,
         scale,
         opacity,
-        zIndex: Math.floor(10 + absOffset), // Outer cards overlap inner cards to show growth
+        zIndex: Math.floor(10 + absOffset), 
         translateZ,
       }}
       transition={{
@@ -77,7 +79,7 @@ const Card = memo(({
         sizes="(max-width: 768px) 140px, 260px"
       />
       {/* Subtle depth overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/15 pointer-events-none" />
     </motion.div>
   );
 });
@@ -110,14 +112,14 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative pt-0 pb-32 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
+    <section className="relative pt-0 pb-32 bg-[#fdfdfd] overflow-visible flex flex-col items-center">
       {/* Background Bluish Glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)] opacity-50" />
       </div>
 
-      {/* Header - Minimal Spacing */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-2 z-10">
+      {/* Header - Tightened Spacing */}
+      <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -128,9 +130,9 @@ export function ThreeSlideshow() {
         </motion.h2>
       </div>
 
-      {/* Slideshow Container */}
+      {/* Slideshow Container - Increased height to prevent clipping of scaled edge images */}
       <div 
-        className="relative h-[300px] md:h-[600px] w-full cursor-grab active:cursor-grabbing"
+        className="relative h-[450px] md:h-[850px] w-full cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -142,13 +144,13 @@ export function ThreeSlideshow() {
           className="relative w-full h-full flex items-center justify-center"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {CAROUSEL_IMAGES.map((img, i) => (
+          {CAROUSEL_IMAGES.slice(0, 9).map((img, i) => (
             <Card 
               key={img.id} 
               image={img} 
               index={i} 
               activeIndex={activeIndex} 
-              total={CAROUSEL_IMAGES.length} 
+              total={Math.min(CAROUSEL_IMAGES.length, 9)} 
             />
           ))}
         </motion.div>

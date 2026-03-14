@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -62,7 +63,7 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[50vh] flex flex-col items-center pt-48 pb-12 hero-grid overflow-hidden bg-white">
+    <section className="relative min-h-[50vh] flex flex-col items-center pt-48 pb-0 hero-grid overflow-hidden bg-white">
       {/* Background Bluish Glow */}
       <div className="absolute inset-0 blue-glow pointer-events-none" />
 
