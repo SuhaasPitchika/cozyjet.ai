@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "workspace-1",
+      "description": "Modern creative workspace with dual monitors and warm lighting",
+      "imageUrl": "https://picsum.photos/seed/ws1/800/600",
+      "imageHint": "creative workspace"
+    },
+    {
+      "id": "workspace-2",
+      "description": "Minimalist design studio with a large window and plants",
+      "imageUrl": "https://picsum.photos/seed/ws2/800/600",
+      "imageHint": "design studio"
+    },
+    {
+      "id": "workspace-3",
+      "description": "A close-up of a high-end camera on a desk",
+      "imageUrl": "https://picsum.photos/seed/ws3/800/600",
+      "imageHint": "vfx studio"
+    },
+    {
+      "id": "workspace-4",
+      "description": "Developer setup with mechanical keyboard and dark mode IDE",
+      "imageUrl": "https://picsum.photos/seed/ws4/800/600",
+      "imageHint": "coding setup"
+    },
+    {
+      "id": "workspace-5",
+      "description": "Video editing suite with a professional color grading monitor",
+      "imageUrl": "https://picsum.photos/seed/ws5/800/600",
+      "imageHint": "video editing"
+    },
+    {
+      "id": "agent-skippy",
+      "description": "Skippy agent character placeholder",
+      "imageUrl": "https://picsum.photos/seed/skippy/400/400",
+      "imageHint": "robot assistant"
+    },
+    {
+      "id": "agent-flippo",
+      "description": "Flippo agent character placeholder",
+      "imageUrl": "https://picsum.photos/seed/flippo/400/400",
+      "imageHint": "geometric shape"
+    },
+    {
+      "id": "agent-snooks",
+      "description": "Snooks agent character placeholder",
+      "imageUrl": "https://picsum.photos/seed/snooks/400/400",
+      "imageHint": "marketing expert"
+    }
+  ]
 }

@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/snooks-generate-marketing-content.ts';
+import '@/ai/flows/skippy-provide-contextual-assistance.ts';
+import '@/ai/flows/flippo-analyze-productivity.ts';
