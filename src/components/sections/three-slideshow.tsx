@@ -77,7 +77,6 @@ const ThreeSlideshowComponent = () => {
       const x = focus * (window.innerWidth * spreadFactor);
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Edge images are 3/4 size of their previous dramatic size
       const scaleBase = 0.4;
       const scaleGrowth = 0.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
@@ -148,28 +147,21 @@ const ThreeSlideshowComponent = () => {
   return (
     <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
       
-      <div className="relative z-20 text-center mb-12 px-6 max-w-3xl">
+      <div className="relative z-20 text-center px-6 max-w-4xl mb-12">
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="text-[#f97316] font-bold text-[13px] uppercase tracking-[0.4em] mb-4"
+          className="text-[#f97316] font-bold text-[13px] uppercase tracking-[0.4em] mb-4 font-pixel"
         >
           Behind the Designs
         </motion.p>
         <motion.h2 
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          className="text-[52px] md:text-[72px] font-extrabold text-black leading-none tracking-tighter font-headline mb-6 drop-shadow-sm"
+          className="text-[32px] md:text-[48px] font-extrabold text-black leading-tight tracking-tighter font-pixel drop-shadow-sm"
         >
           Curious What Else<br />I&apos;ve Created?
         </motion.h2>
-        
-        <button className="group flex items-center gap-4 bg-black text-white px-10 py-5 rounded-full font-bold text-[10px] hover:scale-105 transition-all shadow-2xl mx-auto">
-          See more Projects
-          <div className="w-6 h-6 bg-[#f97316] rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform">
-            <span className="text-white text-[10px]">→</span>
-          </div>
-        </button>
       </div>
 
       <div 
@@ -179,7 +171,6 @@ const ThreeSlideshowComponent = () => {
         onTouchStart={handleMouseDown}
         style={{ 
           transformStyle: "preserve-3d",
-          // Global U-Shaped Cut applied to the whole animation
           clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" 
         }}
       >
@@ -215,14 +206,12 @@ const ThreeSlideshowComponent = () => {
         </div>
       </div>
 
-      {/* Pixelated Morphing Animation Ticker */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20 h-24 flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStepIndex}
             className="text-center"
           >
-            {/* Pixelated Step ID */}
             <motion.span 
               className="text-[#f97316] font-bold text-[14px] font-pixel tracking-widest block mb-2"
               initial={{ opacity: 0, filter: "blur(4px)" }}
@@ -233,7 +222,6 @@ const ThreeSlideshowComponent = () => {
               {STEPS[currentStepIndex].id}
             </motion.span>
             
-            {/* Pixel Morphing Label */}
             <div className="flex justify-center overflow-hidden flex-wrap">
               {STEPS[currentStepIndex].label.split("").map((char, i) => (
                 <motion.span
