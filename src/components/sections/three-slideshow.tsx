@@ -46,8 +46,7 @@ const ThreeSlideshowComponent = () => {
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
 
-      // Span of visibility across the perspective arc
-      // Adjusted to ensure 9 images are visible (approx 0.45 visible span)
+      // Span of visibility across the perspective arc (9 images)
       const visibleSpan = 0.45; 
       const isVisible = Math.abs(focus) < visibleSpan;
 
@@ -60,16 +59,15 @@ const ThreeSlideshowComponent = () => {
       const normalizedFocus = focus / visibleSpan; 
       
       // Horizontal positioning - Spread factor ensures background is visible between images
-      const spreadFactor = 1.35;
+      const spreadFactor = 1.45;
       const x = focus * (window.innerWidth * spreadFactor);
       
       // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Ends are now 3/4 of previous size. 
-      // Prev Growth was 1.6, now adjusted to ~1.1 to satisfy "3/4 of current size" requirement
+      // Scaling: Center is small, Ends are zoomed but reduced to 3/4 of previous dramatic size
       const scaleBase = 0.35;
-      const scaleGrowth = 1.15; 
+      const scaleGrowth = 0.8; // Adjusted to be 3/4 of the previous 1.15ish range
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
       const rotateY = normalizedFocus * -65;
@@ -78,12 +76,13 @@ const ThreeSlideshowComponent = () => {
       const fadeDist = visibleSpan - Math.abs(focus);
       const opacity = Math.min(1, fadeDist * 12);
 
-      // Trapezoid + MANDATORY U-Shaped Concave Cut Logic
-      // trapAmount handles the perspective slant
+      // Trapezoid + GLOBAL U-Shaped Concave Cut Logic
+      // trapAmount handles the individual image perspective slant
       const trapAmount = Math.abs(normalizedFocus) * 28;
-      // curveDepth creates the mandatory "U" indentation at top and bottom
-      // Increased for a more pronounced "hidden cut" look
-      const curveDepth = 12; 
+      
+      // curveDepth creates the mandatory global "U" indentation across the whole slideshow
+      // Higher value = more aggressive concave cut
+      const curveDepth = 22; 
 
       let topL, topR, botL, botR;
 
@@ -101,33 +100,33 @@ const ThreeSlideshowComponent = () => {
         botR = 100;
       }
 
-      // 10-point polygon to approximate U-shaped curves at top and bottom
-      // This geometry creates the "concave" ribbon look requested
+      // 10-point polygon to approximate the global concave "U" shape
+      // The curve logic is applied relative to normalizedFocus so all images align to the same arc
       const clipPath = `polygon(
         0% ${topL}%, 
-        25% ${((topL + topR) / 2) + curveDepth}%, 
+        25% ${((topL + topR) / 2) + (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
         50% ${((topL + topR) / 2) + (curveDepth * 1.5)}%, 
-        75% ${((topL + topR) / 2) + curveDepth}%, 
+        75% ${((topL + topR) / 2) + (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
         100% ${topR}%, 
         100% ${botR}%, 
-        75% ${((botL + botR) / 2) - curveDepth}%, 
+        75% ${((botL + botR) / 2) - (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
         50% ${((botL + botR) / 2) - (curveDepth * 1.5)}%, 
-        25% ${((botL + botR) / 2) - curveDepth}%, 
+        25% ${((botL + botR) / 2) - (curveDepth * (1 - Math.abs(normalizedFocus * 0.5)))}%, 
         0% ${botL}%
       )`;
 
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Corrected Z-Index: Ensure images moving "forward" (at edges) stay on top
+      // Z-Index: Ensure edge images sitting "forward" stay on top
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
       
-      // Added safety margin to guarantee background visibility between images
-      card.style.margin = "0 6px";
+      // Background gap
+      card.style.margin = "0 8px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
