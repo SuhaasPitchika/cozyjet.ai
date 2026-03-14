@@ -15,7 +15,7 @@ export function Navbar() {
       <motion.nav
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white/30 backdrop-blur-2xl border border-white/40 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]"
+        className="bg-[#F0F9FF]/30 backdrop-blur-[32px] border border-white/60 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-[0_8px_32px_0_rgba(186,230,253,0.15)] ring-1 ring-white/20"
       >
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
@@ -29,7 +29,7 @@ export function Navbar() {
             />
           </div>
           <span className="font-pixel text-[10px] font-bold tracking-tighter text-black">
-            CozyJet.AI
+            CozyJet
           </span>
         </Link>
 
