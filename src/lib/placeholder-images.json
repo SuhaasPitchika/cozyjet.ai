@@ -37,6 +37,18 @@
       "imageHint": "video editing"
     },
     {
+      "id": "workspace-6",
+      "description": "Photography studio setup with softbox lighting",
+      "imageUrl": "https://picsum.photos/seed/ws6/800/600",
+      "imageHint": "photography studio"
+    },
+    {
+      "id": "workspace-7",
+      "description": "Architecture office with drawing boards and 3D models",
+      "imageUrl": "https://picsum.photos/seed/ws7/800/600",
+      "imageHint": "architecture office"
+    },
+    {
       "id": "agent-skippy",
       "description": "Skippy agent character placeholder",
       "imageUrl": "https://picsum.photos/seed/skippy/400/400",
