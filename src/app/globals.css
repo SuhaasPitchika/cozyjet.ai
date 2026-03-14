@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 33 40% 95%; /* Clean cream light skin tone */
+    --background: 35 30% 98%; /* Clean light cream skin tone */
     --foreground: 0 0% 10%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
@@ -61,13 +61,13 @@
 
 .hero-grid {
   @apply bg-background;
-  background-image: radial-gradient(#94a3b8 1.5px, transparent 0);
+  background-image: radial-gradient(#94a3b8 1px, transparent 0);
   background-size: 32px 32px;
-  animation: grid-move-up 1.5s linear infinite;
+  animation: grid-move-up 3s linear infinite;
 }
 
 .blue-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 70%);
 }
 
 .sticky-note {

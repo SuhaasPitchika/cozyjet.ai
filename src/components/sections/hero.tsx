@@ -62,8 +62,8 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[110vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
-      {/* Background Bluish Glow */}
+    <section className="relative min-h-[120vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
+      {/* Background Subtle Glow */}
       <div className="absolute inset-0 blue-glow pointer-events-none" />
 
       <motion.div
@@ -82,7 +82,7 @@ export function Hero() {
 
       {/* Horizontal Timeline */}
       <div className="relative mt-48 w-full max-w-6xl mx-auto px-12 pb-32">
-        {/* Main Connector Line - Solid Black */}
+        {/* Main Connector Line */}
         <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black -translate-y-1/2" />
         
         <div className="flex justify-between items-center relative z-10">
