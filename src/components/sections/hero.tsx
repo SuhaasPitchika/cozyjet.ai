@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -74,13 +75,11 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[100vh] flex flex-col items-center pt-64 pb-0 hero-grid overflow-hidden">
-      {/* Background Subtle Glow Layers */}
+    <section className="relative min-h-[85vh] flex flex-col items-center pt-48 pb-12 hero-grid overflow-hidden">
       <div className="absolute inset-0 blue-glow pointer-events-none z-0" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-sky-400/10 blur-[120px] rounded-full pointer-events-none z-0" />
       <div className="absolute top-48 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/5 blur-[80px] rounded-full pointer-events-none z-0" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none z-0" />
-
+      
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -95,11 +94,8 @@ export function Hero() {
         </p>
       </motion.div>
 
-      {/* Horizontal Timeline */}
-      <div className="relative mt-32 w-full max-w-6xl mx-auto px-12 pb-32">
-        {/* Sub-container for vertical centering logic */}
+      <div className="relative mt-24 w-full max-w-6xl mx-auto px-12 pb-24">
         <div className="relative flex items-center min-h-[64px]">
-          {/* Main Connector Line - Passes exactly through center back of each icon */}
           <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-black/80 -translate-y-1/2 z-0" />
           
           <div className="w-full flex justify-between items-center relative z-10">
@@ -114,15 +110,10 @@ export function Hero() {
                   transition={{ delay: i * 0.1 }}
                   className="flex flex-col items-center group relative"
                 >
-                  {/* Threaded Stable Note */}
                   <StableNote text={node.note} isTop={isTop} />
-
-                  {/* Branded Logo Node - bg-white hides the line behind it */}
                   <div className="bg-white p-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:scale-110 cursor-pointer relative z-30">
                     <node.icon className="w-6 h-6" style={{ color: node.color }} />
                   </div>
-                  
-                  {/* Tooltip Description */}
                   <div className={`absolute ${isTop ? 'top-[-45px]' : 'bottom-[-45px]'} opacity-0 group-hover:opacity-100 transition-opacity z-40 pointer-events-none`}>
                     <div className="bg-black text-white px-2 py-1 rounded-sm">
                       <p className="font-pixel text-[6px] whitespace-nowrap uppercase tracking-tighter">
