@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, useCallback, memo } from "react";
@@ -46,7 +45,7 @@ const ThreeSlideshowComponent = () => {
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
 
-      // Exactly 9 images visible (0.5 span / 9 * 2)
+      // Exactly 9 images visible
       const visibleSpan = 0.45; 
       const isVisible = Math.abs(focus) < visibleSpan;
 
@@ -65,28 +64,25 @@ const ThreeSlideshowComponent = () => {
       // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Center is small, Ends are zoomed but reduced to 3/4 of previous dramatic size
+      // Scaling: Center is small, Ends are zoomed 
       const scaleBase = 0.4;
-      const scaleGrowth = 0.45; // Reduced to 3/4 of previous range
+      const scaleGrowth = 0.45; 
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
       const rotateY = normalizedFocus * -60;
 
-      // Visibility fade threshold at the very edges of the visibility span
       const fadeDist = visibleSpan - Math.abs(focus);
       const opacity = Math.min(1, fadeDist * 10);
 
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Z-Index: Edge images zooming "forward" sit on top of receding center ones
+      // Z-Index: Edge images sit on top of receding center ones
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       
-      // Individual images no longer have their own U-shaped clip path.
-      // They are instead rectangles being clipped by the global container.
       card.style.clipPath = "none";
       card.style.margin = "0"; 
     });
@@ -136,7 +132,6 @@ const ThreeSlideshowComponent = () => {
   return (
     <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
       
-      {/* Cinematic Header */}
       <div className="relative z-20 text-center mb-12 px-6 max-w-3xl">
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
@@ -161,11 +156,6 @@ const ThreeSlideshowComponent = () => {
         </button>
       </div>
 
-      {/* 
-          Full Screen 3D Perspective Stage 
-          GLOBAL CONCAVE CLIP-PATH APPLIED HERE 
-          This polygon creates a U-shaped dip in the center (top and bottom)
-      */}
       <div 
         ref={containerRef}
         className="relative w-full h-[65vh] flex items-center justify-center cursor-grab active:cursor-grabbing perspective-[2500px] overflow-hidden"
@@ -209,12 +199,13 @@ const ThreeSlideshowComponent = () => {
 
       {/* Process Steps */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-8">
           {[
-            { id: "01", label: "Strategy & Planning" },
-            { id: "02", label: "Design & Development" },
-            { id: "03", label: "Launch & Growth" },
-            { id: "04", label: "Ongoing Support" },
+            { id: "01", label: "MARKETING CONTENT" },
+            { id: "02", label: "SOCIAL MEDIA GROWTH" },
+            { id: "03", label: "PRODUCTIVITY" },
+            { id: "04", label: "PERSONALIZABLE AI" },
+            { id: "05", label: "ONGOING SUPPORT" },
           ].map((step) => (
             <div key={step.id} className="text-center space-y-2">
               <span className="text-[#f97316] font-bold text-[12px] font-pixel tracking-widest">#{step.id}</span>
