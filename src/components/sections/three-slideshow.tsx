@@ -93,9 +93,10 @@ const ThreeSlideshowComponent = () => {
       card.style.zIndex = Math.round((1 - Math.abs(normalizedFocus)) * 100).toString();
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
-      // 3px gap achieved with 1.5px margin on each side
-      card.style.marginLeft = "1.5px";
-      card.style.marginRight = "1.5px";
+      
+      // Precise 1px gap achieved with 0.5px margin on each side
+      card.style.marginLeft = "0.5px";
+      card.style.marginRight = "0.5px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
