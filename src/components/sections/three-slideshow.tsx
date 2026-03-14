@@ -56,8 +56,7 @@ const ThreeSlideshowComponent = () => {
 
       const normalizedFocus = focus / visibleSpan; 
       
-      // Calculate horizontal spread to join edges with 1px gap
-      // The images join by calculating x as a function of their normalized position
+      // Calculate horizontal spread
       const x = focus * (window.innerWidth + CARD_WIDTH * 0.8);
       
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
@@ -94,9 +93,9 @@ const ThreeSlideshowComponent = () => {
       card.style.zIndex = Math.round((1 - Math.abs(normalizedFocus)) * 100).toString();
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
-      // 1px gap is ensured by the combination of absolute position x and margin
-      card.style.marginLeft = "0.5px";
-      card.style.marginRight = "0.5px";
+      // 3px gap achieved with 1.5px margin on each side
+      card.style.marginLeft = "1.5px";
+      card.style.marginRight = "1.5px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
@@ -144,29 +143,6 @@ const ThreeSlideshowComponent = () => {
   return (
     <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
       
-      {/* 3D Glassmorphic Background Elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <motion.div 
-          animate={{ 
-            y: [0, -20, 0],
-            rotate: [0, 10, 0],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[15%] left-[10%] w-64 h-64 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/20 shadow-2xl rotate-12"
-        />
-        <motion.div 
-          animate={{ 
-            y: [0, 30, 0],
-            rotate: [0, -15, 0],
-            scale: [1, 1.05, 1]
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[20%] right-[12%] w-80 h-80 bg-white/10 backdrop-blur-2xl rounded-full border border-white/20 shadow-inner"
-        />
-        <div className="absolute top-[40%] right-[5%] w-32 h-32 bg-primary/5 backdrop-blur-xl rounded-2xl border border-white/10 -rotate-45" />
-      </div>
-
       {/* Cinematic Header */}
       <div className="relative z-20 text-center mb-6 px-6 max-w-3xl">
         <motion.p 
@@ -227,7 +203,6 @@ const ThreeSlideshowComponent = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 pointer-events-none" />
               
-              {/* Internal Card Text Reflection */}
               <div className="absolute bottom-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
                  <p className="text-[10px] font-bold text-white uppercase tracking-widest">{img.description}</p>
               </div>
