@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -6,27 +5,30 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function Navbar() {
+  const logo = PlaceHolderImages.find(img => img.id === "cozyjetlogo");
+
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
       <motion.nav
-        initial={{ y: -100, opacity: 0 }}
+        initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="glass-nav max-w-4xl w-full h-16 flex items-center justify-between px-8 rounded-full"
+        className="glass-nav max-w-3xl w-full h-14 flex items-center justify-between px-6 rounded-full"
       >
-        <Link href="/" className="flex items-center gap-3">
-          <div className="relative w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
              <Image 
-              src="https://picsum.photos/seed/cozyjetlogo/100/100" 
+              src={logo?.imageUrl || "https://picsum.photos/seed/cozyjetlogo/100/100"} 
               alt="Logo" 
               width={32} 
               height={32}
-              className="object-cover"
+              className="object-contain"
               data-ai-hint="plane cloud"
             />
           </div>
-          <span className="font-headline text-xl font-bold tracking-tighter text-[#231F2A]">
+          <span className="font-pixel text-[12px] font-bold tracking-tighter text-foreground">
             CozyJet<span className="text-primary">.AI</span>
           </span>
         </Link>
@@ -34,9 +36,9 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <Button
             asChild
-            className="bg-primary text-white hover:bg-primary/90 px-8 rounded-full font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+            className="bg-primary text-white hover:bg-primary/90 px-6 h-9 rounded-full font-pixel text-[8px] shadow-lg shadow-primary/20 transition-all hover:scale-105"
           >
-            <Link href="/auth">Explore →</Link>
+            <Link href="/auth">Explore</Link>
           </Button>
         </div>
       </motion.nav>

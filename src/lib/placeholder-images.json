@@ -1,6 +1,12 @@
 {
   "placeholderImages": [
     {
+      "id": "cozyjetlogo",
+      "description": "A white airplane flying through a soft blue cloud with sparkles",
+      "imageUrl": "https://picsum.photos/seed/cozyjet-cloud-plane/400/400",
+      "imageHint": "plane cloud"
+    },
+    {
       "id": "workspace-1",
       "description": "Modern creative workspace with dual monitors and warm lighting",
       "imageUrl": "https://picsum.photos/seed/ws1/800/600",
