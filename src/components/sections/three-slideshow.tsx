@@ -66,10 +66,9 @@ const ThreeSlideshowComponent = () => {
       // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scale: Ends are 3/4 the current size. 
-      // Previous scaleGrowth was 1.6, now adjusted to ~1.1 for 3/4 reduction at peaks
+      // Reverted scale logic: Ends zoom forward significantly more for a deeper 3D feel
       const scaleBase = 0.35;
-      const scaleGrowth = 1.1; 
+      const scaleGrowth = 1.6; 
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
       const rotateY = normalizedFocus * -65;
@@ -81,7 +80,7 @@ const ThreeSlideshowComponent = () => {
       // Trapezoid + U-Shaped Concave Cut Logic
       // trapAmount handles the perspective slant
       const trapAmount = Math.abs(normalizedFocus) * 28;
-      // curveDepth creates the "U" indentation at top and bottom
+      // curveDepth creates the mandatory "U" indentation at top and bottom
       const curveDepth = 8; 
 
       let topL, topR, botL, botR;
@@ -101,6 +100,7 @@ const ThreeSlideshowComponent = () => {
       }
 
       // 10-point polygon to approximate U-shaped curves at top and bottom
+      // This geometry is maintained during all animation frames
       const clipPath = `polygon(
         0% ${topL}%, 
         25% ${((topL + topR) / 2) + curveDepth}%, 
