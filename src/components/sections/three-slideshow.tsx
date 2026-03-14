@@ -33,7 +33,7 @@ const ThreeSlideshowComponent = () => {
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  // Cycle through steps every 3 seconds
+  // Cycle through steps every 4 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentStepIndex((prev) => (prev + 1) % STEPS.length);
@@ -59,12 +59,10 @@ const ThreeSlideshowComponent = () => {
       let currentPos = (basePos + rotationRef.current) % 1;
       if (currentPos < 0) currentPos += 1;
 
-      // Focus: 0 is center, -0.5 is left, 0.5 is right
       let focus = currentPos - 0.5;
       if (focus > 0.5) focus -= 1;
       if (focus < -0.5) focus += 1;
 
-      // Exactly 9 images visible
       const visibleSpan = 0.45; 
       const isVisible = Math.abs(focus) < visibleSpan;
 
@@ -80,7 +78,7 @@ const ThreeSlideshowComponent = () => {
       const x = focus * (window.innerWidth * spreadFactor);
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Center is small, Ends are zoomed forward (3/4 of original dramatic scale)
+      // Scaling: Edge images are 3/4 of previous dramatic size
       const scaleBase = 0.4;
       const scaleGrowth = 0.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
@@ -93,13 +91,11 @@ const ThreeSlideshowComponent = () => {
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Z-Index: Edge images sit on top of receding center ones
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       
-      // Trapezoid Clipping for each image
       const tilt = Math.abs(normalizedFocus) * 15;
       card.style.clipPath = normalizedFocus > 0 
         ? `polygon(${tilt}% 0%, 100% 0%, 100% 100%, ${tilt}% 100%)`
@@ -220,39 +216,50 @@ const ThreeSlideshowComponent = () => {
         </div>
       </div>
 
-      {/* Animated Process Step Ticker */}
+      {/* Pixelated Typing Animation Ticker */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20 h-24 flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStepIndex}
-            initial={{ opacity: 0, y: 10, filter: "blur(8px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -10, filter: "blur(8px)" }}
-            transition={{ 
-              duration: 0.5, 
-              type: "spring", 
-              stiffness: 100 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0, 
+              filter: "blur(12px)", 
+              scale: 0.95,
+              transition: { duration: 0.2 } 
             }}
             className="text-center"
           >
             <motion.span 
               className="text-[#f97316] font-bold text-[14px] font-pixel tracking-widest block mb-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.3 }}
             >
               {STEPS[currentStepIndex].id}
             </motion.span>
-            <motion.h3
-              className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-headline"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {STEPS[currentStepIndex].label}
-            </motion.h3>
+            
+            <div className="flex justify-center overflow-hidden flex-wrap">
+              {STEPS[currentStepIndex].label.split("").map((char, i) => (
+                <motion.span
+                  key={i}
+                  initial={{ opacity: 0, x: -5, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ 
+                    delay: i * 0.04,
+                    duration: 0.15,
+                    ease: "easeOut"
+                  }}
+                  className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-headline inline-block whitespace-pre"
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </div>
+
             <motion.div 
-              className="w-full h-1 bg-primary/10 mt-2 relative overflow-hidden"
+              className="w-full max-w-xs mx-auto h-1 bg-primary/10 mt-4 relative overflow-hidden"
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
               transition={{ duration: 4, ease: "linear" }}
