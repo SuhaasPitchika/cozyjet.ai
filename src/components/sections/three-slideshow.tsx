@@ -31,24 +31,30 @@ const Card = memo(({
 
   const absOffset = Math.abs(offset);
   
-  // PERSPECTIVE LOGIC:
-  // Center (offset 0) is smallest and furthest (receded).
-  // Sides grow larger and rotate towards the viewer in trapezoid form.
-  const baseScale = isMobile ? 0.8 : 1.0;
-  const scale = baseScale + (absOffset * (isMobile ? 0.15 : 0.22)); 
-  const horizontalSpacing = isMobile ? 90 : 220;
+  // REVERSE PERSPECTIVE LOGIC:
+  // Center (offset 0) is smallest and furthest (receded rectangle).
+  // Sides grow larger (trapezoid) and move towards the viewer.
+  
+  const baseScale = isMobile ? 0.7 : 0.9;
+  // Scale increases as we move away from the center
+  const scale = baseScale + (absOffset * (isMobile ? 0.12 : 0.18)); 
+  
+  // Horizontal spacing
+  const horizontalSpacing = isMobile ? 70 : 180;
   const x = offset * horizontalSpacing;
   
   // Hide the wrap-around "jump" by fading cards that are at the edge
+  // This ensures the loop happens in a "hidden layer"
   const fadeThreshold = (total / 2) - 0.5;
   const opacity = absOffset > fadeThreshold ? 0 : 1;
 
   // Trapezoid effect using rotateY
-  // Left cards rotate positive Y, Right cards rotate negative Y
-  const rotateY = offset * (isMobile ? -8 : -15);
+  // Left cards rotate towards center, Right cards rotate towards center
+  // This creates the perspective drawing look
+  const rotateY = offset * (isMobile ? -10 : -22);
   
-  // Depth effect: move larger edge cards forward
-  const translateZ = absOffset * (isMobile ? 50 : 150);
+  // Depth effect: move larger edge cards forward (higher translateZ)
+  const translateZ = absOffset * (isMobile ? 60 : 180);
 
   return (
     <motion.div
@@ -59,19 +65,19 @@ const Card = memo(({
         opacity,
         rotateY,
         translateZ,
-        zIndex: Math.floor(10 + absOffset), 
+        zIndex: Math.floor(10 + absOffset), // Edge cards on top as they are closer
       }}
       transition={{
         type: "spring",
-        stiffness: 120,
-        damping: 25,
+        stiffness: 150,
+        damping: 30,
         mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[24px] overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/40 will-change-transform"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[12px] md:rounded-[24px] overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/40 will-change-transform"
       style={{
-        width: isMobile ? "120px" : "240px",
-        height: isMobile ? "180px" : "360px",
-        perspective: "1000px",
+        width: isMobile ? "110px" : "220px",
+        height: isMobile ? "160px" : "320px",
+        perspective: "1200px",
         transformStyle: "preserve-3d",
       }}
     >
@@ -79,12 +85,18 @@ const Card = memo(({
         src={image.imageUrl}
         alt={image.description}
         fill
-        priority={absOffset < 2}
+        priority={absOffset < 3}
         className="object-cover"
-        sizes="(max-width: 768px) 120px, 240px"
+        sizes="(max-width: 768px) 110px, 220px"
       />
       {/* Subtle vignette for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/20 pointer-events-none" />
+      
+      {/* Perspective Shading */}
+      <motion.div 
+        animate={{ opacity: absOffset * 0.1 }}
+        className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity" 
+      />
     </motion.div>
   );
 });
@@ -106,7 +118,7 @@ export function ThreeSlideshow() {
 
   useEffect(() => {
     if (isPaused) return;
-    const interval = setInterval(nextSlide, 3000);
+    const interval = setInterval(nextSlide, 3500);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
@@ -117,25 +129,25 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative pt-0 pb-20 bg-background overflow-visible flex flex-col items-center">
-      {/* Header */}
+    <section className="relative pt-0 pb-10 bg-background overflow-visible flex flex-col items-center">
+      {/* Header - Tightened Spacing */}
       <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10 relative">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-[52px] font-extrabold text-black leading-tight tracking-tighter font-headline"
+          className="text-3xl md:text-[52px] font-extrabold text-black leading-tight tracking-tighter font-headline"
         >
           Curious What Else<br />I've Created?
         </motion.h2>
       </div>
 
-      {/* Slideshow Container */}
+      {/* Slideshow Container - Height adjusted for zoomed edge cards */}
       <div 
-        className="relative h-[450px] md:h-[650px] w-full cursor-grab active:cursor-grabbing -mt-10"
+        className="relative h-[400px] md:h-[600px] w-full cursor-grab active:cursor-grabbing -mt-4 md:-mt-8"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        style={{ perspective: "1200px" }}
+        style={{ perspective: "1500px" }}
       >
         <motion.div
           drag="x"
@@ -145,13 +157,14 @@ export function ThreeSlideshow() {
           className="relative w-full h-full flex items-center justify-center"
           style={{ transformStyle: "preserve-3d" }}
         >
+          {/* Render 9 images in one view */}
           {CAROUSEL_IMAGES.slice(0, 9).map((img, i) => (
             <Card 
               key={img.id} 
               image={img} 
               index={i} 
               activeIndex={activeIndex} 
-              total={Math.min(CAROUSEL_IMAGES.length, 9)} 
+              total={9} 
             />
           ))}
         </motion.div>
