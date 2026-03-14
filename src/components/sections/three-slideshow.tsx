@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { motion, useSpring, useMotionValue } from "framer-motion";
+import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useIsMobile } from "@/hooks/use-mobile";
