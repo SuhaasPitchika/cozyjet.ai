@@ -64,9 +64,9 @@ const ThreeSlideshowComponent = () => {
       // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Center is small, Ends are zoomed 
+      // Scaling: Center is small, Ends are zoomed but scaled to 3/4 of previous dramatic size
       const scaleBase = 0.4;
-      const scaleGrowth = 0.45; 
+      const scaleGrowth = 0.35; // Reduced from 0.45 to match "3/4 size" request
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
       const rotateY = normalizedFocus * -60;
@@ -77,13 +77,18 @@ const ThreeSlideshowComponent = () => {
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Z-Index: Edge images sit on top of receding center ones
+      // Z-Index: Edge images sit on top of receding center ones (zooming forward)
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       
-      card.style.clipPath = "none";
+      // Isosceles Trapezoid Clipping for each image
+      const tilt = Math.abs(normalizedFocus) * 15;
+      card.style.clipPath = normalizedFocus > 0 
+        ? `polygon(${tilt}% 0%, 100% 0%, 100% 100%, ${tilt}% 100%)`
+        : `polygon(0% 0%, ${100 - tilt}% 0%, ${100 - tilt}% 100%, 0% 100%)`;
+      
       card.style.margin = "0"; 
     });
 
@@ -163,6 +168,7 @@ const ThreeSlideshowComponent = () => {
         onTouchStart={handleMouseDown}
         style={{ 
           transformStyle: "preserve-3d",
+          // Global U-Shaped Cut for the entire slideshow container
           clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" 
         }}
       >
@@ -201,11 +207,11 @@ const ThreeSlideshowComponent = () => {
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20">
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-8">
           {[
-            { id: "01", label: "MARKETING CONTENT" },
-            { id: "02", label: "SOCIAL MEDIA GROWTH" },
-            { id: "03", label: "PRODUCTIVITY" },
-            { id: "04", label: "PERSONALIZABLE AI" },
-            { id: "05", label: "ONGOING SUPPORT" },
+            { id: "01", label: "AD CONTENT" },
+            { id: "02", label: "SOCIAL GROWTH" },
+            { id: "03", label: "FLOW STATE" },
+            { id: "04", label: "TAILORED AI" },
+            { id: "05", label: "24/7 SUPPORT" },
           ].map((step) => (
             <div key={step.id} className="text-center space-y-2">
               <span className="text-[#f97316] font-bold text-[12px] font-pixel tracking-widest">#{step.id}</span>
