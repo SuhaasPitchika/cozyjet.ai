@@ -4,14 +4,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Youtube, Twitter, Mail, Instagram, Linkedin, Hash } from "lucide-react";
 
-const IDEAL_FOR = [
-  "YouTube Scripts",
-  "Cold Emails",
-  "SEO Blogs",
-  "X Threads",
-  "Deep Work"
-];
-
 const TIMELINE_NODES = [
   { icon: Youtube, label: "Scripts", func: "Viral Video Drafting", color: "#FF0000", note: "SCRIPTS" },
   { icon: Twitter, label: "Tweets", func: "Viral Hook Engine", color: "#1DA1F2", note: "TWEETS" },
@@ -48,11 +40,9 @@ function WavyThread({ height, isTop }: { height: number; isTop: boolean }) {
 function StableNote({ 
   text, 
   isTop, 
-  index 
 }: { 
   text: string; 
   isTop: boolean; 
-  index: number;
 }) {
   return (
     <div
@@ -72,7 +62,7 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[70vh] flex flex-col items-center pt-32 pb-24 px-6 hero-grid overflow-hidden bg-white">
+    <section className="relative min-h-[60vh] flex flex-col items-center pt-32 pb-24 px-6 hero-grid overflow-hidden bg-white">
       {/* Background Bluish Glow */}
       <div className="absolute inset-0 blue-glow pointer-events-none" />
 
@@ -82,21 +72,12 @@ export function Hero() {
         transition={{ duration: 0.8 }}
         className="text-center max-w-5xl mx-auto z-10"
       >
-        <h1 className="font-pixel text-xl md:text-3xl font-bold mb-8 text-black tracking-tight uppercase">
+        <h1 className="font-pixel text-xl md:text-3xl font-bold mb-4 text-black tracking-tight uppercase">
           AI AGENTIC MARKETING STUDIO
         </h1>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 text-[8px] font-pixel text-black/40 uppercase tracking-widest">
-          <span>IDEAL FOR</span>
-          <div className="flex gap-4">
-            {IDEAL_FOR.map((item, i) => (
-              <span key={item} className="text-black/30">
-                {item}
-                {i < IDEAL_FOR.length - 1 && <span className="ml-4 opacity-10">/</span>}
-              </span>
-            ))}
-          </div>
-        </div>
+        <p className="font-pixel text-[10px] text-black/40 uppercase tracking-widest">
+          The future of autonomous content creation.
+        </p>
       </motion.div>
 
       {/* Horizontal Timeline */}
@@ -117,7 +98,7 @@ export function Hero() {
                 className="flex flex-col items-center group relative"
               >
                 {/* Threaded Stable Note */}
-                <StableNote text={node.note} isTop={isTop} index={i} />
+                <StableNote text={node.note} isTop={isTop} />
 
                 {/* Branded Logo Node */}
                 <div className="bg-white p-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:scale-110 cursor-pointer relative z-30">
