@@ -77,6 +77,12 @@
       "description": "Snooks agent character placeholder",
       "imageUrl": "https://picsum.photos/seed/snooks/400/400",
       "imageHint": "marketing expert"
+    },
+    {
+      "id": "testimonial-bg",
+      "description": "Cinematic sky with soft blue clouds and a shooting star",
+      "imageUrl": "https://picsum.photos/seed/sky-zenith/1920/1080",
+      "imageHint": "starry sky"
     }
   ]
 }
