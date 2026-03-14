@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export function Footer() {
   return (
-    <footer className="bg-black pt-32 pb-12 px-6 overflow-hidden">
+    <footer className="bg-black pt-48 pb-20 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         
         <div className="flex flex-wrap justify-center gap-8 mb-20">
@@ -18,7 +17,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="flex gap-4 mb-32">
+        <div className="flex gap-4 mb-40">
           <Button variant="outline" className="rounded-full px-8 py-6 border-white/10 hover:bg-white hover:text-black">
             Log In
           </Button>
@@ -47,7 +46,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 flex flex-col md:flex-row justify-between w-full border-t border-white/5 pt-8 text-white/20 text-xs">
+        <div className="mt-24 flex flex-col md:flex-row justify-between w-full border-t border-white/5 pt-8 text-white/20 text-xs">
           <p>© 2024 CozyJet.AI Systems Inc.</p>
           <p className="mt-4 md:mt-0 italic">"The screen is alive, and so are we."</p>
         </div>

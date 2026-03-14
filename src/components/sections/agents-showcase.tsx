@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -83,7 +82,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
 
 export function AgentsShowcase() {
   return (
-    <section id="agents" className="py-32 px-6 bg-black relative overflow-hidden">
+    <section id="agents" className="py-48 px-6 bg-black relative overflow-hidden">
       {/* Background Particles Placeholder */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary rounded-full blur-[120px]" />
@@ -91,7 +90,7 @@ export function AgentsShowcase() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-20">
+        <div className="text-center mb-24">
           <h2 className="font-headline text-5xl md:text-7xl font-bold mb-6">Meet Your New <br /><span className="text-primary">Autonomous Team</span></h2>
           <p className="text-foreground/60 max-w-2xl mx-auto">Three specialized AI entities working in perfect harmony to handle everything from your focus sessions to your viral marketing.</p>
         </div>

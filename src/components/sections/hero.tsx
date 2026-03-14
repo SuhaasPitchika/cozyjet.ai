@@ -62,7 +62,7 @@ function StableNote({
 
 export function Hero() {
   return (
-    <section className="relative min-h-[50vh] flex flex-col items-center pt-32 pb-20 hero-grid overflow-hidden bg-white">
+    <section className="relative min-h-[60vh] flex flex-col items-center pt-48 pb-32 hero-grid overflow-hidden bg-white">
       {/* Background Bluish Glow */}
       <div className="absolute inset-0 blue-glow pointer-events-none" />
 
@@ -72,7 +72,7 @@ export function Hero() {
         transition={{ duration: 0.8 }}
         className="text-center max-w-5xl mx-auto z-10"
       >
-        <h1 className="font-pixel text-xl md:text-3xl font-bold mb-4 text-black tracking-tight uppercase">
+        <h1 className="font-pixel text-xl md:text-3xl font-bold mb-6 text-black tracking-tight uppercase">
           AI AGENTIC MARKETING STUDIO
         </h1>
         <p className="font-pixel text-[10px] text-black/40 uppercase tracking-widest">
@@ -81,7 +81,7 @@ export function Hero() {
       </motion.div>
 
       {/* Horizontal Timeline */}
-      <div className="relative mt-32 w-full max-w-6xl mx-auto px-12">
+      <div className="relative mt-48 w-full max-w-6xl mx-auto px-12">
         {/* Main Connector Line - Solid Black */}
         <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-black -translate-y-1/2" />
         
