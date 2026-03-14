@@ -117,7 +117,7 @@ export function ThreeSlideshow() {
       </div>
 
       {/* Header - Minimal Spacing */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-8 z-10">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-2 z-10">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
