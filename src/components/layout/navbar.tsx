@@ -15,7 +15,7 @@ export function Navbar() {
       <motion.nav
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white/80 backdrop-blur-md border border-black/5 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-sm"
+        className="bg-white/70 backdrop-blur-xl border border-black/5 max-w-2xl w-full h-14 flex items-center justify-between px-6 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
       >
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
@@ -36,7 +36,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <Button
             asChild
-            className="bg-black text-white hover:bg-black/80 px-6 h-9 rounded-full font-pixel text-[8px] transition-all hover:scale-105"
+            className="bg-black text-white hover:bg-black/90 px-6 h-9 rounded-full font-pixel text-[8px] transition-all hover:scale-105"
           >
             <Link href="/auth">Explore</Link>
           </Button>

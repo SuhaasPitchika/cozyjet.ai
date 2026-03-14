@@ -10,9 +10,9 @@
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
-    --primary: 220 10% 20%; /* Dark Grey/Charcoal */
+    --primary: 220 10% 20%; 
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%; /* Very Light Blue */
+    --secondary: 210 40% 96%; 
     --secondary-foreground: 0 0% 10%;
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
@@ -39,10 +39,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border font-pixel;
   }
   body {
-    @apply bg-background text-foreground font-pixel antialiased selection:bg-blue-100;
+    @apply bg-background text-foreground font-pixel antialiased;
   }
 }
 
@@ -57,49 +57,26 @@
 }
 
 .blue-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 60%);
+  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.25) 0%, transparent 70%);
 }
 
 .sticky-note {
-  @apply bg-white p-4 shadow-sm border border-black/5 relative;
-  box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05);
-  transform-style: preserve-3d;
+  @apply bg-white p-2 shadow-sm border border-black/10 relative;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.05);
 }
 
 .sticky-note-hole {
-  @apply absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-black/5 border border-black/10;
-}
-
-.neumorphic-card-light {
-  background: #ffffff;
-  box-shadow: 4px 4px 10px #f3f4f6, -4px -4px 10px #ffffff;
-  @apply rounded-xl;
-}
-
-.neumorphic-inset-light {
-  background: #ffffff;
-  box-shadow: inset 2px 2px 5px #f3f4f6, inset -2px -2px 5px #ffffff;
-  @apply rounded-xl;
-}
-
-@keyframes float-up-down {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.animate-float-note {
-  animation: float-up-down 6s ease-in-out infinite;
-}
-
-.wavy-thread {
-  stroke-dasharray: 2 4;
-  animation: dash 20s linear infinite;
+  @apply absolute top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black/5 border border-black/10;
 }
 
 @keyframes dash {
   to {
     stroke-dashoffset: 100;
   }
+}
+
+.wavy-thread {
+  animation: dash 20s linear infinite;
 }
 
 /* Custom Scrollbar */
