@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
@@ -104,14 +103,14 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative py-48 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
+    <section className="relative pt-12 pb-32 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
       {/* Background Glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.1)_0%,transparent_60%)]" />
       </div>
 
       {/* Header - Only Title */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-24 z-10">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-12 z-10">
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
