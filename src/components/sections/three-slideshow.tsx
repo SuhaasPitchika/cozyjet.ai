@@ -39,12 +39,10 @@ const Card = memo(({
   const x = offset * horizontalSpacing;
   
   // Fading logic: Hide the wrap-around "jump" by fading cards that are at the edge of the screen
-  // Since we show 9 images, we want the 5th card away to be invisible as it swaps
   const fadeThreshold = (total / 2) - 0.5;
   const opacity = absOffset > fadeThreshold ? 0 : 1;
 
   // Depth effect using translateZ and z-index
-  // Higher absOffset means closer to the camera
   const translateZ = absOffset * 120;
 
   return (
@@ -118,8 +116,8 @@ export function ThreeSlideshow() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)] opacity-50" />
       </div>
 
-      {/* Header - Tightened Spacing */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto px-6 text-center mb-0 z-10 relative">
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -130,9 +128,9 @@ export function ThreeSlideshow() {
         </motion.h2>
       </div>
 
-      {/* Slideshow Container - Increased height to prevent clipping of scaled edge images */}
+      {/* Slideshow Container - Reduced height and negative margin to tighten space */}
       <div 
-        className="relative h-[450px] md:h-[850px] w-full cursor-grab active:cursor-grabbing"
+        className="relative h-[400px] md:h-[650px] w-full cursor-grab active:cursor-grabbing md:-mt-12 -mt-8"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
