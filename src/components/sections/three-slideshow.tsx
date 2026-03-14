@@ -94,9 +94,9 @@ const ThreeSlideshowComponent = () => {
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
       
-      // Precise 1px gap achieved with 0.5px margin on each side
-      card.style.marginLeft = "0.5px";
-      card.style.marginRight = "0.5px";
+      // Remove any explicit margins to allow seamless joining
+      card.style.marginLeft = "0px";
+      card.style.marginRight = "0px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
