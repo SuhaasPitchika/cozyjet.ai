@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 33 30% 98%; /* Light cream skin tone */
     --foreground: 0 0% 10%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
@@ -60,7 +60,7 @@
 }
 
 .hero-grid {
-  background-color: #ffffff;
+  @apply bg-background;
   background-image: radial-gradient(#94a3b8 1.5px, transparent 0);
   background-size: 32px 32px;
   animation: grid-move-up 1.5s linear infinite;

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
@@ -110,7 +109,7 @@ export function ThreeSlideshow() {
   };
 
   return (
-    <section className="relative pt-0 pb-32 bg-[#fdfdfd] overflow-visible flex flex-col items-center">
+    <section className="relative pt-0 pb-32 bg-background overflow-visible flex flex-col items-center">
       {/* Background Bluish Glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)] opacity-50" />
