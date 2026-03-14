@@ -150,13 +150,6 @@ export function AgentsShowcase() {
   const glowX = useSpring(mouseX, springConfig);
   const glowY = useSpring(mouseY, springConfig);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.top - rect.top); // Correction for local positioning within the heading group
-  };
-
-  // Improved coordinate tracking for the Wegic-style glow
   const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - rect.left);
@@ -165,9 +158,10 @@ export function AgentsShowcase() {
 
   return (
     <section id="agents" className="py-48 px-6 bg-black relative overflow-hidden">
+      {/* Whiteish background ambient lighting */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[140px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -176,19 +170,19 @@ export function AgentsShowcase() {
             onMouseMove={handleContainerMouseMove}
             className="relative group inline-block p-10 cursor-default"
           >
-            {/* Wegic-style dynamic light glow */}
+            {/* Wegic-style dynamic light glow (Whiteish) */}
             <motion.div
               style={{
                 left: glowX,
                 top: glowY,
-                background: "radial-gradient(circle, rgba(163,107,238,0.35) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
               }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
             />
             
-            <h2 className="font-pixel text-4xl md:text-6xl lg:text-7xl font-bold mb-8 relative z-10 leading-[1.15] tracking-tight">
+            <h2 className="font-pixel text-4xl md:text-6xl lg:text-7xl font-bold mb-8 relative z-10 leading-[1.15] tracking-tight text-white">
               Meet Your New <br />
-              <span className="text-primary drop-shadow-[0_0_15px_rgba(163,107,238,0.3)]">Autonomous Team</span>
+              <span className="text-[#f2e8d5] drop-shadow-[0_0_20px_rgba(242,232,213,0.3)]">Autonomous Team</span>
             </h2>
           </motion.div>
           
