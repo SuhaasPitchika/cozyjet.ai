@@ -1,19 +1,23 @@
 
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function ThreeSlideshow() {
   const containerRef = useRef<HTMLDivElement>(null);
   const images = PlaceHolderImages.filter(img => img.id.startsWith("workspace")).slice(0, 5);
+  
+  // State for interaction
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || images.length === 0) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    // Soft white background with a hint of blue glow handled by CSS
+    scene.background = null; 
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / 800, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -26,12 +30,11 @@ export function ThreeSlideshow() {
     const group = new THREE.Group();
     scene.add(group);
 
-    const planeWidth = 6;
-    const planeHeight = 8;
+    const planeWidth = 7;
+    const planeHeight = 9;
+    const radius = 12; // Radius of the circular loop
     const items: THREE.Mesh[] = [];
 
-    // Create more items for seamless looping if needed, 
-    // but for 5 images with 3s steps, we can just manage indices.
     images.forEach((img, i) => {
       const texture = textureLoader.load(img.imageUrl);
       const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
@@ -45,39 +48,37 @@ export function ThreeSlideshow() {
       items.push(mesh);
     });
 
-    camera.position.z = 18;
+    camera.position.z = 20;
 
-    let targetIndex = 0;
-    let currentIndex = 0;
+    let rotationAngle = 0;
+    let targetRotationAngle = 0;
+    let isUserInteracting = false;
+    let startX = 0;
+    let startRotation = 0;
 
+    // Animation Loop
     const animate = () => {
       requestAnimationFrame(animate);
       
-      // Smooth movement towards the target index
-      currentIndex += (targetIndex - currentIndex) * 0.04;
+      // Smooth interpolation
+      rotationAngle += (targetRotationAngle - rotationAngle) * 0.05;
 
       items.forEach((mesh, i) => {
-        // Handle looping logic for offset
-        let offset = i - currentIndex;
+        // Calculate position on a circle
+        const angle = (i / items.length) * Math.PI * 2 + rotationAngle;
         
-        // Wrapped offset to ensure seamless looping visuals
-        const halfLength = items.length / 2;
-        if (offset > halfLength) offset -= items.length;
-        if (offset < -halfLength) offset += items.length;
-        
-        // No gap: step matches width
-        mesh.position.x = offset * planeWidth;
-        
-        // Depth curve: converge toward the center
-        mesh.position.z = -Math.abs(offset) * 3;
+        mesh.position.x = Math.sin(angle) * radius;
+        mesh.position.z = Math.cos(angle) * radius - radius; // Pull back so it's in front of camera
 
-        // Height scaling: "end pic being longer in height and decreasing till middle"
-        // Middle (offset near 0) should be smaller, Ends (offset large) should be taller
-        const heightScale = 0.8 + Math.abs(offset) * 0.5;
+        // Face the center/camera
+        mesh.lookAt(new THREE.Vector3(0, 0, -radius));
+
+        // Height scaling: taller at the ends (sides), shorter in the middle (center)
+        // Center is when Math.sin(angle) is near 0. 
+        // Sides are when Math.abs(Math.sin(angle)) is high.
+        const lateralOffset = Math.abs(Math.sin(angle));
+        const heightScale = 0.7 + lateralOffset * 0.6; 
         mesh.scale.set(1, heightScale, 1);
-        
-        // Subtle rotation inward for perspective
-        mesh.rotation.y = -offset * 0.15;
       });
 
       renderer.render(scene, camera);
@@ -85,10 +86,46 @@ export function ThreeSlideshow() {
 
     animate();
 
-    // Auto-step logic: move to next image every 3 seconds
+    // Interaction Handlers
+    const onStart = (x: number) => {
+      isUserInteracting = true;
+      setIsDragging(true);
+      startX = x;
+      startRotation = targetRotationAngle;
+    };
+
+    const onMove = (x: number) => {
+      if (!isUserInteracting) return;
+      const dx = x - startX;
+      targetRotationAngle = startRotation + (dx * 0.005);
+    };
+
+    const onEnd = () => {
+      isUserInteracting = false;
+      setIsDragging(false);
+    };
+
+    const handleMouseDown = (e: MouseEvent) => onStart(e.clientX);
+    const handleMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const handleMouseUp = () => onEnd();
+
+    const handleTouchStart = (e: TouchEvent) => onStart(e.touches[0].clientX);
+    const handleTouchMove = (e: TouchEvent) => onMove(e.touches[0].clientX);
+    const handleTouchEnd = () => onEnd();
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    // Auto-step logic
     const interval = setInterval(() => {
-      targetIndex = (targetIndex + 1) % items.length;
-    }, 3000);
+      if (!isUserInteracting) {
+        targetRotationAngle -= (Math.PI * 2) / items.length;
+      }
+    }, 4000);
 
     const handleResize = () => {
       camera.aspect = window.innerWidth / 800;
@@ -97,8 +134,15 @@ export function ThreeSlideshow() {
     };
 
     window.addEventListener('resize', handleResize);
+    
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
       clearInterval(interval);
       renderer.dispose();
       if (containerRef.current) {
@@ -108,16 +152,24 @@ export function ThreeSlideshow() {
   }, [images]);
 
   return (
-    <div className="relative w-full py-32 bg-white overflow-hidden border-y border-black/5">
+    <div className="relative w-full py-48 bg-white overflow-hidden border-y border-black/5">
+      {/* Background Blue Glow */}
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-sky-100 rounded-full blur-[160px]" />
+      </div>
+
       {/* Header Section */}
-      <div className="text-center mb-8 px-6">
+      <div className="relative z-10 text-center mb-16 px-6">
         <h2 className="font-pixel text-2xl md:text-4xl font-bold text-black tracking-tighter uppercase">
           Curious What Else I've Created?
         </h2>
       </div>
 
-      {/* 3D Container - Increased height */}
-      <div ref={containerRef} className="w-full h-[800px] flex items-center justify-center cursor-grab active:cursor-grabbing" />
+      {/* 3D Container */}
+      <div 
+        ref={containerRef} 
+        className={`relative z-20 w-full h-[800px] flex items-center justify-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+      />
     </div>
   );
 }
