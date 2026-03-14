@@ -1,8 +1,9 @@
+
 "use client";
 
-import React, { useRef, useEffect, useCallback, memo } from "react";
+import React, { useRef, useEffect, useCallback, memo, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const IMAGES = PlaceHolderImages.filter((img) => img.id.startsWith("workspace")).slice(0, 12);
@@ -13,6 +14,14 @@ const DEPTH_STRENGTH = 1000;
 const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
 
+const STEPS = [
+  { id: "#01", label: "MARKETING CONTENT" },
+  { id: "#02", label: "SOCIAL MEDIA GROWTH" },
+  { id: "#03", label: "PRODUCTIVITY" },
+  { id: "#04", label: "ON SCREEN SUPPORT" },
+  { id: "#05", label: "AGENTIC PERSONAL AI" },
+];
+
 const ThreeSlideshowComponent = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -21,6 +30,16 @@ const ThreeSlideshowComponent = () => {
   const isDraggingRef = useRef(false);
   const lastMouseXRef = useRef(0);
   const rafIdRef = useRef<number>(0);
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  // Cycle through steps every 3 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentStepIndex((prev) => (prev + 1) % STEPS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   const updateCards = useCallback(() => {
     if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.0001) {
@@ -57,16 +76,13 @@ const ThreeSlideshowComponent = () => {
 
       const normalizedFocus = focus / visibleSpan; 
       
-      // Horizontal positioning - Spread factor ensures background is visible between images
       const spreadFactor = 1.6;
       const x = focus * (window.innerWidth * spreadFactor);
-      
-      // Z-depth: Center is farthest, Ends are closest
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Center is small, Ends are zoomed but scaled to 3/4 of previous dramatic size
+      // Scaling: Center is small, Ends are zoomed forward (3/4 of original dramatic scale)
       const scaleBase = 0.4;
-      const scaleGrowth = 0.35; // Reduced from 0.45 to match "3/4 size" request
+      const scaleGrowth = 0.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
       
       const rotateY = normalizedFocus * -60;
@@ -77,13 +93,13 @@ const ThreeSlideshowComponent = () => {
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       
-      // Z-Index: Edge images sit on top of receding center ones (zooming forward)
+      // Z-Index: Edge images sit on top of receding center ones
       const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
       card.style.zIndex = zIndexValue.toString();
       
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       
-      // Isosceles Trapezoid Clipping for each image
+      // Trapezoid Clipping for each image
       const tilt = Math.abs(normalizedFocus) * 15;
       card.style.clipPath = normalizedFocus > 0 
         ? `polygon(${tilt}% 0%, 100% 0%, 100% 100%, ${tilt}% 100%)`
@@ -196,6 +212,7 @@ const ThreeSlideshowComponent = () => {
                 className="object-cover brightness-90 hover:brightness-100 transition-all duration-500"
                 sizes="800px"
                 loading="lazy"
+                data-ai-hint={img.imageHint}
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none opacity-40" />
             </div>
@@ -203,22 +220,47 @@ const ThreeSlideshowComponent = () => {
         </div>
       </div>
 
-      {/* Process Steps */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20">
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-8">
-          {[
-            { id: "01", label: "AD CONTENT" },
-            { id: "02", label: "SOCIAL GROWTH" },
-            { id: "03", label: "FLOW STATE" },
-            { id: "04", label: "TAILORED AI" },
-            { id: "05", label: "24/7 SUPPORT" },
-          ].map((step) => (
-            <div key={step.id} className="text-center space-y-2">
-              <span className="text-[#f97316] font-bold text-[12px] font-pixel tracking-widest">#{step.id}</span>
-              <p className="text-black/60 font-medium text-[13px] uppercase tracking-tighter">{step.label}</p>
-            </div>
-          ))}
-        </div>
+      {/* Animated Process Step Ticker */}
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20 h-24 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStepIndex}
+            initial={{ opacity: 0, y: 10, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(8px)" }}
+            transition={{ 
+              duration: 0.5, 
+              type: "spring", 
+              stiffness: 100 
+            }}
+            className="text-center"
+          >
+            <motion.span 
+              className="text-[#f97316] font-bold text-[14px] font-pixel tracking-widest block mb-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {STEPS[currentStepIndex].id}
+            </motion.span>
+            <motion.h3
+              className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-headline"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              {STEPS[currentStepIndex].label}
+            </motion.h3>
+            <motion.div 
+              className="w-full h-1 bg-primary/10 mt-2 relative overflow-hidden"
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 4, ease: "linear" }}
+            >
+              <div className="absolute inset-0 bg-primary animate-pulse" />
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );
