@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useSpring, useMotionValue } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,18 +24,23 @@ const Card = memo(({
   
   // Calculate circular offset relative to active index
   let offset = index - activeIndex;
+  
+  // Handle circularity logic to ensure shortest distance
   if (offset > total / 2) offset -= total;
   if (offset < -total / 2) offset += total;
 
-  // Reverse Parabolic logic: Middle (offset 0) is smallest, Ends are longest
-  // We use scale and height to achieve the "longer at edges" look
   const absOffset = Math.abs(offset);
-  const scale = 1 + (absOffset * 0.15); // Center is 1.0, Edges grow
-  const horizontalSpacing = isMobile ? 160 : 320;
+  
+  // REVERSE PARABOLIC LOGIC:
+  // Center (offset 0) is smallest. Ends are largest/longest.
+  const scale = 1 + (absOffset * 0.15); 
+  const horizontalSpacing = isMobile ? 180 : 340;
   const x = offset * horizontalSpacing;
   
-  // Opacity fade for very distant items
-  const opacity = Math.max(1 - (absOffset * 0.2), 0.3);
+  // Fading logic: Hide the jump by fading cards that are far from the center
+  // If the absolute offset is close to half the total, it's about to wrap around.
+  const fadeThreshold = (total / 2) - 0.5;
+  const opacity = absOffset > fadeThreshold ? 0 : 1 - (absOffset * 0.15);
 
   return (
     <motion.div
@@ -43,18 +48,19 @@ const Card = memo(({
       animate={{
         x,
         scale,
-        opacity,
-        zIndex: Math.floor(absOffset), // Higher z-index for outer cards to overlap center if needed
+        opacity: Math.max(opacity, 0),
+        zIndex: Math.floor(10 - absOffset), // Higher z-index for outer cards to overlap center if needed
       }}
       transition={{
         type: "spring",
-        stiffness: 150,
-        damping: 25,
+        stiffness: 120,
+        damping: 20,
+        mass: 1,
       }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[32px] overflow-hidden bg-white will-change-transform shadow-2xl"
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[24px] overflow-hidden bg-white shadow-2xl border border-white/10 will-change-transform"
       style={{
-        width: isMobile ? "180px" : "320px",
-        height: isMobile ? "260px" : "460px",
+        width: isMobile ? "160px" : "280px",
+        height: isMobile ? "220px" : "420px",
       }}
     >
       <Image
@@ -63,9 +69,9 @@ const Card = memo(({
         fill
         priority={absOffset < 2}
         className="object-cover"
-        sizes="(max-width: 768px) 180px, 320px"
+        sizes="(max-width: 768px) 160px, 280px"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
     </motion.div>
   );
 });
@@ -101,7 +107,7 @@ export function ThreeSlideshow() {
     <section className="relative py-48 bg-[#fdfdfd] overflow-hidden flex flex-col items-center">
       {/* Background Glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.15)_0%,transparent_70%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(186,230,253,0.1)_0%,transparent_60%)]" />
       </div>
 
       {/* Header - Only Title */}
@@ -110,15 +116,15 @@ export function ThreeSlideshow() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-[64px] font-extrabold text-black leading-tight tracking-tighter font-headline"
+          className="text-4xl md:text-[52px] font-extrabold text-black leading-tight tracking-tighter font-headline"
         >
           Curious What Else<br />I've Created?
         </motion.h2>
       </div>
 
-      {/* Enhanced Slideshow Container */}
+      {/* Slideshow Container */}
       <div 
-        className="relative h-[400px] md:h-[700px] w-full cursor-grab active:cursor-grabbing"
+        className="relative h-[350px] md:h-[650px] w-full cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
