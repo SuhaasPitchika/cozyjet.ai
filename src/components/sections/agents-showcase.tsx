@@ -4,66 +4,161 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, MeshDistortMaterial, MeshWobbleMaterial, Sphere, Box, TorusKnot, Environment, PerspectiveCamera } from "@react-three/drei";
+import { Float, Sphere, Box, Cylinder, Torus, Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 
-const SkippyModel = () => {
-  const group = useRef<THREE.Group>(null!);
+const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number, number] }) => {
+  const leftEyeRef = useRef<THREE.Group>(null!);
+  const rightEyeRef = useRef<THREE.Group>(null!);
+
   useFrame((state) => {
-    if (group.current) {
-      group.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1;
+    const t = state.clock.elapsedTime;
+    if (leftEyeRef.current) {
+      leftEyeRef.current.rotation.z = Math.sin(t * 10) * 0.1;
+    }
+    if (rightEyeRef.current) {
+      rightEyeRef.current.rotation.z = Math.cos(t * 10) * 0.1;
     }
   });
 
   return (
-    <group ref={group}>
-      <Box args={[1.2, 1, 1]} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#C9B8FF" roughness={0.2} metalness={0.8} />
+    <group position={position}>
+      {/* Left Eye */}
+      <group ref={leftEyeRef} position={[-0.25, 0, 0]}>
+        <Sphere args={[0.15, 16, 16]}>
+          <meshBasicMaterial color="white" />
+        </Sphere>
+        <Sphere args={[0.07, 16, 16]} position={[0, 0, 0.1]}>
+          <meshBasicMaterial color="black" />
+        </Sphere>
+        {hasSpecs && (
+          <Torus args={[0.18, 0.02, 16, 32]} position={[0, 0, 0.05]}>
+            <meshBasicMaterial color="black" />
+          </Torus>
+        )}
+      </group>
+
+      {/* Right Eye */}
+      <group ref={rightEyeRef} position={[0.25, 0, 0]}>
+        <Sphere args={[0.15, 16, 16]}>
+          <meshBasicMaterial color="white" />
+        </Sphere>
+        <Sphere args={[0.07, 16, 16]} position={[0, 0, 0.1]}>
+          <meshBasicMaterial color="black" />
+        </Sphere>
+        {hasSpecs && (
+          <Torus args={[0.18, 0.02, 16, 32]} position={[0, 0, 0.05]}>
+            <meshBasicMaterial color="black" />
+          </Torus>
+        )}
+      </group>
+
+      {/* Spectacles Bridge */}
+      {hasSpecs && (
+        <Box args={[0.15, 0.02, 0.02]} position={[0, 0, 0.05]}>
+          <meshBasicMaterial color="black" />
+        </Box>
+      )}
+    </group>
+  );
+};
+
+const SkippyModel = () => {
+  return (
+    <group>
+      {/* Pink Cuboid Body */}
+      <Box args={[1, 1.6, 0.8]}>
+        <meshStandardMaterial 
+          color="#FFB6C1" 
+          emissive="#FF69B4" 
+          emissiveIntensity={0.6} 
+          roughness={0.1}
+          metalness={0.2}
+        />
       </Box>
-      <Sphere args={[0.15, 16, 16]} position={[-0.3, 0.1, 0.5]}>
-        <meshBasicMaterial color="white" />
-      </Sphere>
-      <Sphere args={[0.15, 16, 16]} position={[0.3, 0.1, 0.5]}>
-        <meshBasicMaterial color="white" />
-      </Sphere>
-      <Box args={[0.05, 0.5, 0.05]} position={[0, 0.6, 0]}>
-        <meshStandardMaterial color="#A36BEE" />
-      </Box>
-      <Sphere args={[0.08, 16, 16]} position={[0, 0.85, 0]}>
-        <meshBasicMaterial color="white" />
-      </Sphere>
+      <GooglyEyes hasSpecs={true} position={[0, 0.3, 0.41]} />
     </group>
   );
 };
 
 const FlippoModel = () => {
-  const mesh = useRef<THREE.Mesh>(null!);
-  useFrame((state) => {
-    if (mesh.current) {
-      mesh.current.rotation.x = state.clock.elapsedTime * 0.5;
-      mesh.current.rotation.y = state.clock.elapsedTime * 0.2;
-    }
-  });
-
   return (
-    <Box ref={mesh} args={[1, 1, 1]}>
-      <MeshWobbleMaterial factor={0.4} speed={2} color="#6297FF" metalness={0.5} roughness={0.2} />
-    </Box>
+    <group>
+      {/* Blueish Cuboid Body */}
+      <Box args={[1.2, 1.2, 0.8]}>
+        <meshStandardMaterial 
+          color="#ADD8E6" 
+          emissive="#6297FF" 
+          emissiveIntensity={0.5}
+          roughness={0.1}
+          metalness={0.2}
+        />
+      </Box>
+      <GooglyEyes position={[0, 0.2, 0.41]} />
+      
+      {/* Stick Limbs */}
+      <group>
+        {/* Left Arm */}
+        <Cylinder args={[0.02, 0.02, 0.8]} position={[-0.7, 0, 0]} rotation={[0, 0, Math.PI / 3]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+        {/* Right Arm */}
+        <Cylinder args={[0.02, 0.02, 0.8]} position={[0.7, 0, 0]} rotation={[0, 0, -Math.PI / 3]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+        {/* Left Leg */}
+        <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.3, -0.9, 0]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+        {/* Right Leg */}
+        <Cylinder args={[0.02, 0.02, 0.6]} position={[0.3, -0.9, 0]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+      </group>
+    </group>
   );
 };
 
 const SnooksModel = () => {
-  const mesh = useRef<THREE.Mesh>(null!);
-  useFrame((state) => {
-    if (mesh.current) {
-      mesh.current.rotation.z = state.clock.elapsedTime * 0.5;
-    }
-  });
-
   return (
-    <TorusKnot ref={mesh} args={[0.6, 0.2, 128, 32]}>
-      <MeshDistortMaterial distort={0.3} speed={3} color="#A36BEE" metalness={1} roughness={0.1} />
-    </TorusKnot>
+    <group>
+      {/* Deep Purple Cuboid Body */}
+      <Box args={[1, 1.2, 1]}>
+        <meshStandardMaterial 
+          color="#9370DB" 
+          emissive="#A36BEE" 
+          emissiveIntensity={0.7}
+          roughness={0.1}
+          metalness={0.2}
+        />
+      </Box>
+      <GooglyEyes position={[0, 0.2, 0.51]} />
+      
+      {/* Bowtie */}
+      <group position={[0, -0.2, 0.52]}>
+        <Box args={[0.2, 0.1, 0.05]} position={[-0.1, 0, 0]} rotation={[0, 0, 0.5]}>
+          <meshBasicMaterial color="black" />
+        </Box>
+        <Box args={[0.2, 0.1, 0.05]} position={[0.1, 0, 0]} rotation={[0, 0, -0.5]}>
+          <meshBasicMaterial color="black" />
+        </Box>
+        <Sphere args={[0.04, 8, 8]}>
+          <meshBasicMaterial color="black" />
+        </Sphere>
+      </group>
+
+      {/* Stick Limbs */}
+      <group>
+        {/* Left Arm */}
+        <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.6, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+        {/* Right Arm */}
+        <Cylinder args={[0.02, 0.02, 0.6]} position={[0.6, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
+          <meshBasicMaterial color="black" />
+        </Cylinder>
+      </group>
+    </group>
   );
 };
 
@@ -71,7 +166,7 @@ const AGENTS = [
   {
     name: "Skippy",
     role: "Screen Intelligence",
-    color: "#C9B8FF",
+    color: "#FFB6C1",
     desc: "Autonomous screen analysis and contextual assistance for designers & devs.",
     powers: ["OCR extraction", "Activity tracking", "Anti-stuck logic"],
     Model: SkippyModel
@@ -114,10 +209,10 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         {mounted ? (
           <Canvas shadow={false} dpr={[1, 2]}>
             <PerspectiveCamera makeDefault position={[0, 0, 4]} />
-            <ambientLight intensity={1.5} />
-            <pointLight position={[10, 10, 10]} intensity={2} />
+            <ambientLight intensity={1} />
+            <pointLight position={[10, 10, 10]} intensity={1.5} />
             <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-            <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
               <agent.Model />
             </Float>
             <Environment preset="city" />
@@ -128,7 +223,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
       </div>
 
       <h3 className="font-pixel text-lg font-bold mb-1">{agent.name}</h3>
-      <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4">{agent.role}</p>
+      <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
       <p className="text-foreground/60 text-sm mb-6 flex-grow">{agent.desc}</p>
       
       <div className="flex flex-wrap gap-2">
