@@ -78,7 +78,7 @@ const ThreeSlideshowComponent = () => {
       const x = focus * (window.innerWidth * spreadFactor);
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
       
-      // Scaling: Edge images are 3/4 of previous dramatic size
+      // Edge images are 3/4 size
       const scaleBase = 0.4;
       const scaleGrowth = 0.35;
       const scale = scaleBase + Math.abs(normalizedFocus) * scaleGrowth;
@@ -180,7 +180,7 @@ const ThreeSlideshowComponent = () => {
         onTouchStart={handleMouseDown}
         style={{ 
           transformStyle: "preserve-3d",
-          // Global U-Shaped Cut for the entire slideshow container
+          // Global U-Shaped Cut
           clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" 
         }}
       >
@@ -216,42 +216,38 @@ const ThreeSlideshowComponent = () => {
         </div>
       </div>
 
-      {/* Pixelated Typing Animation Ticker */}
+      {/* Pixelated Morphing Animation Ticker */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20 h-24 flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStepIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ 
-              opacity: 0, 
-              filter: "blur(12px)", 
-              scale: 0.95,
-              transition: { duration: 0.2 } 
-            }}
             className="text-center"
           >
+            {/* Pixelated Step ID */}
             <motion.span 
               className="text-[#f97316] font-bold text-[14px] font-pixel tracking-widest block mb-2"
               initial={{ opacity: 0, filter: "blur(4px)" }}
               animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(4px)" }}
               transition={{ duration: 0.3 }}
             >
               {STEPS[currentStepIndex].id}
             </motion.span>
             
+            {/* Pixel Morphing Label */}
             <div className="flex justify-center overflow-hidden flex-wrap">
               {STEPS[currentStepIndex].label.split("").map((char, i) => (
                 <motion.span
-                  key={i}
+                  key={`${currentStepIndex}-${i}`}
                   initial={{ opacity: 0, x: -5, filter: "blur(8px)" }}
                   animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, x: 5, filter: "blur(8px)" }}
                   transition={{ 
                     delay: i * 0.04,
-                    duration: 0.15,
+                    duration: 0.2,
                     ease: "easeOut"
                   }}
-                  className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-headline inline-block whitespace-pre"
+                  className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-pixel inline-block whitespace-pre"
                 >
                   {char}
                 </motion.span>
