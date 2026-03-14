@@ -58,8 +58,9 @@ const ThreeSlideshowComponent = () => {
 
       const normalizedFocus = focus / visibleSpan; 
       
-      // Horizontal positioning - bunch them up to touch
-      const x = focus * (window.innerWidth * 1.1);
+      // Horizontal positioning - Spread factor increased to ensure background is visible between images
+      const spreadFactor = 1.35;
+      const x = focus * (window.innerWidth * spreadFactor);
       
       // Z-depth: Center is furthest (-DEPTH_STRENGTH), Ends are closest (0)
       const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
@@ -84,7 +85,6 @@ const ThreeSlideshowComponent = () => {
 
       if (normalizedFocus < 0) {
         // Left side of screen: Left edge (outer) is taller, Right edge (inner) is shorter
-        // This matches the "staircase" where Card 1 Left > Card 1 Right = Card 2 Left
         p1 = 0; p2 = 0;
         p3 = 100; p4 = trapAmount;
         p5 = 100; p6 = 100 - trapAmount;
@@ -101,13 +101,16 @@ const ThreeSlideshowComponent = () => {
 
       card.style.opacity = opacity.toString();
       card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
-      // Edges are "outwards" (closer), so they get higher z-index than the center
-      card.style.zIndex = Math.round(Math.abs(normalizedFocus) * 100).toString();
+      
+      // Corrected Z-Index: Ensure edge images (higher zoom) are above inner images
+      const zIndexValue = Math.round(Math.abs(normalizedFocus) * 100);
+      card.style.zIndex = zIndexValue.toString();
+      
       card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
       card.style.clipPath = clipPath;
       
-      // Ensure no gap by removing margins
-      card.style.margin = "0";
+      // Added margin to ensure consistent spacing between frames where background is visible
+      card.style.margin = "0 6px";
     });
 
     rafIdRef.current = requestAnimationFrame(updateCards);
