@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
@@ -154,6 +153,13 @@ export function AgentsShowcase() {
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.top - rect.top); // Correction for local positioning within the heading group
+  };
+
+  // Improved coordinate tracking for the Wegic-style glow
+  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
   };
 
@@ -167,23 +173,26 @@ export function AgentsShowcase() {
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-24 flex flex-col items-center">
           <motion.div 
-            onMouseMove={handleMouseMove}
-            className="relative group inline-block p-4"
+            onMouseMove={handleContainerMouseMove}
+            className="relative group inline-block p-10 cursor-default"
           >
+            {/* Wegic-style dynamic light glow */}
             <motion.div
               style={{
                 left: glowX,
                 top: glowY,
-                background: "radial-gradient(circle, rgba(163,107,238,0.3) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(163,107,238,0.35) 0%, transparent 70%)",
               }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
             />
-            <h2 className="font-pixel text-2xl md:text-4xl font-bold mb-6 relative z-10 leading-tight">
+            
+            <h2 className="font-pixel text-4xl md:text-6xl lg:text-7xl font-bold mb-8 relative z-10 leading-[1.15] tracking-tight">
               Meet Your New <br />
-              <span className="text-primary">Autonomous Team</span>
+              <span className="text-primary drop-shadow-[0_0_15px_rgba(163,107,238,0.3)]">Autonomous Team</span>
             </h2>
           </motion.div>
-          <p className="text-foreground/60 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-tighter">
+          
+          <p className="text-[#f2e8d5]/80 max-w-3xl mx-auto font-pixel text-[11px] md:text-xs leading-loose uppercase tracking-[0.2em] transition-colors duration-500 hover:text-[#f2e8d5]">
             Three specialized AI entities working in perfect harmony to handle everything from your focus sessions to your viral marketing.
           </p>
         </div>
