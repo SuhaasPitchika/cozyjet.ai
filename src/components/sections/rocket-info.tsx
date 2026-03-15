@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef } from "react";
@@ -9,16 +8,19 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 const STEPS = [
   {
     id: "01",
+    phase: "PHASE 01",
     title: "THE VISION",
     description: "DESCRIBE YOUR PROJECT ONCE. OUR AGENTS ANALYZE YOUR MARKET, NICHE, AND TONE TO BUILD A PERSISTENT CONTEXT THAT GUIDES EVERY SINGLE CREATION.",
   },
   {
     id: "02",
+    phase: "PHASE 02",
     title: "THE ENGINE",
     description: "YOUR TEAM EXECUTES ON A DISTRIBUTED BACKEND. THEY HANDLE THE COMPLEX REASONING REQUIRED TO GENERATE HIGH-FIDELITY ASSETS ACROSS EVERY PLATFORM.",
   },
   {
     id: "03",
+    phase: "PHASE 03",
     title: "THE RESULT",
     description: "LAUNCH WITH DATA-BACKED CONFIDENCE. YOUR CONTENT IS OPTIMIZED FOR SPECIFIC PLATFORM HOOKS AND VIRAL PSYCHOLOGY TO HIT THE ALGORITHM PERFECTLY.",
   }
@@ -27,7 +29,6 @@ const STEPS = [
 export function RocketInfo() {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Create scroll progress for the tall container
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -36,7 +37,7 @@ export function RocketInfo() {
   const sketchImg = PlaceHolderImages.find(img => img.id === "jet-sketch");
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
-  // Wipe transition: clip-path goes from bottom to top (100% to 0%)
+  // Wipe transition: clip-path goes from bottom to top
   const clipPath = useTransform(
     scrollYProgress, 
     [0.1, 0.9], 
@@ -56,7 +57,7 @@ export function RocketInfo() {
   const y3 = useTransform(scrollYProgress, [0.7, 0.8, 1], [50, 0, 0]);
 
   return (
-    <section ref={containerRef} className="relative h-[400vh] bg-white overflow-hidden font-pixel">
+    <section ref={containerRef} className="relative h-[400vh] bg-black overflow-hidden font-pixel">
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-12 lg:px-24">
         
         {/* Left Side: Scrolling Text Slides */}
@@ -70,12 +71,12 @@ export function RocketInfo() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-12 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Phase 01</span>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">{STEPS[0].phase}</span>
               </div>
-              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight uppercase">
+              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-white tracking-tighter leading-tight uppercase">
                 {STEPS[0].title}
               </h3>
-              <p className="text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+              <p className="text-[10px] leading-relaxed text-white/40 max-w-sm uppercase">
                 {STEPS[0].description}
               </p>
             </motion.div>
@@ -87,12 +88,12 @@ export function RocketInfo() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-12 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Phase 02</span>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">{STEPS[1].phase}</span>
               </div>
-              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight uppercase">
+              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-white tracking-tighter leading-tight uppercase">
                 {STEPS[1].title}
               </h3>
-              <p className="text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+              <p className="text-[10px] leading-relaxed text-white/40 max-w-sm uppercase">
                 {STEPS[1].description}
               </p>
             </motion.div>
@@ -104,12 +105,12 @@ export function RocketInfo() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <span className="w-12 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Phase 03</span>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">{STEPS[2].phase}</span>
               </div>
-              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight uppercase">
+              <h3 className="text-xl lg:text-3xl font-bold mb-6 text-white tracking-tighter leading-tight uppercase">
                 {STEPS[2].title}
               </h3>
-              <p className="text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+              <p className="text-[10px] leading-relaxed text-white/40 max-w-sm uppercase">
                 {STEPS[2].description}
               </p>
             </motion.div>
@@ -127,7 +128,7 @@ export function RocketInfo() {
                   src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
                   alt="Jet Technical Blueprint"
                   fill
-                  className="object-contain opacity-40 grayscale"
+                  className="object-contain opacity-40 brightness-0 invert"
                   priority
                   data-ai-hint="jet sketch"
                />
@@ -148,10 +149,8 @@ export function RocketInfo() {
                />
             </motion.div>
 
-            {/* Decorative Background Text */}
-            <div className="absolute -right-12 top-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none -rotate-90">
-              <span className="text-[20vw] font-bold text-black whitespace-nowrap">COZYJET</span>
-            </div>
+            {/* Decorative Background Glow */}
+            <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
           </div>
         </div>
@@ -159,7 +158,9 @@ export function RocketInfo() {
       </div>
 
       {/* Background Decorative Grid */}
-      <div className="absolute inset-0 hero-grid opacity-10 pointer-events-none" />
+      <div className="absolute inset-0 bg-black opacity-20 pointer-events-none">
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+      </div>
     </section>
   );
 }
