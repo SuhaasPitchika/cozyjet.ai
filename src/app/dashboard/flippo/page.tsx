@@ -60,7 +60,7 @@ export default function FlippoDistributionPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">V2 WINNING</div>
-            <p className="text-[10px] text-primary mt-1 uppercase font-bold">Storytelling > Listicle</p>
+            <p className="text-[10px] text-primary mt-1 uppercase font-bold">Storytelling &gt; Listicle</p>
           </CardContent>
         </Card>
       </div>
