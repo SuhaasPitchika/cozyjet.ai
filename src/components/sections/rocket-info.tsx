@@ -47,8 +47,7 @@ export function RocketInfo() {
     ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
-  // Individual transforms for each slide to match range lengths correctly
-  // Input and output ranges MUST have the same length
+  // Animation ranges for the 4 steps
   const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
   const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
