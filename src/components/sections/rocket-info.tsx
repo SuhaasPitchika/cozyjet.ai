@@ -63,11 +63,17 @@ export function RocketInfo() {
   const ys = [y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-[#f8fbff] overflow-visible font-pixel">
-      {/* Nature Sky Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#e0f2fe]/40 to-white pointer-events-none -z-10" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_30%,_#ffffff_0%,_transparent_70%)] opacity-80 pointer-events-none -z-10" />
+    <section ref={containerRef} className="relative h-[400vh] bg-[#f8fbff] overflow-visible font-pixel">
+      {/* Cinematic Sky Background with Fading Clouds */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] via-[#f0f9ff] to-white pointer-events-none -z-10" />
       
+      {/* Ethereal Cloud Layers */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-white/40 blur-[150px] rounded-full animate-pulse-glow" />
+        <div className="absolute top-[40%] right-[10%] w-[800px] h-[800px] bg-white/30 blur-[200px] rounded-full" />
+        <div className="absolute bottom-[20%] left-[15%] w-[700px] h-[700px] bg-white/50 blur-[180px] rounded-full animate-pulse-glow" />
+      </div>
+
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
         
         {/* Left Side: Scrolling Sticky Notes */}
@@ -83,12 +89,12 @@ export function RocketInfo() {
                 }} 
                 className="absolute inset-0 flex items-center justify-center lg:justify-start"
               >
-                <div className="w-full max-w-[360px] p-10 border-2 border-black/10 rounded-sm bg-[#fffdfa] shadow-[16px_16px_0px_0px_rgba(0,0,0,0.05)] relative">
+                <div className="w-full max-w-[360px] p-10 border border-black/5 rounded-sm bg-[#fffdfa]/90 backdrop-blur-md shadow-[20px_20px_40px_-10px_rgba(0,0,0,0.05)] relative group hover:rotate-0 transition-transform duration-500">
                   {/* Sticky Note Thumbtack Hole */}
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10" />
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10 shadow-inner" />
                   
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-px bg-primary" />
+                    <div className="w-12 h-[2px] bg-primary" />
                     <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase">{step.phase}</span>
                   </div>
                   
@@ -105,12 +111,12 @@ export function RocketInfo() {
           </div>
         </div>
 
-        {/* Right Side: Jet with Halo Glow */}
+        {/* Right Side: Jet with Concentrated White Halo */}
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
           <div className="relative w-full h-full max-h-[60vh]">
-            {/* Whitish Cloud Glow behind the Image */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-white/60 blur-[100px] rounded-full -z-10" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-sky-200/20 blur-[80px] rounded-full -z-10" />
+            {/* Concentrated Whitish Glow precisely behind the Image */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white blur-[100px] rounded-full -z-10 opacity-80" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-sky-100/40 blur-[60px] rounded-full -z-10" />
 
             {/* Base Image (Sketch) */}
             <div className="absolute inset-0">
@@ -133,7 +139,7 @@ export function RocketInfo() {
                   src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/800/1200"}
                   alt="Metallic Jet Render"
                   fill
-                  className="object-contain"
+                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
                   priority
                   data-ai-hint="metallic jet"
                />
@@ -143,9 +149,9 @@ export function RocketInfo() {
 
       </div>
 
-      {/* Decorative Grid Overlay */}
+      {/* Decorative Technical Grid */}
       <div className="absolute inset-0 pointer-events-none -z-20">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '64px 64px' }} />
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
       </div>
     </section>
   );
