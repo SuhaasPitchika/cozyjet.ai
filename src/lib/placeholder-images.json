@@ -61,30 +61,6 @@
       "imageHint": "industrial design"
     },
     {
-      "id": "agent-skippy",
-      "description": "Skippy agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/skippy/400/400",
-      "imageHint": "robot assistant"
-    },
-    {
-      "id": "agent-flippo",
-      "description": "Flippo agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/flippo/400/400",
-      "imageHint": "geometric shape"
-    },
-    {
-      "id": "agent-snooks",
-      "description": "Snooks agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/snooks/400/400",
-      "imageHint": "marketing expert"
-    },
-    {
-      "id": "testimonial-bg",
-      "description": "Cinematic sky with soft blue clouds and a shooting star",
-      "imageUrl": "https://picsum.photos/seed/sky-zenith/1920/1080",
-      "imageHint": "starry sky"
-    },
-    {
       "id": "jet-sketch",
       "description": "Top-down blueprint sketch of a high-tech orbital jet",
       "imageUrl": "https://picsum.photos/seed/jet-sketch-top/800/1200",
