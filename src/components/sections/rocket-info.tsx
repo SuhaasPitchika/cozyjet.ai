@@ -47,7 +47,7 @@ export function RocketInfo() {
     ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
-  // Individual transforms for each slide to ensure range matching and prevent Framer Motion errors
+  // Individual transforms for each slide
   const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
   const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
