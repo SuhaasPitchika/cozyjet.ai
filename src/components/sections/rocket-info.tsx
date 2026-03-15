@@ -40,19 +40,24 @@ export function RocketInfo() {
   const sketchImg = PlaceHolderImages.find(img => img.id === "jet-sketch");
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
-  // Animation range mappings
+  // Animation range mappings for the image wipe
   const clipPath = useTransform(
     scrollYProgress, 
     [0.1, 0.9], 
     ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
-  // Background shading transforms
-  const bgBlueIntensity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.4, 0.8]);
-  const cloudParallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
-  const textureScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+  // Background shading transforms - gets more "blue" and "textured" as we scroll
+  const bgBlueIntensity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.6, 1]);
+  const cloudParallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
+  const textureScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
+  const skyColor = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ["#f8fbff", "#e0f2fe", "#bae6fd"]
+  );
 
-  // Card animations
+  // Card animations for the left side
   const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
   const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
@@ -69,35 +74,41 @@ export function RocketInfo() {
   const ys = [y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} className="relative h-[400vh] overflow-visible font-pixel bg-white">
-      {/* Background Layers */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        {/* Base Ethereal Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#bde0fe] via-[#e0f2fe] to-white" />
-        
-        {/* Scroll-driven Blue Shading Overlay */}
-        <motion.div 
-          style={{ opacity: bgBlueIntensity }}
-          className="absolute inset-0 bg-[#3b82f6]/20 mix-blend-multiply" 
-        />
-
-        {/* Textured Moving Clouds */}
+    <section ref={containerRef} className="relative h-[500vh] overflow-visible font-pixel">
+      {/* Dynamic Sky Background - Layered for depth */}
+      <motion.div 
+        style={{ backgroundColor: skyColor }}
+        className="fixed inset-0 pointer-events-none -z-20 transition-colors duration-500"
+      >
+        {/* Layered clouds that move with scroll */}
         <motion.div 
           style={{ y: cloudParallaxY, scale: textureScale }}
-          className="absolute inset-0 overflow-hidden opacity-60"
+          className="absolute inset-0 overflow-hidden"
         >
-          <div className="absolute top-[5%] left-[10%] w-[600px] h-[600px] bg-white/80 blur-[120px] rounded-full" />
-          <div className="absolute top-[25%] right-[5%] w-[800px] h-[800px] bg-[#60a5fa]/30 blur-[150px] rounded-full" />
-          <div className="absolute bottom-[10%] left-[20%] w-[700px] h-[700px] bg-white/70 blur-[100px] rounded-full" />
+          {/* Top Cloud */}
+          <div className="absolute top-[10%] left-[15%] w-[50vw] h-[50vw] bg-white/60 blur-[120px] rounded-full" />
+          {/* Middle Cloud */}
+          <div className="absolute top-[40%] right-[10%] w-[60vw] h-[60vw] bg-white/40 blur-[150px] rounded-full" />
+          {/* Bottom Shading Overlay */}
+          <motion.div 
+            style={{ opacity: bgBlueIntensity }}
+            className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-400/10 to-blue-500/20 mix-blend-overlay"
+          />
         </motion.div>
 
         {/* Technical Grid Overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
-      </div>
+        <div 
+          className="absolute inset-0 opacity-[0.05]" 
+          style={{ 
+            backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', 
+            backgroundSize: '48px 48px' 
+          }} 
+        />
+      </motion.div>
 
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
         
-        {/* Left Side: Scrolling Sticky Notes */}
+        {/* Left Side: Scrolling Sticky Notes (Locked side-by-side) */}
         <div className="relative w-full lg:w-1/2 h-full flex flex-col justify-center z-20">
           <div className="relative h-[400px] w-full max-w-md mx-auto lg:mx-0">
             {STEPS.map((step, index) => (
@@ -110,20 +121,20 @@ export function RocketInfo() {
                 }} 
                 className="absolute inset-0 flex items-center justify-center lg:justify-start"
               >
-                <div className="w-full max-w-[360px] p-10 border border-black/5 rounded-sm bg-[#fffdfa]/95 backdrop-blur-xl shadow-[20px_20px_40px_-10px_rgba(0,0,0,0.05)] relative group hover:rotate-0 transition-transform duration-500">
+                <div className="w-full max-w-[380px] p-10 border border-black/5 rounded-sm bg-[#fffdfa]/95 backdrop-blur-xl shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative group hover:rotate-0 transition-transform duration-500">
                   {/* Sticky Note Thumbtack Hole */}
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10 shadow-inner" />
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-black/5 border border-black/10 shadow-inner" />
                   
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-12 h-[2px] bg-primary" />
                     <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase">{step.phase}</span>
                   </div>
                   
-                  <h3 className="text-sm md:text-lg font-bold mb-6 text-black uppercase leading-tight tracking-tighter">
+                  <h3 className="text-sm md:text-xl font-bold mb-6 text-black uppercase leading-tight tracking-tighter">
                     {step.title}
                   </h3>
                   
-                  <p className="text-[9px] md:text-[10px] leading-relaxed text-black/50 uppercase font-bold">
+                  <p className="text-[9px] md:text-[11px] leading-relaxed text-black/60 uppercase font-bold">
                     {step.description}
                   </p>
                 </div>
@@ -132,11 +143,11 @@ export function RocketInfo() {
           </div>
         </div>
 
-        {/* Right Side: Jet with Concentrated White Halo */}
+        {/* Right Side: Jet Visual with Whitish Halo (Locked side-by-side) */}
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
-          <div className="relative w-full h-full max-h-[60vh]">
-            {/* Whitish Glow centered around image */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-white blur-[100px] rounded-full -z-10 opacity-90 shadow-[0_0_100px_rgba(255,255,255,1)]" />
+          <div className="relative w-full h-full max-h-[70vh]">
+            {/* Whitish Cloud-like Halo centered around the images */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white blur-[100px] rounded-full -z-10 opacity-90 shadow-[0_0_120px_60px_rgba(255,255,255,0.8)]" />
             
             {/* Base Image (Sketch) */}
             <div className="absolute inset-0">
@@ -144,7 +155,7 @@ export function RocketInfo() {
                   src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
                   alt="Jet Technical Blueprint"
                   fill
-                  className="object-contain opacity-25 grayscale"
+                  className="object-contain opacity-30 grayscale"
                   priority
                   data-ai-hint="jet sketch"
                />
@@ -159,7 +170,7 @@ export function RocketInfo() {
                   src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/800/1200"}
                   alt="Metallic Jet Render"
                   fill
-                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
+                  className="object-contain drop-shadow-[0_20px_80px_rgba(0,0,0,0.1)]"
                   priority
                   data-ai-hint="metallic jet"
                />
