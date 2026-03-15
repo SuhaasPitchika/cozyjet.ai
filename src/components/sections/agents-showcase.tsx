@@ -16,7 +16,6 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
   const rightEyeRef = useRef<THREE.Group>(null!);
 
   useFrame((state) => {
-    // Stepped time for "pixel-art" frame rate feel
     const t = Math.floor(state.clock.elapsedTime * 8) / 8;
     if (leftEyeRef.current) {
       leftEyeRef.current.rotation.z = Math.sin(t * 10) * 0.1;
@@ -28,7 +27,6 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
 
   return (
     <group position={position}>
-      {/* Left Eye */}
       <group ref={leftEyeRef} position={[-0.25, 0, 0]}>
         <Sphere args={[0.15, 8, 8]}>
           <meshBasicMaterial color="white" />
@@ -43,7 +41,6 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
         )}
       </group>
 
-      {/* Right Eye */}
       <group ref={rightEyeRef} position={[0.25, 0, 0]}>
         <Sphere args={[0.15, 8, 8]}>
           <meshBasicMaterial color="white" />
@@ -58,7 +55,6 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
         )}
       </group>
 
-      {/* Spectacles Bridge */}
       {hasSpecs && (
         <Box args={[0.15, 0.02, 0.02]} position={[0, 0, 0.05]}>
           <meshBasicMaterial color="black" />
@@ -214,7 +210,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         {mounted ? (
           <Canvas 
             shadow={false} 
-            dpr={[0.2, 0.4]} // Low resolution for pixel-art feel
+            dpr={[0.2, 0.4]} 
             gl={{ antialias: false, pixelRatio: 0.5 }}
           >
             <PerspectiveCamera makeDefault position={[0, 0, 4]} />
@@ -271,6 +267,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
 }
 
 export function AgentsShowcase() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(-1000);
   const mouseY = useMotionValue(-1000);
 
@@ -287,32 +284,49 @@ export function AgentsShowcase() {
   return (
     <section 
       id="agents" 
+      ref={containerRef}
       onMouseMove={handleContainerMouseMove}
       className="py-48 px-6 bg-black relative overflow-hidden group"
     >
+      {/* Interactive Dot Grid Background (Wegic style) */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none opacity-20"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+          maskImage: `radial-gradient(circle 600px at var(--mouse-x, 0px) var(--mouse-y, 0px), black 0%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 600px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 0%, transparent 100%)`,
+        } as any}
+        ref={(el) => {
+          if (el) {
+            el.style.setProperty('--mouse-x', `${glowX.get()}px`);
+            el.style.setProperty('--mouse-y', `${glowY.get()}px`);
+          }
+        }}
+      />
+
       {/* Expanded Interactive Studio Glow */}
       <motion.div
         style={{
           left: glowX,
           top: glowY,
-          background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
         }}
-        className="absolute -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] pointer-events-none blur-[140px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-[1600px] h-[1600px] pointer-events-none blur-[140px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
       />
-
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[140px]" />
-      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-24 flex flex-col items-center">
-          <div className="relative inline-block py-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="relative inline-block py-10"
+          >
             <h2 className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase">
               The Agent <br />
               <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Core Matrix</span>
             </h2>
-          </div>
+          </motion.div>
           
           <p className="text-[#f2e8d5]/40 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
             Autonomous entities engineered for pixel-perfect execution.
