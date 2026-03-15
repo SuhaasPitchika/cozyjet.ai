@@ -1,132 +1,142 @@
 
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { CheckCircle2, Zap } from "lucide-react";
 
 const STEPS = [
   {
-    id: "step-1",
-    title: "The Vision",
-    description: "Describe your project once. Our agents analyze your market, niche, and tone to build a persistent context that guides every single creation.",
-    items: ["Deep Market Research", "Contextual Persona Building", "Visual Strategy Mapping"]
+    id: "01",
+    title: "THE VISION",
+    description: "DESCRIBE YOUR PROJECT ONCE. OUR AGENTS ANALYZE YOUR MARKET, NICHE, AND TONE TO BUILD A PERSISTENT CONTEXT THAT GUIDES EVERY SINGLE CREATION.",
   },
   {
-    id: "step-2",
-    title: "The Engine",
-    description: "Your team executes on a distributed backend. They handle the complex reasoning required to generate high-fidelity assets across every platform.",
-    items: ["Edge-Computed Reasoning", "Distributed Task Queues", "Vector Memory Storage"]
+    id: "02",
+    title: "THE ENGINE",
+    description: "YOUR TEAM EXECUTES ON A DISTRIBUTED BACKEND. THEY HANDLE THE COMPLEX REASONING REQUIRED TO GENERATE HIGH-FIDELITY ASSETS ACROSS EVERY PLATFORM.",
   },
   {
-    id: "step-3",
-    title: "The Result",
-    description: "Launch with data-backed confidence. Your content is optimized for specific platform hooks and viral psychology to hit the algorithm perfectly.",
-    items: ["Multi-Platform Distribution", "Real-time Trend Sync", "Performance Tracking"]
+    id: "03",
+    title: "THE RESULT",
+    description: "LAUNCH WITH DATA-BACKED CONFIDENCE. YOUR CONTENT IS OPTIMIZED FOR SPECIFIC PLATFORM HOOKS AND VIRAL PSYCHOLOGY TO HIT THE ALGORITHM PERFECTLY.",
   }
 ];
 
 export function RocketInfo() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  const sketchImg = PlaceHolderImages.find(img => img.id === "jet-sketch");
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
+  // Wipe progress: 0 to 1 (Bottom to Top)
+  const clipPath = useTransform(scrollYProgress, [0, 1], ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]);
+  
+  // Text transforms for each step
+  // Phase 01: Active 0.0 -> 0.3
+  const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.3], [1, 1, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.2, 0.3], [0, 0, -20]);
+
+  // Phase 02: Active 0.35 -> 0.65
+  const opacity2 = useTransform(scrollYProgress, [0.35, 0.45, 0.55, 0.65], [0, 1, 1, 0]);
+  const y2 = useTransform(scrollYProgress, [0.35, 0.45, 0.55, 0.65], [20, 0, 0, -20]);
+
+  // Phase 03: Active 0.7 -> 1.0
+  const opacity3 = useTransform(scrollYProgress, [0.7, 0.8, 1], [0, 1, 1]);
+  const y3 = useTransform(scrollYProgress, [0.7, 0.8, 1], [20, 0, 0]);
+
   return (
-    <section className="py-32 px-6 bg-white border-y border-black/5 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+    <section ref={containerRef} className="relative h-[400vh] bg-white overflow-hidden">
+      <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-12 lg:px-24">
         
-        {/* Header Area */}
-        <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
-          <div className="max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-2 mb-4"
-            >
-              <Zap className="w-4 h-4 text-primary fill-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">The Workflow</span>
-            </motion.div>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="font-headline text-4xl md:text-6xl font-bold tracking-tighter text-black"
-            >
-              One Prompt. <br />
-              Full Agency Execution.
-            </motion.h2>
-          </div>
-          <motion.p 
-             initial={{ opacity: 0 }}
-             whileInView={{ opacity: 1 }}
-             viewport={{ once: true }}
-             className="text-black/40 text-sm max-w-xs uppercase leading-relaxed font-medium"
-          >
-            A high-performance system designed for solopreneurs who demand billionaire-level output.
-          </motion.p>
+        {/* Background Decorative Text */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-[0.03] select-none pointer-events-none">
+          <span className="font-pixel text-[40vw] leading-none text-black">JET</span>
         </div>
 
-        {/* Central Visual */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="relative w-full aspect-[21/9] bg-black/5 rounded-[2rem] border border-black/5 mb-24 overflow-hidden group shadow-sm"
-        >
-          <Image 
-            src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/1200/600"} 
-            alt="The CozyJet System" 
-            fill 
-            className="object-contain scale-110 group-hover:scale-[1.15] transition-transform duration-[2s] ease-out"
-            priority
-            data-ai-hint="metallic jet"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
-        </motion.div>
-
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="space-y-6 group"
+        {/* Content Side: Animated Text */}
+        <div className="relative w-full lg:w-2/5 h-[40vh] lg:h-full flex items-center z-20">
+          <div className="relative w-full h-64 lg:h-96">
+            {/* Step 1 */}
+            <motion.div 
+              style={{ opacity: opacity1, y: y1 }} 
+              className="absolute inset-0 flex flex-col justify-center"
             >
-              <div className="w-12 h-12 rounded-2xl bg-black/5 border border-black/5 flex items-center justify-center text-black font-bold group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
-                0{i + 1}
-              </div>
-              <h3 className="font-headline text-2xl font-bold text-black">{step.title}</h3>
-              <p className="text-black/60 text-sm leading-relaxed">
-                {step.description}
+              <span className="font-pixel text-[10px] text-primary mb-4 block uppercase tracking-widest">Phase 01</span>
+              <h3 className="font-pixel text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight">
+                {STEPS[0].title}
+              </h3>
+              <p className="font-pixel text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+                {STEPS[0].description}
               </p>
-              
-              <ul className="space-y-3 pt-4">
-                {step.items.map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-tight text-black/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </motion.div>
-          ))}
+
+            {/* Step 2 */}
+            <motion.div 
+              style={{ opacity: opacity2, y: y2 }} 
+              className="absolute inset-0 flex flex-col justify-center"
+            >
+              <span className="font-pixel text-[10px] text-primary mb-4 block uppercase tracking-widest">Phase 02</span>
+              <h3 className="font-pixel text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight">
+                {STEPS[1].title}
+              </h3>
+              <p className="font-pixel text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+                {STEPS[1].description}
+              </p>
+            </motion.div>
+
+            {/* Step 3 */}
+            <motion.div 
+              style={{ opacity: opacity3, y: y3 }} 
+              className="absolute inset-0 flex flex-col justify-center"
+            >
+              <span className="font-pixel text-[10px] text-primary mb-4 block uppercase tracking-widest">Phase 03</span>
+              <h3 className="font-pixel text-xl lg:text-3xl font-bold mb-6 text-black tracking-tighter leading-tight">
+                {STEPS[2].title}
+              </h3>
+              <p className="font-pixel text-[10px] leading-relaxed text-black/50 max-w-sm uppercase">
+                {STEPS[2].description}
+              </p>
+            </motion.div>
+          </div>
         </div>
 
-        {/* Simple Footer CTA */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mt-24 pt-12 border-t border-black/5 flex justify-center"
-        >
-          <button className="font-pixel text-[10px] uppercase tracking-widest text-primary hover:text-black transition-colors">
-            Request Access to the Private Studio →
-          </button>
-        </motion.div>
+        {/* Visual Side: The Jet Transition */}
+        <div className="relative w-full lg:w-1/2 h-[50vh] lg:h-full flex items-center justify-center z-10">
+          <div className="relative w-full aspect-square max-w-xl group">
+            {/* Sketch (Bottom Layer) */}
+            <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.02]">
+               <Image 
+                  src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
+                  alt="Blueprint Sketch"
+                  fill
+                  className="object-contain grayscale opacity-20"
+                  priority
+                  data-ai-hint="jet sketch"
+               />
+            </div>
+
+            {/* Metal (Top Layer with Wipe) */}
+            <motion.div 
+              className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.02]"
+              style={{ clipPath }}
+            >
+               <Image 
+                  src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/800/1200"}
+                  alt="Metallic Render"
+                  fill
+                  className="object-contain"
+                  priority
+                  data-ai-hint="metallic jet"
+               />
+            </motion.div>
+          </div>
+        </div>
 
       </div>
     </section>
