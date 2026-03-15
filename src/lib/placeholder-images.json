@@ -71,6 +71,12 @@
       "description": "Sleek metallic orbital jet with photorealistic textures",
       "imageUrl": "https://picsum.photos/seed/jet-metal-top/800/1200",
       "imageHint": "metallic jet"
+    },
+    {
+      "id": "auth-sky",
+      "description": "A high-altitude shot of soft white clouds against a light blue morning sky",
+      "imageUrl": "https://picsum.photos/seed/authsky/1920/1080",
+      "imageHint": "sky clouds"
     }
   ]
 }
