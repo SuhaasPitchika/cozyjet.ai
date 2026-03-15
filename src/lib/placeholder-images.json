@@ -74,9 +74,9 @@
     },
     {
       "id": "auth-sky",
-      "description": "A cinematic sunset sky with soft blue and pink gradients and wispy clouds",
-      "imageUrl": "https://picsum.photos/seed/bluepinksky/1920/1080",
-      "imageHint": "blue pink sky"
+      "description": "A cinematic nature horizon with soft pastel dawn gradients and high-altitude wispy clouds",
+      "imageUrl": "https://picsum.photos/seed/nature-horizon/1920/1080",
+      "imageHint": "nature horizon"
     }
   ]
 }
