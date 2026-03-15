@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Sphere, Box, Cylinder, Torus, Environment, PerspectiveCamera } from "@react-three/drei";
-import * as THREE from "three";
+import * as THREE from "this";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -210,7 +210,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         {mounted ? (
           <Canvas 
             shadow={false} 
-            dpr={[0.2, 0.4]} 
+            dpr={[0.4, 0.4]} 
             gl={{ antialias: false, pixelRatio: 0.5 }}
           >
             <PerspectiveCamera makeDefault position={[0, 0, 4]} />
@@ -271,7 +271,7 @@ export function AgentsShowcase() {
   const mouseX = useMotionValue(-1000);
   const mouseY = useMotionValue(-1000);
 
-  const springConfig = { damping: 40, stiffness: 120 };
+  const springConfig = { damping: 40, stiffness: 150 };
   const glowX = useSpring(mouseX, springConfig);
   const glowY = useSpring(mouseY, springConfig);
 
@@ -281,6 +281,17 @@ export function AgentsShowcase() {
     mouseY.set(e.clientY - rect.top);
   };
 
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const unsubscribeX = glowX.on("change", (v) => setMousePos(prev => ({ ...prev, x: v })));
+    const unsubscribeY = glowY.on("change", (v) => setMousePos(prev => ({ ...prev, y: v })));
+    return () => {
+      unsubscribeX();
+      unsubscribeY();
+    };
+  }, [glowX, glowY]);
+
   return (
     <section 
       id="agents" 
@@ -288,29 +299,23 @@ export function AgentsShowcase() {
       onMouseMove={handleContainerMouseMove}
       className="py-48 px-6 bg-black relative overflow-hidden group"
     >
-      {/* Denser Interactive Dot Grid Background */}
+      {/* Interactive Fading Dot Grid Background */}
       <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-25"
+        className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 0)',
-          backgroundSize: '24px 24px',
-          maskImage: `radial-gradient(circle 350px at var(--mouse-x, 0px) var(--mouse-y, 0px), black 0%, transparent 100%)`,
-          WebkitMaskImage: `radial-gradient(circle 350px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 0%, transparent 100%)`,
-        } as any}
-        ref={(el) => {
-          if (el) {
-            el.style.setProperty('--mouse-x', `${glowX.get()}px`);
-            el.style.setProperty('--mouse-y', `${glowY.get()}px`);
-          }
+          backgroundImage: 'radial-gradient(circle, #ffffff 1.5px, transparent 0)',
+          backgroundSize: '28px 28px',
+          maskImage: `radial-gradient(circle 500px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.5) 40%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 500px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.5) 40%, transparent 100%)`,
         }}
       />
 
-      {/* Focused Interactive Studio Glow */}
+      {/* Intense Localized Glow */}
       <motion.div
         style={{
           left: glowX,
           top: glowY,
-          background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 75%)",
         }}
         className="absolute -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none blur-[100px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
       />
@@ -325,18 +330,18 @@ export function AgentsShowcase() {
             <motion.h2 
               animate={{ 
                 scaleY: [1, 1, 0.05, 1, 1, 0.05, 1],
-                opacity: [1, 1, 0.5, 1, 1, 0.3, 1]
+                opacity: [1, 1, 0.4, 1, 1, 0.2, 1]
               }}
               transition={{ 
-                duration: 5, 
+                duration: 6, 
                 repeat: Infinity, 
-                times: [0, 0.6, 0.62, 0.64, 0.9, 0.92, 1],
+                times: [0, 0.7, 0.72, 0.74, 0.9, 0.92, 1],
                 ease: "easeInOut"
               }}
               className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase origin-center"
             >
               The Agent <br />
-              <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Core Matrix</span>
+              <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.25)]">Core Matrix</span>
             </motion.h2>
           </motion.div>
           
