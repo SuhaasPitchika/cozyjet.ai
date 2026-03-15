@@ -32,7 +32,7 @@ export function RocketInfo() {
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
   return (
-    <section className="py-32 px-6 bg-black border-y border-white/5 overflow-hidden">
+    <section className="py-32 px-6 bg-white border-y border-black/5 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         
         {/* Header Area */}
@@ -51,7 +51,7 @@ export function RocketInfo() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="font-headline text-4xl md:text-6xl font-bold tracking-tighter text-white"
+              className="font-headline text-4xl md:text-6xl font-bold tracking-tighter text-black"
             >
               One Prompt. <br />
               Full Agency Execution.
@@ -61,7 +61,7 @@ export function RocketInfo() {
              initial={{ opacity: 0 }}
              whileInView={{ opacity: 1 }}
              viewport={{ once: true }}
-             className="text-white/40 text-sm max-w-xs uppercase leading-relaxed font-medium"
+             className="text-black/40 text-sm max-w-xs uppercase leading-relaxed font-medium"
           >
             A high-performance system designed for solopreneurs who demand billionaire-level output.
           </motion.p>
@@ -72,17 +72,17 @@ export function RocketInfo() {
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="relative w-full aspect-[21/9] bg-white/5 rounded-[2rem] border border-white/10 mb-24 overflow-hidden group"
+          className="relative w-full aspect-[21/9] bg-black/5 rounded-[2rem] border border-black/5 mb-24 overflow-hidden group shadow-sm"
         >
           <Image 
             src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/1200/600"} 
             alt="The CozyJet System" 
             fill 
-            className="object-contain scale-125 group-hover:scale-[1.3] transition-transform duration-[2s] ease-out"
+            className="object-contain scale-110 group-hover:scale-[1.15] transition-transform duration-[2s] ease-out"
             priority
             data-ai-hint="metallic jet"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
         </motion.div>
 
         {/* Steps Grid */}
@@ -96,17 +96,17 @@ export function RocketInfo() {
               transition={{ delay: i * 0.1 }}
               className="space-y-6 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-white font-bold group-hover:bg-primary group-hover:border-primary transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-black/5 border border-black/5 flex items-center justify-center text-black font-bold group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
                 0{i + 1}
               </div>
-              <h3 className="font-headline text-2xl font-bold text-white">{step.title}</h3>
-              <p className="text-white/60 text-sm leading-relaxed">
+              <h3 className="font-headline text-2xl font-bold text-black">{step.title}</h3>
+              <p className="text-black/60 text-sm leading-relaxed">
                 {step.description}
               </p>
               
               <ul className="space-y-3 pt-4">
                 {step.items.map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-tight text-white/80">
+                  <li key={idx} className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-tight text-black/80">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     {item}
                   </li>
@@ -121,9 +121,9 @@ export function RocketInfo() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-24 pt-12 border-t border-white/5 flex justify-center"
+          className="mt-24 pt-12 border-t border-black/5 flex justify-center"
         >
-          <button className="font-pixel text-[10px] uppercase tracking-widest text-primary hover:text-white transition-colors">
+          <button className="font-pixel text-[10px] uppercase tracking-widest text-primary hover:text-black transition-colors">
             Request Access to the Private Studio →
           </button>
         </motion.div>
