@@ -58,7 +58,7 @@ export function RocketInfo() {
   });
 
   // Map scroll progress to the sketch-to-metal transition
-  // We want the metal to wipe from top to bottom
+  // The metal wipes from top to bottom
   const wipeY = useTransform(smoothProgress, [0, 0.8], ["100%", "0%"]);
   
   // Opacity controls for content steps
@@ -98,9 +98,9 @@ export function RocketInfo() {
           })}
         </div>
 
-        {/* Center: The Jet Animation */}
+        {/* Center: The Jet Animation - Removed frame and rotation */}
         <div className="flex-1 h-full relative flex items-center justify-center py-20 pointer-events-none">
-          <div className="relative w-full max-w-lg aspect-[2/3] transform rotate-[-5deg]">
+          <div className="relative w-full max-w-lg aspect-[9/16]">
             {/* Sketch Layer (The base) */}
             <div className="absolute inset-0 z-10 opacity-60">
               <Image 
@@ -127,11 +127,6 @@ export function RocketInfo() {
                 data-ai-hint="metallic jet"
               />
             </motion.div>
-
-            {/* Blueprint Grid Lines (Aesthetic) */}
-            <div className="absolute inset-0 border border-black/5 rounded-3xl z-0 overflow-hidden opacity-10">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.1)_1px,transparent_0)] bg-[size:24px_24px]" />
-            </div>
           </div>
         </div>
 
@@ -144,8 +139,13 @@ export function RocketInfo() {
             return (
               <motion.div
                 key={step.id}
-                style={{ opacity, y, display: i === 0 ? 'flex' : (i === 1 ? 'flex' : 'flex'), pointerEvents: i === 0 ? 'auto' : 'auto' }}
-                className="absolute inset-0 flex flex-col justify-center p-8 lg:p-12 bg-[#f9fafb]/80 backdrop-blur-md rounded-3xl border border-black/5 shadow-2xl"
+                style={{ 
+                  opacity, 
+                  y, 
+                  pointerEvents: i === 0 ? 'auto' : (i === 1 ? 'auto' : 'auto'),
+                  visibility: opacity === 0 ? 'hidden' : 'visible'
+                }}
+                className="absolute inset-0 flex flex-col justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-md rounded-3xl border border-black/5 shadow-2xl"
               >
                 <div className="mb-6">
                    <span className="text-primary text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-primary/5 rounded-full border border-primary/10">
