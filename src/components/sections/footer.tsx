@@ -1,55 +1,72 @@
+
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export function Footer() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Track scroll progress specifically for the footer section
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end end"],
+  });
+
+  const text = "COZYJET.AI";
+  const chars = text.split("");
+
+  // Map scroll progress (0 to 1) to the "bend" intensity (100 to 0)
+  const bendIntensity = useTransform(scrollYProgress, [0, 1], [120, 0]);
+
   return (
-    <footer className="bg-black pt-48 pb-20 px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto flex flex-col items-center">
-        
-        <div className="flex flex-wrap justify-center gap-8 mb-20">
-          {["Product", "About", "Twitter", "GitHub", "Legal"].map(item => (
-            <a key={item} href="#" className="text-white/40 hover:text-white transition-colors text-sm uppercase tracking-widest font-medium">
-              {item}
-            </a>
-          ))}
+    <footer 
+      ref={containerRef} 
+      className="bg-black py-20 px-6 overflow-hidden flex items-center justify-center"
+    >
+      <div className="w-full max-w-7xl flex flex-col items-center">
+        <div className="flex justify-center gap-[0.5vw] md:gap-[1vw]">
+          {chars.map((char, i) => {
+            // Calculate horizontal position relative to center (-1 to 1)
+            const normalizedPos = (i / (chars.length - 1)) * 2 - 1;
+            
+            // Parabolic offset: y = x^2 * intensity
+            // This creates the U-shape (concave) bend
+            const yOffset = useTransform(bendIntensity, (intensity) => {
+              return Math.pow(normalizedPos, 2) * intensity;
+            });
+
+            // Subtle rotation based on position to enhance the "bent" look
+            const rotation = useTransform(bendIntensity, (intensity) => {
+              return normalizedPos * (intensity / 4);
+            });
+
+            return (
+              <motion.span
+                key={i}
+                style={{
+                  y: yOffset,
+                  rotate: rotation,
+                  display: "inline-block",
+                }}
+                className="font-pixel text-[8vw] md:text-[10vw] leading-none tracking-tighter text-white/10 select-none whitespace-pre"
+              >
+                {char}
+              </motion.span>
+            );
+          })}
         </div>
 
-        <div className="flex gap-4 mb-40">
-          <Button variant="outline" className="rounded-full px-8 py-6 border-white/10 hover:bg-white hover:text-black">
-            Log In
-          </Button>
-          <Button className="rounded-full px-8 py-6 bg-primary hover:bg-primary/80">
-            Get Started
-          </Button>
-        </div>
-
-        {/* Cinematic Big Text */}
-        <div className="w-full relative">
-          <motion.h2 
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-headline font-bold text-[15vw] leading-none tracking-tighter text-center select-none shimmer-text text-white/5"
-          >
-            COZYJET
-          </motion.h2>
-          
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="w-[80vw] h-1 bg-gradient-to-r from-transparent via-primary to-transparent"
-            />
-          </div>
-        </div>
-
-        <div className="mt-24 flex flex-col md:flex-row justify-between w-full border-t border-white/5 pt-8 text-white/20 text-xs">
+        <motion.div 
+          style={{ 
+            opacity: useTransform(scrollYProgress, [0.8, 1], [0, 1]),
+            y: useTransform(scrollYProgress, [0.8, 1], [20, 0])
+          }}
+          className="mt-24 flex flex-col items-center gap-4 text-white/20 text-[10px] font-pixel uppercase tracking-widest"
+        >
+          <div className="w-12 h-[1px] bg-primary/30" />
           <p>© 2024 CozyJet.AI Systems Inc.</p>
-          <p className="mt-4 md:mt-0 italic">"The screen is alive, and so are we."</p>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );
