@@ -1,189 +1,132 @@
 
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Button } from "@/components/ui/button";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Zap } from "lucide-react";
 
 const STEPS = [
   {
     id: "step-1",
-    label: "One prompt",
-    title: "One prompt. Full Agency. No kidding.",
-    description: "While others make you prompt for every single post or task, CozyJet is different. Describe your vision once and get a full autonomous team that reads your mind.",
-    items: [
-      { id: "1.1", text: "Jet does deep research about your market (seriously)" },
-      { id: "1.2", text: "Contextualizes your problem and decides feature set" },
-      { id: "1.3", text: "Designs optimum user experience and interface (UI/UX)" }
-    ]
+    title: "The Vision",
+    description: "Describe your project once. Our agents analyze your market, niche, and tone to build a persistent context that guides every single creation.",
+    items: ["Deep Market Research", "Contextual Persona Building", "Visual Strategy Mapping"]
   },
   {
     id: "step-2",
-    label: "Backend",
-    title: "Scalable Infrastructure. Built In.",
-    description: "Your agents don't just talk; they execute. We provide the serverless power required to process complex data and generate high-fidelity assets instantly.",
-    items: [
-      { id: "2.1", text: "Edge-computed agentic reasoning" },
-      { id: "2.2", text: "Distributed task execution queues" },
-      { id: "2.3", text: "Vector memory storage for long-term context" }
-    ]
+    title: "The Engine",
+    description: "Your team executes on a distributed backend. They handle the complex reasoning required to generate high-fidelity assets across every platform.",
+    items: ["Edge-Computed Reasoning", "Distributed Task Queues", "Vector Memory Storage"]
   },
   {
     id: "step-3",
-    label: "Launch",
-    title: "Zero to Viral in Seconds.",
-    description: "Launch your campaigns with confidence. Our agents analyze real-time trends to ensure your content hits the algorithm at the perfect moment.",
-    items: [
-      { id: "3.1", text: "Real-time trend analysis and sync" },
-      { id: "3.2", text: "Automated distribution to 5+ platforms" },
-      { id: "3.3", text: "Performance tracking and self-correction" }
-    ]
+    title: "The Result",
+    description: "Launch with data-backed confidence. Your content is optimized for specific platform hooks and viral psychology to hit the algorithm perfectly.",
+    items: ["Multi-Platform Distribution", "Real-time Trend Sync", "Performance Tracking"]
   }
 ];
 
 export function RocketInfo() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-
-  // Map scroll progress to the sketch-to-metal transition
-  // The metal wipes from top to bottom
-  const wipeY = useTransform(smoothProgress, [0, 0.8], ["100%", "0%"]);
-  
-  // Opacity controls for content steps
-  const step1Opacity = useTransform(smoothProgress, [0, 0.25, 0.35], [1, 1, 0]);
-  const step2Opacity = useTransform(smoothProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
-  const step3Opacity = useTransform(smoothProgress, [0.75, 0.85, 1], [0, 1, 1]);
-
-  const sketchImg = PlaceHolderImages.find(img => img.id === "jet-sketch");
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
   return (
-    <section ref={containerRef} className="relative h-[400vh] bg-white">
-      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden px-6 lg:px-24">
+    <section className="py-32 px-6 bg-white border-y border-black/5 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
         
-        {/* Left Side: Step Progress Indicators */}
-        <div className="hidden lg:flex flex-col gap-12 w-1/4">
-          {STEPS.map((step, i) => {
-            const stepProgress = [
-              useTransform(smoothProgress, [0, 0.33], [1, 0.2]),
-              useTransform(smoothProgress, [0.33, 0.4, 0.6, 0.66], [0.2, 1, 1, 0.2]),
-              useTransform(smoothProgress, [0.66, 1], [0.2, 1])
-            ][i];
-
-            return (
-              <motion.div 
-                key={step.id} 
-                className="flex items-center gap-6"
-                style={{ opacity: stepProgress }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-black" />
-                   {i < STEPS.length - 1 && <div className="w-[1px] h-8 bg-black/10" />}
-                </div>
-                <span className="font-pixel text-[10px] uppercase tracking-[0.2em] font-bold">{step.label}</span>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Center: The Jet Animation */}
-        <div className="flex-1 h-full relative flex items-center justify-center py-20 pointer-events-none">
-          <div className="relative w-full max-w-lg aspect-[9/16]">
-            {/* Sketch Layer (The base) */}
-            <div className="absolute inset-0 z-10 opacity-60">
-              <Image 
-                src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"} 
-                alt="Jet Sketch" 
-                fill 
-                className="object-contain"
-                priority
-                data-ai-hint="jet sketch"
-              />
-            </div>
-            
-            {/* Metal Layer (The reveal) */}
-            <motion.div 
-              className="absolute inset-0 z-20 overflow-hidden"
-              style={{ clipPath: useTransform(wipeY, (val) => `inset(${val} 0 0 0)`) }}
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center gap-2 mb-4"
             >
-              <Image 
-                src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/800/1200"} 
-                alt="Metallic Jet" 
-                fill 
-                className="object-contain"
-                priority
-                data-ai-hint="metallic jet"
-              />
+              <Zap className="w-4 h-4 text-primary fill-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">The Workflow</span>
             </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="font-headline text-4xl md:text-6xl font-bold tracking-tighter"
+            >
+              One Prompt. <br />
+              Full Agency Execution.
+            </motion.h2>
           </div>
+          <motion.p 
+             initial={{ opacity: 0 }}
+             whileInView={{ opacity: 1 }}
+             viewport={{ once: true }}
+             className="text-foreground/40 text-sm max-w-xs uppercase leading-relaxed font-medium"
+          >
+            A high-performance system designed for solopreneurs who demand billionaire-level output.
+          </motion.p>
         </div>
 
-        {/* Right Side: Content Cards */}
-        <div className="w-full lg:w-1/3 flex flex-col justify-center relative h-[600px]">
-          {STEPS.map((step, i) => {
-            const opacity = [step1Opacity, step2Opacity, step3Opacity][i];
-            const y = useTransform(opacity, [0, 1], [20, 0]);
+        {/* Central Visual */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="relative w-full aspect-[21/9] bg-[#f8f8f8] rounded-[2rem] border border-black/5 mb-24 overflow-hidden group"
+        >
+          <Image 
+            src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/1200/600"} 
+            alt="The CozyJet System" 
+            fill 
+            className="object-contain scale-125 group-hover:scale-[1.3] transition-transform duration-[2s] ease-out"
+            priority
+            data-ai-hint="metallic jet"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
+        </motion.div>
 
-            return (
-              <motion.div
-                key={step.id}
-                style={{ 
-                  opacity, 
-                  y, 
-                  pointerEvents: i === 0 ? 'auto' : (i === 1 ? 'auto' : 'auto'),
-                  visibility: opacity === 0 ? 'hidden' : 'visible'
-                }}
-                className="absolute inset-0 flex flex-col justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-md rounded-3xl border border-black/5 shadow-2xl"
-              >
-                <div className="mb-6">
-                   <span className="text-primary text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-primary/5 rounded-full border border-primary/10">
-                     Phase 0{i+1}
-                   </span>
-                </div>
-                
-                <h2 className="font-headline text-3xl font-bold mb-4 leading-tight">{step.title}</h2>
-                <p className="text-foreground/60 text-sm leading-relaxed mb-8">{step.description}</p>
-                
-                <div className="space-y-4">
-                  <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest mb-2">Capabilities:</p>
-                  <div className="space-y-4 border-t border-black/5 pt-6">
-                    {step.items.map((item) => (
-                      <div key={item.id} className="flex gap-4 items-start">
-                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0 pt-0.5" />
-                        <span className="text-sm font-medium leading-tight">{item.text}</span>
-                      </div>
-                    ))}
-                    <div className="flex gap-3 items-center pt-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <span className="text-[11px] font-bold uppercase tracking-tighter">Autonomous Execution Active</span>
-                    </div>
-                  </div>
-                </div>
-
-                {i === 2 && (
-                   <div className="mt-10">
-                     <Button className="w-full py-7 bg-black text-white hover:bg-black/90 text-sm font-bold rounded-2xl shadow-xl shadow-black/10 flex items-center gap-2">
-                       Launch My Studio
-                       <Sparkles className="w-4 h-4" />
-                     </Button>
-                   </div>
-                )}
-              </motion.div>
-            );
-          })}
+        {/* Steps Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {STEPS.map((step, i) => (
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="space-y-6 group"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-white font-bold group-hover:bg-primary transition-colors">
+                0{i + 1}
+              </div>
+              <h3 className="font-headline text-2xl font-bold">{step.title}</h3>
+              <p className="text-foreground/60 text-sm leading-relaxed">
+                {step.description}
+              </p>
+              
+              <ul className="space-y-3 pt-4">
+                {step.items.map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-tight text-black/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
+
+        {/* Simple Footer CTA */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mt-24 pt-12 border-t border-black/5 flex justify-center"
+        >
+          <button className="font-pixel text-[10px] uppercase tracking-widest text-primary hover:text-primary/60 transition-colors">
+            Request Access to the Private Studio →
+          </button>
+        </motion.div>
 
       </div>
     </section>
