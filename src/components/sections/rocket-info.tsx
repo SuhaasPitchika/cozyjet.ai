@@ -40,6 +40,7 @@ export function RocketInfo() {
   const sketchImg = PlaceHolderImages.find(img => img.id === "jet-sketch");
   const metalImg = PlaceHolderImages.find(img => img.id === "jet-metal");
 
+  // Animation range mappings
   const clipPath = useTransform(
     scrollYProgress, 
     [0.1, 0.9], 
@@ -62,9 +63,14 @@ export function RocketInfo() {
   const ys = [y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-white overflow-visible font-pixel">
+    <section ref={containerRef} className="relative h-[300vh] bg-[#f8fbff] overflow-visible font-pixel">
+      {/* Nature Sky Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#e0f2fe]/40 to-white pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_30%,_#ffffff_0%,_transparent_70%)] opacity-80 pointer-events-none -z-10" />
+      
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
         
+        {/* Left Side: Scrolling Sticky Notes */}
         <div className="relative w-full lg:w-1/2 h-full flex flex-col justify-center z-20">
           <div className="relative h-[400px] w-full max-w-md mx-auto lg:mx-0">
             {STEPS.map((step, index) => (
@@ -78,6 +84,7 @@ export function RocketInfo() {
                 className="absolute inset-0 flex items-center justify-center lg:justify-start"
               >
                 <div className="w-full max-w-[360px] p-10 border-2 border-black/10 rounded-sm bg-[#fffdfa] shadow-[16px_16px_0px_0px_rgba(0,0,0,0.05)] relative">
+                  {/* Sticky Note Thumbtack Hole */}
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10" />
                   
                   <div className="flex items-center gap-4 mb-8">
@@ -98,8 +105,14 @@ export function RocketInfo() {
           </div>
         </div>
 
+        {/* Right Side: Jet with Halo Glow */}
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
           <div className="relative w-full h-full max-h-[60vh]">
+            {/* Whitish Cloud Glow behind the Image */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-white/60 blur-[100px] rounded-full -z-10" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-sky-200/20 blur-[80px] rounded-full -z-10" />
+
+            {/* Base Image (Sketch) */}
             <div className="absolute inset-0">
                <Image 
                   src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
@@ -111,6 +124,7 @@ export function RocketInfo() {
                />
             </div>
 
+            {/* Wipe Image (Metal Render) */}
             <motion.div 
               className="absolute inset-0 z-10"
               style={{ clipPath }}
@@ -124,15 +138,14 @@ export function RocketInfo() {
                   data-ai-hint="metallic jet"
                />
             </motion.div>
-
-            <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
           </div>
         </div>
 
       </div>
 
-      <div className="absolute inset-0 bg-white pointer-events-none -z-20">
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '64px 64px' }} />
+      {/* Decorative Grid Overlay */}
+      <div className="absolute inset-0 pointer-events-none -z-20">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '64px 64px' }} />
       </div>
     </section>
   );
