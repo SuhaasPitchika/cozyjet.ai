@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef } from "react";
@@ -8,18 +9,23 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 const STEPS = [
   {
     phase: "PHASE 01",
-    title: "THE VISION",
+    title: "VISION",
     description: "DESCRIBE YOUR PROJECT ONCE. OUR AGENTS ANALYZE YOUR MARKET TO BUILD A PERSISTENT AI CONTEXT.",
   },
   {
     phase: "PHASE 02",
-    title: "THE ENGINE",
-    description: "YOUR TEAM EXECUTES ON A DISTRIBUTED BACKEND, HANDLING COMPLEX REASONING ACROSS PLATFORMS.",
+    title: "SECURITY",
+    description: "FULLY LOCAL ENCRYPTED AI. OUR AGENTS OPERATE ON AIR-GAPPED LOGIC—THEY SEE, THEY UNDERSTAND, BUT THEY NEVER STORE. 100% PRIVATE, UNHACKABLE EXECUTION.",
   },
   {
     phase: "PHASE 03",
-    title: "THE RESULT",
-    description: "LAUNCH WITH CONFIDENCE. YOUR CONTENT IS OPTIMIZED FOR SPECIFIC PLATFORM HOOKS AND VIRAL FLOWS.",
+    title: "ENGINE",
+    description: "DISTRIBUTED BACKEND REASONING. YOUR TEAM EXECUTES COMPLEX CROSS-PLATFORM TASKS ON OUR AUTONOMOUS ENGINE.",
+  },
+  {
+    phase: "PHASE 04",
+    title: "RESULT",
+    description: "OPTIMIZED VIRAL LAUNCH. HIGH-FIDELITY CONTENT TAILORED FOR PLATFORM-SPECIFIC HOOKS AND FLOWS.",
   }
 ];
 
@@ -41,58 +47,64 @@ export function RocketInfo() {
     ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
-  // Text slide animations
-  const opacity1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [1, 1, 0]);
-  const x1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [0, 0, -20]);
+  // Individual transforms for each slide to ensure range matching and prevent Framer Motion errors
+  const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
+  const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
-  const opacity2 = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
-  const x2 = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [20, 0, 0, -20]);
+  const opacity2 = useTransform(scrollYProgress, [0.25, 0.3, 0.45, 0.5], [0, 1, 1, 0]);
+  const y2 = useTransform(scrollYProgress, [0.25, 0.3, 0.45, 0.5], [50, 0, 0, -50]);
 
-  const opacity3 = useTransform(scrollYProgress, [0.75, 0.85, 1], [0, 1, 1]);
-  const x3 = useTransform(scrollYProgress, [0.75, 0.85, 1], [20, 0, 0]);
+  const opacity3 = useTransform(scrollYProgress, [0.5, 0.55, 0.7, 0.75], [0, 1, 1, 0]);
+  const y3 = useTransform(scrollYProgress, [0.5, 0.55, 0.7, 0.75], [50, 0, 0, -50]);
+
+  const opacity4 = useTransform(scrollYProgress, [0.75, 0.8, 1], [0, 1, 1]);
+  const y4 = useTransform(scrollYProgress, [0.75, 0.8, 1], [50, 0, 0]);
+
+  const opacities = [opacity1, opacity2, opacity3, opacity4];
+  const ys = [y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-white overflow-visible font-pixel">
-      <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-12 lg:px-24 overflow-hidden">
+    <section ref={containerRef} className="relative h-[400vh] bg-white overflow-visible font-pixel">
+      <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
         
-        {/* Left Side: Text Slides */}
-        <div className="relative w-full lg:w-1/2 h-64 lg:h-full flex flex-col justify-center z-20 order-2 lg:order-1">
-          <div className="relative h-48 w-full max-w-md">
-            {/* Slide 1 */}
-            <motion.div style={{ opacity: opacity1, x: x1 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[0].phase}</span>
-              </div>
-              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[0].title}</h3>
-              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[0].description}</p>
-            </motion.div>
-
-            {/* Slide 2 */}
-            <motion.div style={{ opacity: opacity2, x: x2 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[1].phase}</span>
-              </div>
-              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[1].title}</h3>
-              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[1].description}</p>
-            </motion.div>
-
-            {/* Slide 3 */}
-            <motion.div style={{ opacity: opacity3, x: x3 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[2].phase}</span>
-              </div>
-              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[2].title}</h3>
-              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[2].description}</p>
-            </motion.div>
+        {/* Left Side: Sticky Note Cards */}
+        <div className="relative w-full lg:w-1/2 h-full flex flex-col justify-center z-20">
+          <div className="relative h-[400px] w-full max-w-md mx-auto lg:mx-0">
+            {STEPS.map((step, index) => (
+              <motion.div 
+                key={step.phase}
+                style={{ 
+                  opacity: opacities[index], 
+                  y: ys[index],
+                  rotate: index % 2 === 0 ? -1.5 : 1.5
+                }} 
+                className="absolute inset-0 flex items-center justify-center lg:justify-start"
+              >
+                <div className="w-full max-w-[360px] p-10 border-2 border-black/10 rounded-sm bg-[#fffdfa] shadow-[16px_16px_0px_0px_rgba(0,0,0,0.05)] relative">
+                  {/* Thumbtack hole decor */}
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10" />
+                  
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-px bg-primary" />
+                    <span className="text-[10px] text-primary font-bold tracking-[0.2em] uppercase">{step.phase}</span>
+                  </div>
+                  
+                  <h3 className="text-sm md:text-lg font-bold mb-6 text-black uppercase leading-tight tracking-tighter">
+                    {step.title}
+                  </h3>
+                  
+                  <p className="text-[9px] md:text-[10px] leading-relaxed text-black/50 uppercase font-bold">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
 
         {/* Right Side: Smaller Visual centerpiece */}
-        <div className="relative w-full lg:w-1/3 aspect-[3/4] flex items-center justify-center z-10 order-1 lg:order-2">
-          <div className="relative w-full h-full max-h-[70vh]">
+        <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
+          <div className="relative w-full h-full max-h-[65vh]">
             {/* Base Layer: Technical Sketch */}
             <div className="absolute inset-0">
                <Image 
@@ -121,7 +133,7 @@ export function RocketInfo() {
             </motion.div>
 
             {/* Subtle Lighting Effect */}
-            <div className="absolute inset-0 bg-primary/5 blur-[80px] rounded-full pointer-events-none -z-10" />
+            <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
           </div>
         </div>
 
@@ -129,7 +141,7 @@ export function RocketInfo() {
 
       {/* Background Decorative Grid (Light) */}
       <div className="absolute inset-0 bg-white pointer-events-none -z-20">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '64px 64px' }} />
       </div>
     </section>
   );
