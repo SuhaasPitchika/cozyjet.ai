@@ -47,6 +47,12 @@ export function RocketInfo() {
     ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
+  // Background shading transforms
+  const bgBlueIntensity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.4, 0.8]);
+  const cloudParallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
+  const textureScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+
+  // Card animations
   const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
   const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
@@ -64,26 +70,29 @@ export function RocketInfo() {
 
   return (
     <section ref={containerRef} className="relative h-[400vh] overflow-visible font-pixel bg-white">
-      {/* Cinematic Ethereal Sky Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#bde0fe] via-[#e0f2fe] to-white pointer-events-none -z-10" />
-      
-      {/* Animated Cloud Layers */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-60">
+      {/* Background Layers */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        {/* Base Ethereal Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#bde0fe] via-[#e0f2fe] to-white" />
+        
+        {/* Scroll-driven Blue Shading Overlay */}
         <motion.div 
-          animate={{ x: [-20, 20], y: [-10, 10] }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-          className="absolute top-[5%] left-[10%] w-[500px] h-[500px] bg-white/80 blur-[120px] rounded-full" 
+          style={{ opacity: bgBlueIntensity }}
+          className="absolute inset-0 bg-[#3b82f6]/20 mix-blend-multiply" 
         />
+
+        {/* Textured Moving Clouds */}
         <motion.div 
-          animate={{ x: [20, -20], y: [10, -10] }}
-          transition={{ duration: 12, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-          className="absolute top-[25%] right-[5%] w-[700px] h-[700px] bg-[#d0eefb]/50 blur-[150px] rounded-full" 
-        />
-        <motion.div 
-          animate={{ x: [-30, 30], y: [20, -20] }}
-          transition={{ duration: 15, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-          className="absolute bottom-[20%] left-[20%] w-[600px] h-[600px] bg-white/70 blur-[100px] rounded-full" 
-        />
+          style={{ y: cloudParallaxY, scale: textureScale }}
+          className="absolute inset-0 overflow-hidden opacity-60"
+        >
+          <div className="absolute top-[5%] left-[10%] w-[600px] h-[600px] bg-white/80 blur-[120px] rounded-full" />
+          <div className="absolute top-[25%] right-[5%] w-[800px] h-[800px] bg-[#60a5fa]/30 blur-[150px] rounded-full" />
+          <div className="absolute bottom-[10%] left-[20%] w-[700px] h-[700px] bg-white/70 blur-[100px] rounded-full" />
+        </motion.div>
+
+        {/* Technical Grid Overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
       </div>
 
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
@@ -127,7 +136,7 @@ export function RocketInfo() {
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
           <div className="relative w-full h-full max-h-[60vh]">
             {/* Whitish Glow centered around image */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-white blur-[100px] rounded-full -z-10 opacity-90" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-white blur-[100px] rounded-full -z-10 opacity-90 shadow-[0_0_100px_rgba(255,255,255,1)]" />
             
             {/* Base Image (Sketch) */}
             <div className="absolute inset-0">
@@ -158,11 +167,6 @@ export function RocketInfo() {
           </div>
         </div>
 
-      </div>
-
-      {/* Decorative Technical Grid overlay */}
-      <div className="absolute inset-0 pointer-events-none -z-20">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
       </div>
     </section>
   );
