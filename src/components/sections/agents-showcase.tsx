@@ -305,7 +305,7 @@ export function AgentsShowcase() {
         }}
       />
 
-      {/* Smaller, Denser Interactive Studio Glow */}
+      {/* Focused Interactive Studio Glow */}
       <motion.div
         style={{
           left: glowX,
@@ -322,10 +322,22 @@ export function AgentsShowcase() {
             whileInView={{ opacity: 1, y: 0 }}
             className="relative inline-block py-10"
           >
-            <h2 className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase">
+            <motion.h2 
+              animate={{ 
+                scaleY: [1, 1, 0.05, 1, 1, 0.05, 1],
+                opacity: [1, 1, 0.5, 1, 1, 0.3, 1]
+              }}
+              transition={{ 
+                duration: 5, 
+                repeat: Infinity, 
+                times: [0, 0.6, 0.62, 0.64, 0.9, 0.92, 1],
+                ease: "easeInOut"
+              }}
+              className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase origin-center"
+            >
               The Agent <br />
               <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Core Matrix</span>
-            </h2>
+            </motion.h2>
           </motion.div>
           
           <p className="text-[#f2e8d5]/40 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
