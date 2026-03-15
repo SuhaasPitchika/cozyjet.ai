@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
@@ -6,13 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Sphere, Box, Cylinder, Torus, Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
+import { Button } from "@/components/ui/button";
+import { Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number, number] }) => {
   const leftEyeRef = useRef<THREE.Group>(null!);
   const rightEyeRef = useRef<THREE.Group>(null!);
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime;
+    // Stepped time for "pixel-art" frame rate feel
+    const t = Math.floor(state.clock.elapsedTime * 8) / 8;
     if (leftEyeRef.current) {
       leftEyeRef.current.rotation.z = Math.sin(t * 10) * 0.1;
     }
@@ -25,14 +30,14 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
     <group position={position}>
       {/* Left Eye */}
       <group ref={leftEyeRef} position={[-0.25, 0, 0]}>
-        <Sphere args={[0.15, 16, 16]}>
+        <Sphere args={[0.15, 8, 8]}>
           <meshBasicMaterial color="white" />
         </Sphere>
-        <Sphere args={[0.07, 16, 16]} position={[0, 0, 0.1]}>
+        <Sphere args={[0.07, 8, 8]} position={[0, 0, 0.1]}>
           <meshBasicMaterial color="black" />
         </Sphere>
         {hasSpecs && (
-          <Torus args={[0.18, 0.02, 16, 32]} position={[0, 0, 0.05]}>
+          <Torus args={[0.18, 0.02, 8, 16]} position={[0, 0, 0.05]}>
             <meshBasicMaterial color="black" />
           </Torus>
         )}
@@ -40,14 +45,14 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
 
       {/* Right Eye */}
       <group ref={rightEyeRef} position={[0.25, 0, 0]}>
-        <Sphere args={[0.15, 16, 16]}>
+        <Sphere args={[0.15, 8, 8]}>
           <meshBasicMaterial color="white" />
         </Sphere>
-        <Sphere args={[0.07, 16, 16]} position={[0, 0, 0.1]}>
+        <Sphere args={[0.07, 8, 8]} position={[0, 0, 0.1]}>
           <meshBasicMaterial color="black" />
         </Sphere>
         {hasSpecs && (
-          <Torus args={[0.18, 0.02, 16, 32]} position={[0, 0, 0.05]}>
+          <Torus args={[0.18, 0.02, 8, 16]} position={[0, 0, 0.05]}>
             <meshBasicMaterial color="black" />
           </Torus>
         )}
@@ -66,14 +71,13 @@ const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number,
 const SkippyModel = () => {
   return (
     <group>
-      {/* Pink Cuboid Body */}
       <Box args={[1, 1.6, 0.8]}>
         <meshStandardMaterial 
           color="#FFB6C1" 
           emissive="#FF69B4" 
           emissiveIntensity={0.6} 
-          roughness={0.1}
-          metalness={0.2}
+          roughness={1}
+          metalness={0}
         />
       </Box>
       <GooglyEyes hasSpecs={true} position={[0, 0.3, 0.41]} />
@@ -84,33 +88,26 @@ const SkippyModel = () => {
 const FlippoModel = () => {
   return (
     <group>
-      {/* Blueish Cuboid Body */}
       <Box args={[1.2, 1.2, 0.8]}>
         <meshStandardMaterial 
           color="#ADD8E6" 
           emissive="#6297FF" 
           emissiveIntensity={0.5}
-          roughness={0.1}
-          metalness={0.2}
+          roughness={1}
+          metalness={0}
         />
       </Box>
       <GooglyEyes position={[0, 0.2, 0.41]} />
-      
-      {/* Stick Limbs */}
       <group>
-        {/* Left Arm */}
         <Cylinder args={[0.02, 0.02, 0.8]} position={[-0.7, 0, 0]} rotation={[0, 0, Math.PI / 3]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
-        {/* Right Arm */}
         <Cylinder args={[0.02, 0.02, 0.8]} position={[0.7, 0, 0]} rotation={[0, 0, -Math.PI / 3]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
-        {/* Left Leg */}
         <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.3, -0.9, 0]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
-        {/* Right Leg */}
         <Cylinder args={[0.02, 0.02, 0.6]} position={[0.3, -0.9, 0]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
@@ -122,19 +119,16 @@ const FlippoModel = () => {
 const SnooksModel = () => {
   return (
     <group>
-      {/* Deep Purple Cuboid Body */}
       <Box args={[1, 1.2, 1]}>
         <meshStandardMaterial 
           color="#9370DB" 
           emissive="#A36BEE" 
           emissiveIntensity={0.7}
-          roughness={0.1}
-          metalness={0.2}
+          roughness={1}
+          metalness={0}
         />
       </Box>
       <GooglyEyes position={[0, 0.2, 0.51]} />
-      
-      {/* Bowtie */}
       <group position={[0, -0.2, 0.52]}>
         <Box args={[0.2, 0.1, 0.05]} position={[-0.1, 0, 0]} rotation={[0, 0, 0.5]}>
           <meshBasicMaterial color="black" />
@@ -142,18 +136,14 @@ const SnooksModel = () => {
         <Box args={[0.2, 0.1, 0.05]} position={[0.1, 0, 0]} rotation={[0, 0, -0.5]}>
           <meshBasicMaterial color="black" />
         </Box>
-        <Sphere args={[0.04, 8, 8]}>
+        <Sphere args={[0.04, 4, 4]}>
           <meshBasicMaterial color="black" />
         </Sphere>
       </group>
-
-      {/* Stick Limbs */}
       <group>
-        {/* Left Arm */}
         <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.6, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
-        {/* Right Arm */}
         <Cylinder args={[0.02, 0.02, 0.6]} position={[0.6, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
           <meshBasicMaterial color="black" />
         </Cylinder>
@@ -168,6 +158,7 @@ const AGENTS = [
     role: "Screen Intelligence",
     color: "#FFB6C1",
     desc: "Autonomous screen analysis and contextual assistance for designers & devs.",
+    prompt: "A 32-bit pixel art character of a pink rectangular robot with large googly eyes and thick black spectacles, floating in a digital void, retro game aesthetic, vibrant pink and magenta highlights.",
     powers: ["OCR extraction", "Activity tracking", "Anti-stuck logic"],
     Model: SkippyModel
   },
@@ -176,6 +167,7 @@ const AGENTS = [
     role: "Productivity Brain",
     color: "#6297FF",
     desc: "Data-driven insights and deep work scoring based on real behavior.",
+    prompt: "A 32-bit pixel art character of a blue square robot with thin black stick limbs and curious googly eyes, standing on a minimalist grid, tech-blue palette, clean retro aesthetic.",
     powers: ["Timeline generation", "Flow state analysis", "Focus matrix"],
     Model: FlippoModel
   },
@@ -184,6 +176,7 @@ const AGENTS = [
     role: "Marketing Head",
     color: "#A36BEE",
     desc: "Expert content strategy and platform-native marketing generation.",
+    prompt: "A 32-bit pixel art character of a purple rectangular agent wearing a black bowtie, large expressive eyes, elegant and professional retro game style, deep purple and violet tones.",
     powers: ["Viral hook drafting", "Multi-platform sync", "SEO optimization"],
     Model: SnooksModel
   }
@@ -191,10 +184,22 @@ const AGENTS = [
 
 function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
   const [mounted, setMounted] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(agent.prompt);
+    setCopied(true);
+    toast({
+      title: "Prompt Copied!",
+      description: `Pixel animation prompt for ${agent.name} is ready for AI generation.`,
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <motion.div
@@ -207,12 +212,19 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         className="w-full aspect-square rounded-2xl mb-6 relative overflow-hidden bg-black/40 flex items-center justify-center"
       >
         {mounted ? (
-          <Canvas shadow={false} dpr={[1, 2]}>
+          <Canvas 
+            shadow={false} 
+            dpr={[0.2, 0.4]} // Low resolution for pixel-art feel
+            gl={{ antialias: false, pixelRatio: 0.5 }}
+          >
             <PerspectiveCamera makeDefault position={[0, 0, 4]} />
             <ambientLight intensity={1} />
             <pointLight position={[10, 10, 10]} intensity={1.5} />
-            <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-            <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
+            <Float 
+              speed={1.5} 
+              rotationIntensity={0.2} 
+              floatIntensity={1}
+            >
               <agent.Model />
             </Float>
             <Environment preset="city" />
@@ -222,16 +234,37 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
         )}
       </div>
 
-      <h3 className="font-pixel text-lg font-bold mb-1">{agent.name}</h3>
-      <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
-      <p className="text-foreground/60 text-sm mb-6 flex-grow">{agent.desc}</p>
-      
-      <div className="flex flex-wrap gap-2">
-        {agent.powers.map(p => (
-          <Badge key={p} variant="secondary" className="bg-white/10 text-[8px] py-0.5 font-pixel uppercase">
-            {p}
-          </Badge>
-        ))}
+      <div className="flex-grow">
+        <h3 className="font-pixel text-lg font-bold mb-1">{agent.name}</h3>
+        <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
+        <p className="text-[#f2e8d5]/60 text-[10px] leading-relaxed mb-6 font-pixel uppercase">{agent.desc}</p>
+        
+        <div className="flex flex-wrap gap-2 mb-8">
+          {agent.powers.map(p => (
+            <Badge key={p} variant="secondary" className="bg-white/10 text-[7px] py-0.5 font-pixel uppercase border-none">
+              {p}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-auto pt-6 border-t border-white/5">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">AI Character Prompt</span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 hover:bg-white/10"
+            onClick={handleCopyPrompt}
+          >
+            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-white/40" />}
+          </Button>
+        </div>
+        <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+          <p className="text-[7px] font-pixel text-[#f2e8d5]/40 leading-normal line-clamp-3 uppercase">
+            {agent.prompt}
+          </p>
+        </div>
       </div>
     </motion.div>
   );
@@ -253,7 +286,6 @@ export function AgentsShowcase() {
 
   return (
     <section id="agents" className="py-48 px-6 bg-black relative overflow-hidden">
-      {/* Whiteish background ambient lighting */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[140px]" />
@@ -265,24 +297,23 @@ export function AgentsShowcase() {
             onMouseMove={handleContainerMouseMove}
             className="relative group inline-block p-10 cursor-default"
           >
-            {/* Wegic-style dynamic light glow (Whiteish) */}
             <motion.div
               style={{
                 left: glowX,
                 top: glowY,
-                background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
+                background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
               }}
               className="absolute -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
             />
             
-            <h2 className="font-pixel text-4xl md:text-6xl lg:text-7xl font-bold mb-8 relative z-10 leading-[1.15] tracking-tight text-white">
-              Meet Your New <br />
-              <span className="text-[#f2e8d5] drop-shadow-[0_0_20px_rgba(242,232,213,0.3)]">Autonomous Team</span>
+            <h2 className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase">
+              The Agent <br />
+              <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Core Matrix</span>
             </h2>
           </motion.div>
           
-          <p className="text-[#f2e8d5]/80 max-w-3xl mx-auto font-pixel text-[11px] md:text-xs leading-loose uppercase tracking-[0.2em] transition-colors duration-500 hover:text-[#f2e8d5]">
-            Three specialized AI entities working in perfect harmony to handle everything from your focus sessions to your viral marketing.
+          <p className="text-[#f2e8d5]/40 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
+            Autonomous entities engineered for pixel-perfect execution.
           </p>
         </div>
 
