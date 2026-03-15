@@ -3,13 +3,9 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Sphere, Box, Cylinder, Torus, Environment, PerspectiveCamera } from "@react-three/drei";
-import * as THREE from "this";
-import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import * as THREE from "three";
 
 const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number, number] }) => {
   const leftEyeRef = useRef<THREE.Group>(null!);
@@ -153,8 +149,7 @@ const AGENTS = [
     name: "Skippy",
     role: "Screen Intelligence",
     color: "#FFB6C1",
-    desc: "Autonomous screen analysis and contextual assistance for designers & devs.",
-    prompt: "A 32-bit pixel art character of a pink rectangular robot with large googly eyes and thick black spectacles, floating in a digital void, retro game aesthetic, vibrant pink and magenta highlights.",
+    desc: "Autonomous screen analysis and contextual assistance.",
     powers: ["OCR extraction", "Activity tracking", "Anti-stuck logic"],
     Model: SkippyModel
   },
@@ -162,8 +157,7 @@ const AGENTS = [
     name: "Flippo",
     role: "Productivity Brain",
     color: "#6297FF",
-    desc: "Data-driven insights and deep work scoring based on real behavior.",
-    prompt: "A 32-bit pixel art character of a blue square robot with thin black stick limbs and curious googly eyes, standing on a minimalist grid, tech-blue palette, clean retro aesthetic.",
+    desc: "Data-driven insights and deep work scoring.",
     powers: ["Timeline generation", "Flow state analysis", "Focus matrix"],
     Model: FlippoModel
   },
@@ -171,31 +165,36 @@ const AGENTS = [
     name: "Snooks",
     role: "Marketing Head",
     color: "#A36BEE",
-    desc: "Expert content strategy and platform-native marketing generation.",
-    prompt: "A 32-bit pixel art character of a purple rectangular agent wearing a black bowtie, large expressive eyes, elegant and professional retro game style, deep purple and violet tones.",
+    desc: "Expert content strategy and viral generation.",
     powers: ["Viral hook drafting", "Multi-platform sync", "SEO optimization"],
     Model: SnooksModel
   }
 ];
 
+function StickyPower({ text, index }: { text: string; index: number }) {
+  const rotations = ["-1deg", "1deg", "-0.5deg"];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="sticky-note w-full py-2 px-3 mb-2 flex items-center justify-center rounded-sm border-black/5"
+      style={{ rotate: rotations[index % rotations.length] }}
+    >
+      <div className="sticky-note-hole !top-0.5 !w-1 !h-1" />
+      <span className="text-[7px] font-pixel text-black/60 uppercase text-center leading-tight">
+        {text}
+      </span>
+    </motion.div>
+  );
+}
+
 function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
   const [mounted, setMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(agent.prompt);
-    setCopied(true);
-    toast({
-      title: "Prompt Copied!",
-      description: `Pixel animation prompt for ${agent.name} is ready for AI generation.`,
-    });
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <motion.div
@@ -231,35 +230,14 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
       </div>
 
       <div className="flex-grow">
-        <h3 className="font-pixel text-lg font-bold mb-1">{agent.name}</h3>
-        <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
-        <p className="text-[#f2e8d5]/60 text-[10px] leading-relaxed mb-6 font-pixel uppercase">{agent.desc}</p>
+        <h3 className="font-pixel text-lg font-bold mb-1 text-white">{agent.name}</h3>
+        <p className="font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
+        <p className="text-[#f2e8d5]/40 text-[9px] leading-relaxed mb-8 font-pixel uppercase">{agent.desc}</p>
         
-        <div className="flex flex-wrap gap-2 mb-8">
-          {agent.powers.map(p => (
-            <Badge key={p} variant="secondary" className="bg-white/10 text-[7px] py-0.5 font-pixel uppercase border-none">
-              {p}
-            </Badge>
+        <div className="flex flex-col gap-1">
+          {agent.powers.map((p, i) => (
+            <StickyPower key={p} text={p} index={i} />
           ))}
-        </div>
-      </div>
-
-      <div className="mt-auto pt-6 border-t border-white/5">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">AI Character Prompt</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 hover:bg-white/10"
-            onClick={handleCopyPrompt}
-          >
-            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-white/40" />}
-          </Button>
-        </div>
-        <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-          <p className="text-[7px] font-pixel text-[#f2e8d5]/40 leading-normal line-clamp-3 uppercase">
-            {agent.prompt}
-          </p>
         </div>
       </div>
     </motion.div>
