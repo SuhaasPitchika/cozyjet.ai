@@ -74,9 +74,9 @@
     },
     {
       "id": "auth-sky",
-      "description": "A high-altitude shot of soft white clouds against a light blue morning sky",
-      "imageUrl": "https://picsum.photos/seed/authsky/1920/1080",
-      "imageHint": "sky clouds"
+      "description": "A cinematic sunset sky with soft blue and pink gradients and wispy clouds",
+      "imageUrl": "https://picsum.photos/seed/bluepinksky/1920/1080",
+      "imageHint": "blue pink sky"
     }
   ]
 }
