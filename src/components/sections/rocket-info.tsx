@@ -63,15 +63,27 @@ export function RocketInfo() {
   const ys = [y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} className="relative h-[400vh] bg-[#f8fbff] overflow-visible font-pixel">
-      {/* Cinematic Sky Background with Fading Clouds */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] via-[#f0f9ff] to-white pointer-events-none -z-10" />
+    <section ref={containerRef} className="relative h-[400vh] overflow-visible font-pixel bg-white">
+      {/* Cinematic Ethereal Sky Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#bde0fe] via-[#e0f2fe] to-white pointer-events-none -z-10" />
       
-      {/* Ethereal Cloud Layers */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-white/40 blur-[150px] rounded-full animate-pulse-glow" />
-        <div className="absolute top-[40%] right-[10%] w-[800px] h-[800px] bg-white/30 blur-[200px] rounded-full" />
-        <div className="absolute bottom-[20%] left-[15%] w-[700px] h-[700px] bg-white/50 blur-[180px] rounded-full animate-pulse-glow" />
+      {/* Animated Cloud Layers */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-60">
+        <motion.div 
+          animate={{ x: [-20, 20], y: [-10, 10] }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+          className="absolute top-[5%] left-[10%] w-[500px] h-[500px] bg-white/80 blur-[120px] rounded-full" 
+        />
+        <motion.div 
+          animate={{ x: [20, -20], y: [10, -10] }}
+          transition={{ duration: 12, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+          className="absolute top-[25%] right-[5%] w-[700px] h-[700px] bg-[#d0eefb]/50 blur-[150px] rounded-full" 
+        />
+        <motion.div 
+          animate={{ x: [-30, 30], y: [20, -20] }}
+          transition={{ duration: 15, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+          className="absolute bottom-[20%] left-[20%] w-[600px] h-[600px] bg-white/70 blur-[100px] rounded-full" 
+        />
       </div>
 
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
@@ -89,7 +101,7 @@ export function RocketInfo() {
                 }} 
                 className="absolute inset-0 flex items-center justify-center lg:justify-start"
               >
-                <div className="w-full max-w-[360px] p-10 border border-black/5 rounded-sm bg-[#fffdfa]/90 backdrop-blur-md shadow-[20px_20px_40px_-10px_rgba(0,0,0,0.05)] relative group hover:rotate-0 transition-transform duration-500">
+                <div className="w-full max-w-[360px] p-10 border border-black/5 rounded-sm bg-[#fffdfa]/95 backdrop-blur-xl shadow-[20px_20px_40px_-10px_rgba(0,0,0,0.05)] relative group hover:rotate-0 transition-transform duration-500">
                   {/* Sticky Note Thumbtack Hole */}
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black/5 border border-black/10 shadow-inner" />
                   
@@ -114,17 +126,16 @@ export function RocketInfo() {
         {/* Right Side: Jet with Concentrated White Halo */}
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
           <div className="relative w-full h-full max-h-[60vh]">
-            {/* Concentrated Whitish Glow precisely behind the Image */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white blur-[100px] rounded-full -z-10 opacity-80" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-sky-100/40 blur-[60px] rounded-full -z-10" />
-
+            {/* Whitish Glow centered around image */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-white blur-[100px] rounded-full -z-10 opacity-90" />
+            
             {/* Base Image (Sketch) */}
             <div className="absolute inset-0">
                <Image 
                   src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
                   alt="Jet Technical Blueprint"
                   fill
-                  className="object-contain opacity-20 grayscale"
+                  className="object-contain opacity-25 grayscale"
                   priority
                   data-ai-hint="jet sketch"
                />
@@ -139,7 +150,7 @@ export function RocketInfo() {
                   src={metalImg?.imageUrl || "https://picsum.photos/seed/jet-metal-top/800/1200"}
                   alt="Metallic Jet Render"
                   fill
-                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
                   priority
                   data-ai-hint="metallic jet"
                />
@@ -149,9 +160,9 @@ export function RocketInfo() {
 
       </div>
 
-      {/* Decorative Technical Grid */}
+      {/* Decorative Technical Grid overlay */}
       <div className="absolute inset-0 pointer-events-none -z-20">
-        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
       </div>
     </section>
   );
