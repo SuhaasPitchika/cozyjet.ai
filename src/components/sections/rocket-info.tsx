@@ -98,7 +98,7 @@ export function RocketInfo() {
           })}
         </div>
 
-        {/* Center: The Jet Animation - Removed frame and rotation */}
+        {/* Center: The Jet Animation */}
         <div className="flex-1 h-full relative flex items-center justify-center py-20 pointer-events-none">
           <div className="relative w-full max-w-lg aspect-[9/16]">
             {/* Sketch Layer (The base) */}
