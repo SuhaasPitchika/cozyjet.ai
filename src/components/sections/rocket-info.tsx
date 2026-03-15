@@ -48,6 +48,7 @@ export function RocketInfo() {
   );
 
   // Individual transforms for each slide to match range lengths correctly
+  // Input and output ranges MUST have the same length
   const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [1, 1, 0]);
   const y1 = useTransform(scrollYProgress, [0, 0.2, 0.25], [0, 0, -50]);
 
