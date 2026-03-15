@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -16,17 +15,17 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Cinematic Nature Sky Background */}
+      {/* Cinematic Sky Background */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={skyImage?.imageUrl || "https://picsum.photos/seed/nature-horizon/1920/1080"}
-          alt="Nature Sky"
+          src={skyImage?.imageUrl || "https://picsum.photos/seed/sky-dawn/1920/1080"}
+          alt="Cinematic Sky"
           fill
           className="object-cover"
           priority
-          data-ai-hint="nature horizon"
+          data-ai-hint="sky clouds"
         />
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[4px]" />
       </div>
 
       <motion.div
@@ -36,7 +35,7 @@ export default function AuthPage() {
         className="w-full max-w-md p-10 z-20 mx-4"
       >
         {/* Glassmorphic Auth Card */}
-        <div className="bg-white/10 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-10 relative overflow-hidden ring-1 ring-white/20">
+        <div className="bg-white/20 backdrop-blur-3xl border border-white/30 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] p-10 relative overflow-hidden ring-1 ring-white/20">
           <div className="mb-10 text-center">
             <h1 className="pixel-text text-xl font-bold mb-3 text-white drop-shadow-sm uppercase tracking-tighter">
               Studio Access

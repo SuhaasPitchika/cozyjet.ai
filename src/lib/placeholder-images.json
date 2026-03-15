@@ -74,9 +74,9 @@
     },
     {
       "id": "auth-sky",
-      "description": "A cinematic nature horizon with soft pastel dawn gradients and high-altitude wispy clouds",
-      "imageUrl": "https://picsum.photos/seed/nature-horizon/1920/1080",
-      "imageHint": "nature horizon"
+      "description": "A cinematic high-altitude sky with soft blue and pink dawn gradients",
+      "imageUrl": "https://picsum.photos/seed/sky-dawn/1920/1080",
+      "imageHint": "sky clouds"
     }
   ]
 }
