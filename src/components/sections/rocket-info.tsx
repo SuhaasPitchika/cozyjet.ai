@@ -43,28 +43,63 @@ export function RocketInfo() {
 
   // Text slide animations
   const opacity1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [1, 1, 0]);
-  const y1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [0, 0, -40]);
+  const x1 = useTransform(scrollYProgress, [0, 0.25, 0.35], [0, 0, -20]);
 
   const opacity2 = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
-  const y2 = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [40, 0, 0, -40]);
+  const x2 = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [20, 0, 0, -20]);
 
   const opacity3 = useTransform(scrollYProgress, [0.75, 0.85, 1], [0, 1, 1]);
-  const y3 = useTransform(scrollYProgress, [0.75, 0.85, 1], [40, 0, 0]);
+  const x3 = useTransform(scrollYProgress, [0.75, 0.85, 1], [20, 0, 0]);
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-black overflow-visible font-pixel">
-      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center px-6 overflow-hidden">
+    <section ref={containerRef} className="relative h-[300vh] bg-white overflow-visible font-pixel">
+      <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-12 lg:px-24 overflow-hidden">
         
-        {/* The Visual Centerpiece */}
-        <div className="relative w-full max-w-2xl aspect-[3/4] flex items-center justify-center z-10 mb-20 lg:mb-0">
-          <div className="relative w-full h-full">
+        {/* Left Side: Text Slides */}
+        <div className="relative w-full lg:w-1/2 h-64 lg:h-full flex flex-col justify-center z-20 order-2 lg:order-1">
+          <div className="relative h-48 w-full max-w-md">
+            {/* Slide 1 */}
+            <motion.div style={{ opacity: opacity1, x: x1 }} className="absolute inset-0 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-px bg-primary" />
+                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[0].phase}</span>
+              </div>
+              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[0].title}</h3>
+              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[0].description}</p>
+            </motion.div>
+
+            {/* Slide 2 */}
+            <motion.div style={{ opacity: opacity2, x: x2 }} className="absolute inset-0 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-px bg-primary" />
+                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[1].phase}</span>
+              </div>
+              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[1].title}</h3>
+              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[1].description}</p>
+            </motion.div>
+
+            {/* Slide 3 */}
+            <motion.div style={{ opacity: opacity3, x: x3 }} className="absolute inset-0 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-px bg-primary" />
+                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[2].phase}</span>
+              </div>
+              <h3 className="text-lg font-bold mb-4 text-black uppercase leading-tight">{STEPS[2].title}</h3>
+              <p className="text-[8px] leading-loose text-black/40 uppercase">{STEPS[2].description}</p>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Right Side: Smaller Visual centerpiece */}
+        <div className="relative w-full lg:w-1/3 aspect-[3/4] flex items-center justify-center z-10 order-1 lg:order-2">
+          <div className="relative w-full h-full max-h-[70vh]">
             {/* Base Layer: Technical Sketch */}
             <div className="absolute inset-0">
                <Image 
                   src={sketchImg?.imageUrl || "https://picsum.photos/seed/jet-sketch-top/800/1200"}
                   alt="Jet Technical Blueprint"
                   fill
-                  className="object-contain opacity-30 brightness-0 invert"
+                  className="object-contain opacity-20 grayscale"
                   priority
                   data-ai-hint="jet sketch"
                />
@@ -85,51 +120,16 @@ export function RocketInfo() {
                />
             </motion.div>
 
-            {/* Decorative Background Glow */}
-            <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
-          </div>
-        </div>
-
-        {/* Text Slides Overlay */}
-        <div className="absolute bottom-12 left-0 right-0 lg:left-24 lg:bottom-1/2 lg:-translate-y-1/2 lg:w-1/3 px-12 z-20 pointer-events-none">
-          <div className="relative h-48">
-            {/* Slide 1 */}
-            <motion.div style={{ opacity: opacity1, y: y1 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[0].phase}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-white uppercase">{STEPS[0].title}</h3>
-              <p className="text-[9px] leading-loose text-white/40 uppercase max-w-xs">{STEPS[0].description}</p>
-            </motion.div>
-
-            {/* Slide 2 */}
-            <motion.div style={{ opacity: opacity2, y: y2 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[1].phase}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-white uppercase">{STEPS[1].title}</h3>
-              <p className="text-[9px] leading-loose text-white/40 uppercase max-w-xs">{STEPS[1].description}</p>
-            </motion.div>
-
-            {/* Slide 3 */}
-            <motion.div style={{ opacity: opacity3, y: y3 }} className="absolute inset-0 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-px bg-primary" />
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">{STEPS[2].phase}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-4 text-white uppercase">{STEPS[2].title}</h3>
-              <p className="text-[9px] leading-loose text-white/40 uppercase max-w-xs">{STEPS[2].description}</p>
-            </motion.div>
+            {/* Subtle Lighting Effect */}
+            <div className="absolute inset-0 bg-primary/5 blur-[80px] rounded-full pointer-events-none -z-10" />
           </div>
         </div>
 
       </div>
 
-      {/* Background Decorative Grid */}
-      <div className="absolute inset-0 bg-black opacity-10 pointer-events-none -z-20">
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 0.5px, transparent 0)', backgroundSize: '40px 40px' }} />
+      {/* Background Decorative Grid (Light) */}
+      <div className="absolute inset-0 bg-white pointer-events-none -z-20">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 0)', backgroundSize: '48px 48px' }} />
       </div>
     </section>
   );
