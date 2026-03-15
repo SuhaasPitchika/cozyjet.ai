@@ -271,7 +271,7 @@ export function AgentsShowcase() {
   const mouseX = useMotionValue(-1000);
   const mouseY = useMotionValue(-1000);
 
-  const springConfig = { damping: 40, stiffness: 100 };
+  const springConfig = { damping: 40, stiffness: 120 };
   const glowX = useSpring(mouseX, springConfig);
   const glowY = useSpring(mouseY, springConfig);
 
@@ -288,14 +288,14 @@ export function AgentsShowcase() {
       onMouseMove={handleContainerMouseMove}
       className="py-48 px-6 bg-black relative overflow-hidden group"
     >
-      {/* Interactive Dot Grid Background (Wegic style) */}
+      {/* Denser Interactive Dot Grid Background */}
       <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-20"
+        className="absolute inset-0 z-0 pointer-events-none opacity-25"
         style={{
           backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 0)',
-          backgroundSize: '32px 32px',
-          maskImage: `radial-gradient(circle 600px at var(--mouse-x, 0px) var(--mouse-y, 0px), black 0%, transparent 100%)`,
-          WebkitMaskImage: `radial-gradient(circle 600px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 0%, transparent 100%)`,
+          backgroundSize: '24px 24px',
+          maskImage: `radial-gradient(circle 350px at var(--mouse-x, 0px) var(--mouse-y, 0px), black 0%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 350px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 0%, transparent 100%)`,
         } as any}
         ref={(el) => {
           if (el) {
@@ -305,14 +305,14 @@ export function AgentsShowcase() {
         }}
       />
 
-      {/* Expanded Interactive Studio Glow */}
+      {/* Smaller, Denser Interactive Studio Glow */}
       <motion.div
         style={{
           left: glowX,
           top: glowY,
-          background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
         }}
-        className="absolute -translate-x-1/2 -translate-y-1/2 w-[1600px] h-[1600px] pointer-events-none blur-[140px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none blur-[100px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
