@@ -86,14 +86,14 @@
     },
     {
       "id": "jet-sketch",
-      "description": "Detailed blueprint sketch of a high-tech orbital jet",
-      "imageUrl": "https://picsum.photos/seed/jet-blueprint/800/1200",
-      "imageHint": "blueprint sketch"
+      "description": "Top-down blueprint sketch of a high-tech orbital jet",
+      "imageUrl": "https://picsum.photos/seed/jet-sketch-top/800/1200",
+      "imageHint": "jet sketch"
     },
     {
       "id": "jet-metal",
-      "description": "Sleek metallic orbital jet with realistic textures and lighting",
-      "imageUrl": "https://picsum.photos/seed/jet-metallic/800/1200",
+      "description": "Sleek metallic orbital jet with photorealistic textures",
+      "imageUrl": "https://picsum.photos/seed/jet-metal-top/800/1200",
       "imageHint": "metallic jet"
     }
   ]
