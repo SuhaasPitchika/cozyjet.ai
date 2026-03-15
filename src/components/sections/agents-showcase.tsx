@@ -271,10 +271,10 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
 }
 
 export function AgentsShowcase() {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(-1000);
+  const mouseY = useMotionValue(-1000);
 
-  const springConfig = { damping: 20, stiffness: 150 };
+  const springConfig = { damping: 40, stiffness: 100 };
   const glowX = useSpring(mouseX, springConfig);
   const glowY = useSpring(mouseY, springConfig);
 
@@ -285,7 +285,21 @@ export function AgentsShowcase() {
   };
 
   return (
-    <section id="agents" className="py-48 px-6 bg-black relative overflow-hidden">
+    <section 
+      id="agents" 
+      onMouseMove={handleContainerMouseMove}
+      className="py-48 px-6 bg-black relative overflow-hidden group"
+    >
+      {/* Expanded Interactive Studio Glow */}
+      <motion.div
+        style={{
+          left: glowX,
+          top: glowY,
+          background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)",
+        }}
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] pointer-events-none blur-[140px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+      />
+
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[140px]" />
@@ -293,24 +307,12 @@ export function AgentsShowcase() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-24 flex flex-col items-center">
-          <motion.div 
-            onMouseMove={handleContainerMouseMove}
-            className="relative group inline-block p-10 cursor-default"
-          >
-            <motion.div
-              style={{
-                left: glowX,
-                top: glowY,
-                background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
-              }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
-            />
-            
+          <div className="relative inline-block py-10">
             <h2 className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase">
               The Agent <br />
               <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Core Matrix</span>
             </h2>
-          </motion.div>
+          </div>
           
           <p className="text-[#f2e8d5]/40 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
             Autonomous entities engineered for pixel-perfect execution.

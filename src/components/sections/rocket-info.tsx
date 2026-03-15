@@ -67,7 +67,7 @@ export function RocketInfo() {
     <section ref={containerRef} className="relative h-[400vh] bg-white overflow-visible font-pixel">
       <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden">
         
-        {/* Left Side: Sticky Note Cards */}
+        {/* Left Side: Sticky Note Cards (Stable Side) */}
         <div className="relative w-full lg:w-1/2 h-full flex flex-col justify-center z-20">
           <div className="relative h-[400px] w-full max-w-md mx-auto lg:mx-0">
             {STEPS.map((step, index) => (
@@ -102,7 +102,7 @@ export function RocketInfo() {
           </div>
         </div>
 
-        {/* Right Side: Smaller Visual centerpiece */}
+        {/* Right Side: Smaller Visual centerpiece (Stable Side) */}
         <div className="relative w-full lg:w-2/5 aspect-[3/4] flex items-center justify-center z-10">
           <div className="relative w-full h-full max-h-[65vh]">
             {/* Base Layer: Technical Sketch */}
