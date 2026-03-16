@@ -1,48 +1,62 @@
-
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useAuth, useFirestore } from "@/firebase";
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { useAuth, useFirestore, useUser } from "@/firebase";
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
+} from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
   const auth = useAuth();
   const db = useFirestore();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   
   const skyImage = PlaceHolderImages.find(img => img.id === "auth-sky");
 
-  const syncUserProfile = async (user: any) => {
-    const userRef = doc(db, "users", user.uid);
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !isLoading) {
+      router.push("/dashboard");
+    }
+  }, [user, router, isLoading]);
+
+  const syncUserProfile = async (firebaseUser: any) => {
+    const userRef = doc(db, "users", firebaseUser.uid);
     const userSnap = await getDoc(userRef);
 
+    const now = new Date().toISOString();
+
     if (!userSnap.exists()) {
-      // New User Identity Initialization
+      // New User Identity Initialization - Strict Schema Alignment
       await setDoc(userRef, {
-        id: user.uid,
-        email: user.email,
-        authProviderId: user.providerData[0]?.providerId || "unknown",
-        firstName: user.displayName?.split(" ")[0] || "Studio",
-        lastName: user.displayName?.split(" ").slice(1).join(" ") || "User",
+        id: firebaseUser.uid,
+        email: firebaseUser.email || "",
+        firstName: firebaseUser.displayName?.split(" ")[0] || "Studio",
+        lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "User",
         onboarded: false,
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        lastLogin: now,
+        createdAt: now,
+        updatedAt: now,
         localOnlyMode: true,
         anonymizedAnalytics: true,
         skippyEnabled: true,
@@ -56,13 +70,14 @@ export default function AuthPage() {
     } else {
       // Returning User - Update Session
       await setDoc(userRef, {
-        lastLogin: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        lastLogin: now,
+        updatedAt: now,
       }, { merge: true });
     }
   };
 
   const handleGoogleSignIn = async () => {
+    if (isLoading) return;
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
@@ -70,7 +85,7 @@ export default function AuthPage() {
       await syncUserProfile(result.user);
       toast({
         title: "Identity Verified",
-        description: `Welcome back, ${result.user.displayName}`,
+        description: `Welcome, ${result.user.displayName}`,
       });
       router.push("/dashboard");
     } catch (error: any) {
@@ -80,13 +95,13 @@ export default function AuthPage() {
         title: "Auth Failure",
         description: error.message || "Could not complete Google verification.",
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setIsLoading(true);
     try {
       let result;
@@ -108,10 +123,17 @@ export default function AuthPage() {
         title: "Auth Error",
         description: error.message || "Invalid credentials or system error.",
       });
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (isUserLoading && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="w-8 h-8 border-4 border-white/10 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-pixel">
@@ -124,7 +146,7 @@ export default function AuthPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[4px]" />
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[12px]" />
       </div>
 
       <motion.div
@@ -168,8 +190,9 @@ export default function AuthPage() {
             </div>
 
             <Button 
+              type="submit"
               disabled={isLoading}
-              className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-[8px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+              className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-[8px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl"
             >
               {isLoading ? "PROCESSSING..." : (isLogin ? "ENTER STUDIO" : "CREATE ACCOUNT")}
             </Button>
@@ -187,7 +210,7 @@ export default function AuthPage() {
               variant="outline" 
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-[8px] uppercase tracking-widest transition-all"
+              className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-[8px] uppercase tracking-widest transition-all shadow-sm"
             >
               Continue with Google
             </Button>
