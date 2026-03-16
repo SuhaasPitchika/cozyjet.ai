@@ -58,12 +58,13 @@ export function CustomCursor({ name = "Studio User" }: { name?: string }) {
           <circle cx="8" cy="8" r="1.5" fill="black" />
         </motion.svg>
         
+        {/* Identity Label */}
         <motion.div 
           className="absolute top-10 left-6 bg-black text-white px-3 py-1 rounded-lg border-2 border-white shadow-xl"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <span className="text-[6px] font-pixel uppercase tracking-tight whitespace-nowrap">
+          <span className="text-[10px] font-bold uppercase tracking-tight whitespace-nowrap">
             {name}
           </span>
         </motion.div>
