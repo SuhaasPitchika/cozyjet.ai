@@ -29,10 +29,10 @@
 
 @layer base {
   * {
-    @apply border-border font-pixel;
+    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-pixel antialiased;
+    @apply bg-background text-foreground antialiased;
     background-image: radial-gradient(#e5e7eb 1.5px, transparent 0);
     background-size: 24px 24px;
   }
