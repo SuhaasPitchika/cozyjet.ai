@@ -18,9 +18,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;700&family=Caveat:wght@400;700&family=Indie+Flower&family=Gloria+Hallelujah&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;700&family=Caveat:wght@400;700&family=Indie+Flower&family=Gloria+Hallelujah&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-pixel antialiased bg-background text-foreground">
+      <body className="font-sans antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           {children}
           <Toaster />
