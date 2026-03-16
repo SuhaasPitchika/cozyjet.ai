@@ -1,0 +1,299 @@
+// src/backend/llm-integration.ts
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+export class LLMIntegration {
+  private model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  async generateResponse(prompt: string, context?: string): Promise<string> {
+    try {
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY is not set in environment variables');
+      }
+
+      const fullPrompt = context ? `${context}\n\nUser Query: ${prompt}` : prompt;
+
+      const result = await this.model.generateContent(fullPrompt);
+      const response = result.response;
+      const text = response.text();
+
+      return text;
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async analyzeScreenActivity(activityDescription: string): Promise<{
+    isCompletion: boolean;
+    workType: string;
+    summary: string;
+  }> {
+    const analysisPrompt = `Analyze this developer/creative work activity and determine if significant work was completed.
+
+Activity Description: "${activityDescription}"
+
+Respond ONLY with a valid JSON object (no markdown, no extra text):
+{
+  "isCompletion": true or false,
+  "workType": "coding" or "design" or "writing" or "review" or "other",
+  "summary": "Brief 1-2 sentence summary of what was accomplished"
+}`;
+
+    try {
+      const response = await this.generateResponse(analysisPrompt);
+      
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      
+      return {
+        isCompletion: false,
+        workType: 'other',
+        summary: response,
+      };
+    } catch (error) {
+      console.error('Activity analysis error:', error);
+      return {
+        isCompletion: false,
+        workType: 'other',
+        summary: 'Unable to analyze activity',
+      };
+    }
+  }
+
+  async generateContentVariations(
+    topic: string,
+    platform: 'linkedin' | 'twitter' | 'instagram' | 'youtube' | 'tiktok',
+    contentType: string
+  ): Promise<string[]> {
+    const platformPrompts: Record<string, string> = {
+      linkedin: `Generate 3 professional LinkedIn posts about: "${topic}"
+      
+Requirements:
+- Each post should be 1300-1900 characters
+- Include a strong hook in the first 2 lines
+- Include valuable body content with 3-5 key points
+- End with a thought-provoking question or CTA
+- Add 3-5 relevant hashtags
+- Separate each post with "---"`,
+
+      twitter: `Generate 3 Twitter threads about: "${topic}"
+      
+Requirements:
+- Each thread should have 6-12 tweets
+- Each tweet under 280 characters
+- Start with an attention-grabbing hook
+- Progress logically through the topic
+- End with a CTA (follow, retweet, etc.)
+- Use numbers and emojis strategically
+- Separate each thread with "---"`,
+
+      instagram: `Generate 3 Instagram carousel captions about: "${topic}"
+      
+Requirements:
+- Each carousel 7-10 slides
+- Include slide-by-slide descriptions
+- Use line breaks for readability
+- Include 15-30 relevant hashtags
+- Add CTA like "Save this" or "Share with someone"
+- Use emojis for visual appeal
+- Separate each caption with "---"`,
+
+      youtube: `Generate 3 YouTube video script ideas about: "${topic}"
+      
+Requirements:
+- Hook in first 8 seconds (high retention critical)
+- Clear value proposition in intro
+- Main content in 3-4 clear sections
+- Include B-roll suggestions
+- Pattern interrupts every 90-120 seconds
+- Outro with 2 CTAs (subscribe + watch next video)
+- Suggested thumbnail text
+- Separate each script with "---"`,
+
+      tiktok: `Generate 3 TikTok video script ideas about: "${topic}"
+      
+Requirements:
+- Each script 30-60 seconds
+- Hook in first 2 seconds (critical for TikTok)
+- Pattern interrupts with transitions
+- Use trending sounds/music suggestions
+- Include on-screen text suggestions
+- CTA to follow or check bio
+- Energetic, fast-paced style
+- Separate each script with "---"`,
+    };
+
+    const prompt = platformPrompts[platform] || platformPrompts.linkedin;
+
+    try {
+      const response = await this.generateResponse(prompt);
+      
+      return response
+        .split('---')
+        .map(content => content.trim())
+        .filter(content => content.length > 0)
+        .slice(0, 3);
+    } catch (error) {
+      console.error('Content generation error:', error);
+      return [`Failed to generate content for ${platform}. Please try again.`];
+    }
+  }
+
+  async refineContent(
+    originalContent: string,
+    feedback: string,
+    platform: string
+  ): Promise<string> {
+    const refinementPrompt = `You are an expert social media strategist for ${platform}.
+
+Original Content:
+"${originalContent}"
+
+User Feedback: "${feedback}"
+
+Please refine the content based on the feedback while maintaining authenticity and engagement. Keep the same tone and message but improve based on the specific feedback.`;
+
+    try {
+      return await this.generateResponse(refinementPrompt);
+    } catch (error) {
+      console.error('Content refinement error:', error);
+      throw error;
+    }
+  }
+
+  async generateProductivityInsights(activitySummary: string, flowScore: number): Promise<string> {
+    const insightsPrompt = `Based on this work activity and flow state data, provide personalized productivity insights:
+
+Activity Summary: "${activitySummary}"
+Flow Score: ${flowScore}/100
+
+Provide 2-3 specific, actionable recommendations for:
+1. Improving focus and deep work
+2. Reducing distractions
+3. Optimizing energy and work patterns
+
+Be specific and practical - avoid generic advice.`;
+
+    try {
+      return await this.generateResponse(insightsPrompt);
+    } catch (error) {
+      console.error('Insights generation error:', error);
+      return 'Unable to generate insights at this moment. Try again later.';
+    }
+  }
+
+  async generateTaskRecommendations(recentActivities: string[]): Promise<string[]> {
+    const activitiesText = recentActivities.join('\n- ');
+    
+    const recommendationPrompt = `Based on these recent work activities, what are the top 3 priority tasks the user should focus on next?
+
+Recent activities:
+- ${activitiesText}
+
+Consider:
+- Task dependencies
+- Time estimates
+- Impact/value
+- Current momentum
+
+Provide specific, actionable task recommendations with brief reasoning.`;
+
+    try {
+      const response = await this.generateResponse(recommendationPrompt);
+      
+      return response
+        .split('\n')
+        .filter(line => line.trim().length > 0 && (line.trim().startsWith('-') || line.trim().startsWith('•')))
+        .slice(0, 3)
+        .map(line => line.replace(/^[-•]\s*/, ''));
+    } catch (error) {
+      console.error('Task recommendation error:', error);
+      return ['Unable to generate recommendations. Try again later.'];
+    }
+  }
+
+  async generateSEOArticle(topic: string, keyword: string, length: 'short' | 'medium' | 'long' = 'medium'): Promise<{
+    title: string;
+    metaDescription: string;
+    content: string;
+    internalLinks: string[];
+  }> {
+    const lengthMap = {
+      short: '800-1000',
+      medium: '1500-2000',
+      long: '2500-3500',
+    };
+
+    const articlePrompt = `Write an SEO-optimized article about: "${topic}"
+
+Target Keyword: "${keyword}"
+Word Count: ${lengthMap[length]} words
+
+Requirements:
+- Include keyword in title, first paragraph, 2 subheadings, and conclusion
+- Use H2 for main sections and H3 for subsections
+- Include practical examples and statistics
+- Write in clear, engaging language
+- End with actionable takeaways
+
+Return JSON format:
+{
+  "title": "SEO-optimized title",
+  "metaDescription": "150-160 character meta description",
+  "content": "full article content with HTML headings",
+  "internalLinks": ["link 1", "link 2", "link 3"]
+}`;
+
+    try {
+      const response = await this.generateResponse(articlePrompt);
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      
+      return {
+        title: topic,
+        metaDescription: topic,
+        content: response,
+        internalLinks: [],
+      };
+    } catch (error) {
+      console.error('Article generation error:', error);
+      throw error;
+    }
+  }
+
+  async generateViralHooks(topic: string, count: number = 10): Promise<string[]> {
+    const hookPrompt = `Generate ${count} viral-ready hooks for content about: "${topic}"
+
+Requirements for each hook:
+- 5-15 words maximum
+- Create curiosity gap
+- Include power words (surprising, shocking, revolutionary, etc.)
+- Use specific numbers or claims
+- Trigger emotional response (fear, excitement, curiosity, belonging)
+
+Format: Return ONLY the hooks, one per line, numbered 1-${count}`;
+
+    try {
+      const response = await this.generateResponse(hookPrompt);
+      
+      return response
+        .split('\n')
+        .map(line => line.replace(/^\d+[\.\)]\s*/, '').trim())
+        .filter(line => line.length > 0)
+        .slice(0, count);
+    } catch (error) {
+      console.error('Hook generation error:', error);
+      return [];
+    }
+  }
+}
+
+export const llmIntegration = new LLMIntegration();
