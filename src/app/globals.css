@@ -42,6 +42,22 @@
   @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm;
 }
 
+/* Neumorphic Utilities */
+.neumorphic-flat {
+  background: #fdfaf5;
+  box-shadow: 12px 12px 24px #d9d6d1, -12px -12px 24px #ffffff;
+}
+
+.neumorphic-inset {
+  background: #fdfaf5;
+  box-shadow: inset 8px 8px 16px #d9d6d1, inset -8px -8px 16px #ffffff;
+}
+
+.neumorphic-button-active {
+  background: #fdfaf5;
+  box-shadow: 4px 4px 8px #d9d6d1, -4px -4px 8px #ffffff;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 3px;
