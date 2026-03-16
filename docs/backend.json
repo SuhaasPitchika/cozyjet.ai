@@ -10,10 +10,20 @@
         "id": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
         "onboarded": { "type": "boolean" },
         "lastLogin": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "localOnlyMode": { "type": "boolean" },
+        "anonymizedAnalytics": { "type": "boolean" },
+        "skippyEnabled": { "type": "boolean" },
+        "flippoEnabled": { "type": "boolean" },
+        "snooksEnabled": { "type": "boolean" },
+        "deepWorkSessionLength": { "type": "number" },
+        "stuckDetectionSensitivity": { "type": "number" },
+        "appearanceTheme": { "type": "string", "enum": ["light", "dark", "system"] },
+        "skippyEncryptedDataBlob": { "type": "string" }
       },
       "required": ["id", "email", "firstName", "onboarded", "lastLogin", "createdAt", "updatedAt"]
     },
