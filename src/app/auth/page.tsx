@@ -82,7 +82,6 @@ export default function AuthPage() {
       }
     } catch (error: any) {
       console.error("Firestore Sync Error:", error);
-      // We don't block the UI here, as the user is still technically authenticated in Auth
     }
   };
 
@@ -91,7 +90,6 @@ export default function AuthPage() {
     setIsLoading(true);
     
     const provider = new GoogleAuthProvider();
-    // Add custom parameters to force account selection if needed
     provider.setCustomParameters({ prompt: 'select_account' });
 
     try {
@@ -109,12 +107,12 @@ export default function AuthPage() {
       
       let errorMessage = "Failed to connect via Google.";
       
-      if (error.code === 'auth/popup-blocked') {
+      if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google Sign-In is not enabled in the Firebase Console. Please enable it in Authentication > Sign-in method.";
+      } else if (error.code === 'auth/popup-blocked') {
         errorMessage = "Sign-in popup was blocked. Please enable popups for this site.";
       } else if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "The sign-in window was closed before completion.";
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = "Sign-in request was cancelled.";
       } else if (error.message) {
         errorMessage = error.message;
       }
