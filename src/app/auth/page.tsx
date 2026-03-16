@@ -7,40 +7,86 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   
   const skyImage = PlaceHolderImages.find(img => img.id === "auth-sky");
 
+  const syncUserProfile = async (user: any) => {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        id: user.uid,
+        email: user.email,
+        authProviderId: user.providerId || "google.com",
+        firstName: user.displayName?.split(" ")[0] || "Studio",
+        lastName: user.displayName?.split(" ").slice(1).join(" ") || "User",
+        onboarded: false,
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        localOnlyMode: true,
+        anonymizedAnalytics: true,
+        skippyEnabled: true,
+        flippoEnabled: true,
+        snooksEnabled: true,
+        deepWorkSessionLength: 25,
+        stuckDetectionSensitivity: 50,
+        appearanceTheme: "light",
+        skippyEncryptedDataBlob: ""
+      });
+    } else {
+      await setDoc(userRef, {
+        lastLogin: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    }
+  };
+
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await syncUserProfile(result.user);
       router.push("/dashboard");
     } catch (error) {
       console.error("Google Sign-In Error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
+      let result;
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        result = await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        result = await createUserWithEmailAndPassword(auth, email, password);
       }
+      await syncUserProfile(result.user);
       router.push("/dashboard");
     } catch (error) {
       console.error("Auth Error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,8 +141,11 @@ export default function AuthPage() {
               />
             </div>
 
-            <Button className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-xs uppercase tracking-widest">
-              {isLogin ? "Enter Studio" : "Initialize Identity"}
+            <Button 
+              disabled={isLoading}
+              className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-xs uppercase tracking-widest"
+            >
+              {isLoading ? "Processing..." : (isLogin ? "Enter Studio" : "Initialize Identity")}
             </Button>
           </form>
 
@@ -110,6 +159,7 @@ export default function AuthPage() {
             <Button 
               variant="outline" 
               onClick={handleGoogleSignIn}
+              disabled={isLoading}
               className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-xs"
             >
               Continue with Google

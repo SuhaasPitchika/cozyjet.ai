@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Eye, 
@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { CustomCursor } from "@/components/layout/custom-cursor";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 const NAV_ITEMS = [
   { label: "Skippy", href: "/dashboard/skippy", icon: Eye },
@@ -26,8 +27,19 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user } = useUser();
+  const auth = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Sign Out Error:", error);
+    }
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden text-black font-sans selection:bg-black/5">
@@ -76,7 +88,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="p-4 border-t border-black/5">
-          <button className="w-full flex items-center gap-4 px-4 py-4 text-red-400 hover:bg-red-500/5 rounded-2xl transition-colors group">
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-4 px-4 py-4 text-red-400 hover:bg-red-500/5 rounded-2xl transition-colors group"
+          >
             <LogOut size={20} className="shrink-0" />
             {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Sign Out</span>}
           </button>
