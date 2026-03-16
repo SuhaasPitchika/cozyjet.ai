@@ -58,6 +58,20 @@
   box-shadow: 4px 4px 8px #d9d6d1, -4px -4px 8px #ffffff;
 }
 
+/* Moving Dots Animation */
+@keyframes move-dots {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 32px 32px;
+  }
+}
+
+.animate-move-dots {
+  animation: move-dots 4s linear infinite;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 3px;
