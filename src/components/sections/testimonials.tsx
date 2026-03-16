@@ -76,10 +76,9 @@ function MarqueeRow({ items, direction = 1, speed = 40 }: { items: typeof TESTIM
             style={{ transform: `rotate(${item.rotation})` }}
             className={`w-[350px] bg-white p-8 border border-black/10 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] rounded-sm flex flex-col justify-between shrink-0 relative`}
           >
-            {/* Thumbtack hole */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-black/10 border border-black/5" />
             
-            <p className={`text-xl text-black/80 leading-relaxed whitespace-normal mb-6 ${item.font === 'font-hand-1' ? 'font-caveat' : item.font === 'font-hand-2' ? 'font-indie' : item.font === 'font-hand-3' ? 'font-gloria' : 'font-pixel text-xs'}`}>
+            <p className={`text-xl text-black/80 leading-relaxed whitespace-normal mb-6 ${item.font === 'font-hand-1' ? 'font-caveat' : item.font === 'font-hand-2' ? 'font-indie' : item.font === 'font-hand-3' ? 'font-gloria' : 'font-pixel text-[10px]'}`}>
               "{item.comment}"
             </p>
 
@@ -89,8 +88,8 @@ function MarqueeRow({ items, direction = 1, speed = 40 }: { items: typeof TESTIM
                 <AvatarFallback className="text-[10px]">{item.name[0]}</AvatarFallback>
               </Avatar>
               <div>
-                <h4 className="text-xs font-bold text-black tracking-tight uppercase">{item.name}</h4>
-                <p className="text-[9px] text-black/40 uppercase font-bold">{item.role}</p>
+                <h4 className="text-[10px] font-bold text-black tracking-tight uppercase">{item.name}</h4>
+                <p className="text-[8px] text-black/40 uppercase font-bold">{item.role}</p>
               </div>
             </div>
           </div>
@@ -101,10 +100,41 @@ function MarqueeRow({ items, direction = 1, speed = 40 }: { items: typeof TESTIM
 }
 
 export function Testimonials() {
+  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   return (
-    <section className="relative min-h-[80vh] py-24 overflow-hidden flex flex-col items-center justify-center bg-[#fdfaf5] hero-grid">
-      {/* Background is simple and clean as per user request */}
+    <section 
+      onMouseMove={handleMouseMove}
+      className="relative min-h-[80vh] py-24 overflow-hidden flex flex-col items-center justify-center bg-[#fdfaf5] group"
+    >
+      {/* Interactive Dot Grid Background */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #000 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+          maskImage: `radial-gradient(circle 400px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.2) 60%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 400px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.2) 60%, transparent 100%)`,
+        }}
+      />
+
       <div className="relative z-10 w-full">
+        <div className="text-center mb-16">
+          <h2 className="font-pixel text-2xl font-bold uppercase tracking-tight text-black">
+            Studio <span className="text-primary">Dispatches</span>
+          </h2>
+          <p className="font-pixel text-[8px] text-black/40 mt-4 uppercase tracking-widest">
+            High-fidelity feedback from the network.
+          </p>
+        </div>
         <div className="space-y-4 max-w-[2400px] mx-auto">
           <MarqueeRow items={TESTIMONIALS} direction={1} speed={60} />
           <MarqueeRow items={[...TESTIMONIALS].reverse()} direction={-1} speed={75} />
