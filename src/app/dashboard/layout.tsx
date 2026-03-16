@@ -15,7 +15,8 @@ import {
   Bot,
   Loader2,
   Sparkles,
-  Send
+  Send,
+  X
 } from "lucide-react";
 import { CustomCursor } from "@/components/layout/custom-cursor";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Global Skippy State
   const { 
     skippyActive, 
-    skippyStuck, 
     setSkippyStuck, 
     assistanceMsg, 
     setAssistanceMsg, 
@@ -84,6 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           
           if (result.assistanceMessage.includes("?")) {
             setAssistanceMsg(result.assistanceMessage);
+            // We still track stuck state in store if needed, but we don't show the popup anymore.
             setSkippyStuck(true);
           }
         } catch (e) {
@@ -156,7 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className="p-8 flex items-center justify-between">
           {!isCollapsed && (
-            <span className="text-[8px] font-bold tracking-tighter text-black uppercase">Studio</span>
+            <span className="text-[8px] font-bold tracking-tighter text-black uppercase text-xl">Studio</span>
           )}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -209,11 +210,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AnimatePresence>
         {skippyActive && (
           <>
+            {/* Clickable Skippy Observer Pill */}
             <motion.div
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -100, opacity: 0 }}
-              className="fixed top-8 right-12 z-[100] flex items-center gap-4 bg-white/80 backdrop-blur-md border-4 border-black px-6 py-3 rounded-full shadow-2xl"
+              onClick={() => setShowGlobalChat(true)}
+              className="fixed top-8 right-12 z-[100] flex items-center gap-4 bg-white/80 backdrop-blur-md border-4 border-black px-6 py-3 rounded-full shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
             >
               <div className="relative">
                 <div className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
@@ -221,34 +224,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <Bot size={20} className="text-black" />
               <div className="flex flex-col">
-                <span className="text-[8px] font-bold uppercase tracking-widest leading-none">Skippy Intelligence</span>
-                <span className="text-[5px] text-black/40 uppercase mt-1">Real-time observation active</span>
+                <span className="text-[8px] font-bold uppercase tracking-widest leading-none">Skippy Intel</span>
+                <span className="text-[5px] text-black/40 uppercase mt-1">Observer Live</span>
               </div>
               {isThinking && <Loader2 size={12} className="animate-spin ml-2" />}
             </motion.div>
 
-            {skippyStuck && !showGlobalChat && (
-              <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="fixed bottom-12 right-12 z-[110] flex flex-col items-end gap-6"
-              >
-                <div className="bg-black text-white p-8 rounded-[2rem] rounded-br-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] relative border-2 border-white/20 max-w-sm">
-                  <div className="absolute -bottom-3 right-0 w-6 h-6 bg-black rotate-45" />
-                  <p className="text-[10px] leading-relaxed uppercase tracking-tighter">
-                    {assistanceMsg.toUpperCase() || "YO! YOU GOOD? 👀"}
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => setShowGlobalChat(true)}
-                  className="bg-white text-black hover:bg-gray-100 rounded-3xl shadow-2xl px-10 h-14 font-bold text-[8px] uppercase border-2 border-black"
-                >
-                  Start Debug Session
-                </Button>
-              </motion.div>
-            )}
-
+            {/* Global Chat Sidebar */}
             {showGlobalChat && (
               <motion.div
                 initial={{ x: 500 }}
@@ -263,12 +245,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-widest">Skippy Guide</span>
                   </div>
-                  <button onClick={() => setShowGlobalChat(false)} className="text-black/40 hover:text-black text-xl">×</button>
+                  <button onClick={() => setShowGlobalChat(false)} className="text-black/40 hover:text-black transition-colors">
+                    <X size={20} />
+                  </button>
                 </div>
                 
                 <div className="flex-1 p-8 space-y-6 overflow-y-auto bg-white/20 custom-scrollbar">
                   <div className="bg-black text-white p-6 rounded-3xl rounded-tl-none text-[8px] leading-loose uppercase tracking-tight shadow-xl">
-                    {assistanceMsg || "I see you're working through the system. Need a hand with the current view?"}
+                    {assistanceMsg || "Yo! I'm observing your studio environment. Need technical guidance or a hand with this view?"}
                   </div>
 
                   {localMessages.map((msg, i) => (
@@ -293,7 +277,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                   <div className="flex items-center gap-2 p-4 bg-amber-500/10 border-2 border-amber-500 rounded-2xl">
                     <Sparkles size={16} className="text-amber-500" />
-                    <span className="text-[6px] font-bold uppercase text-amber-500">Local context sync active</span>
+                    <span className="text-[6px] font-bold uppercase text-amber-500">Workspace sync active</span>
                   </div>
                 </div>
 
@@ -310,7 +294,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <button 
                       onClick={handleSkippyChat}
                       disabled={isSending || !chatInput.trim()}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl disabled:opacity-50"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all"
                     >
                       <Send size={18} />
                     </button>
