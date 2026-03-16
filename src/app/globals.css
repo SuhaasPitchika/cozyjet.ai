@@ -23,7 +23,7 @@
     --border: 0 0% 92%;
     --input: 0 0% 92%;
     --ring: 220 10% 20%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 }
 
@@ -33,35 +33,22 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(#e5e7eb 1.5px, transparent 0);
-    background-size: 24px 24px;
+    background-image: radial-gradient(#e5e7eb 1.2px, transparent 0);
+    background-size: 20px 20px;
   }
 }
 
-/* Neumorphism Utilities */
-.neumorphic-in {
-  box-shadow: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
-}
-
-.neumorphic-out {
-  box-shadow: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
-}
-
 .glass {
-  @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-xl;
-}
-
-.pixel-text {
-  font-family: 'Press Start 2P', cursive;
+  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-black/10 rounded-full hover:bg-black/20 transition-colors;
+  @apply bg-black/5 rounded-full hover:bg-black/10 transition-colors;
 }

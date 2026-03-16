@@ -2,68 +2,56 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Bot, Loader2 } from "lucide-react";
+import { Bot, Power } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import { Button } from "@/components/ui/button";
 
 export default function SkippyPage() {
   const { skippyActive, setSkippyActive } = useDashboardStore();
 
   return (
-    <div className="p-10 min-h-screen relative flex flex-col items-center justify-center font-pixel">
-      {/* Character Section */}
-      <div className="text-center space-y-12">
+    <div className="p-10 h-full flex flex-col items-center justify-center bg-white">
+      <div className="text-center space-y-8 max-w-sm">
         <motion.div
           animate={{
-            y: skippyActive ? [0, -15, 0] : 0,
-            scale: skippyActive ? 1.1 : 1,
-            rotate: skippyActive ? [0, 2, -2, 0] : 0
+            y: skippyActive ? [0, -8, 0] : 0,
+            scale: skippyActive ? 1.05 : 1,
           }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           className={cn(
-            "w-64 h-64 mx-auto rounded-[4rem] flex flex-col items-center justify-center transition-all duration-700 shadow-2xl relative",
-            skippyActive ? "bg-white border-4 border-black" : "bg-gray-100 border-2 border-dashed border-black/10"
+            "w-48 h-48 mx-auto rounded-3xl flex items-center justify-center transition-all duration-500 shadow-sm",
+            skippyActive ? "bg-white border border-gray-100" : "bg-gray-50 border border-transparent"
           )}
         >
-          <Bot size={120} className={skippyActive ? "text-black" : "text-black/10"} />
-          {skippyActive && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute -top-4 -right-4 bg-amber-500 text-black px-4 py-2 rounded-2xl border-2 border-black shadow-lg flex items-center gap-2"
-            >
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[8px] font-bold">OBSERVING</span>
-            </motion.div>
-          )}
+          <Bot size={80} className={skippyActive ? "text-black" : "text-gray-200"} />
         </motion.div>
 
-        <div className="space-y-6">
-          <h1 className="text-xl font-bold uppercase tracking-tighter">Skippy <span className="text-black/40">Intel</span></h1>
-          <p className="text-black/40 text-[8px] font-bold uppercase tracking-[0.3em] max-w-md mx-auto leading-loose">
-            Autonomous screen observation engine. <br/>Seeing and understanding your workflow in real-time.
+        <div className="space-y-2">
+          <h1 className="text-xl font-bold tracking-tight">Observer Intelligence</h1>
+          <p className="text-xs text-gray-400 leading-relaxed font-medium">
+            Skippy monitors your workspace to provide real-time assistance and flow state validation.
           </p>
         </div>
 
-        {/* Neumorphic Toggle */}
         <button
           onClick={() => setSkippyActive(!skippyActive)}
           className={cn(
-            "px-16 py-8 rounded-full font-bold text-[8px] uppercase tracking-[0.2em] transition-all duration-500 shadow-xl border-4",
+            "group relative flex items-center gap-3 px-8 py-3.5 rounded-full text-xs font-bold transition-all border",
             skippyActive 
-              ? "bg-black text-white border-white scale-105" 
-              : "bg-white text-black border-black/5 hover:border-black"
+              ? "bg-black text-white border-black" 
+              : "bg-white text-gray-500 border-gray-100 hover:border-black hover:text-black"
           )}
         >
-          {skippyActive ? "Observing: ON" : "Initialize Skippy"}
+          <Power size={14} className={cn(skippyActive ? "text-green-400" : "text-gray-300 group-hover:text-black")} />
+          {skippyActive ? "OBSERVER ACTIVE" : "START OBSERVATION"}
         </button>
       </div>
 
-      <div className="mt-20 max-w-2xl text-center">
-        <p className="text-[6px] text-black/20 uppercase tracking-[0.2em] leading-relaxed">
-          Skippy uses localized AI context to verify your progress. <br/>
-          If you get stuck, a comic intervention will trigger automatically <br/>
-          regardless of which department you are working in.
+      <div className="mt-16 text-center">
+        <p className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em] leading-relaxed">
+          Localized Privacy-First Reasoning <br/>
+          Observing IDE · Browser · Comms
         </p>
       </div>
     </div>

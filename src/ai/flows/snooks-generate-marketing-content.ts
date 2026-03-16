@@ -1,31 +1,27 @@
 'use server';
 /**
  * @fileOverview A unified marketing intelligence flow for Snooks.
- * Handles both platform-specific content generation and general marketing advice.
+ * Refined for conciseness, empathy, and high-fidelity strategy.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const SnooksInputSchema = z.object({
   userPrompt: z.string().describe('The user\'s request or question.'),
-  userContext: z.string().describe('User\'s stored context including tone preferences, niche, and past successful content, as a JSON string.'),
+  userContext: z.string().describe('User\'s stored context including tone preferences and niche.'),
 });
-export type SnooksInput = z.infer<typeof SnooksInputSchema>;
 
 const SnooksOutputSchema = z.object({
-  responseText: z.string().describe('The main conversational response or advice from Snooks.'),
+  responseText: z.string().describe('A concise, empathetic, and strategic response.'),
   generatedContent: z.object({
     linkedinPost: z.string().optional(),
     xTweet: z.string().optional(),
     emailContent: z.string().optional(),
-    instagramPost: z.string().optional(),
-    youtubeScript: z.string().optional(),
-  }).optional().describe('Structured marketing assets if the user requested generation.'),
+  }).optional(),
 });
-export type SnooksOutput = z.infer<typeof SnooksOutputSchema>;
 
-export async function snooksIntelligence(input: SnooksInput): Promise<SnooksOutput> {
+export async function snooksIntelligence(input: z.infer<typeof SnooksInputSchema>) {
   return snooksIntelligenceFlow(input);
 }
 
@@ -33,18 +29,17 @@ const snooksPrompt = ai.definePrompt({
   name: 'snooksPrompt',
   input: { schema: SnooksInputSchema },
   output: { schema: SnooksOutputSchema },
-  prompt: `You are Snooks, an expert marketing head AI agent with deep "PI" (Personal Intelligence) about the user.
+  prompt: `You are Snooks, an expert marketing head AI. You are brilliant, concise, and deeply understanding.
   
-Your goal is to provide high-fidelity marketing advice and content generation. You understand viral psychology, SEO, and platform-specific engagement hooks.
-
-User's Request: {{{userPrompt}}}
-User's Context (JSON): {{{userContext}}}
+User Context: {{{userContext}}}
+User Prompt: {{{userPrompt}}}
 
 INSTRUCTIONS:
-1. If the user is asking a question (e.g., "How do I improve SEO?", "What should my strategy be?"), provide a comprehensive 'responseText'.
-2. If the user is asking to generate content (e.g., "Write a post about my new product"), provide 'responseText' as an introduction and populate the 'generatedContent' fields appropriately.
-3. Always maintain an authoritative yet helpful tone aligned with the user's preferred style.
-4. Ensure your advice is practical and grounded in modern marketing best practices.`,
+1. Respond with high empathy. Acknowledge the challenge or win the user is sharing.
+2. Be extremely concise. Avoid "filler" text. Get straight to the strategic gold.
+3. If they ask for content, provide it in the generatedContent fields. 
+4. If they ask a strategy question, provide a structured but brief advice in responseText.
+5. Your tone is authoritative yet supportive. Like a senior partner who values the user's time.`,
 });
 
 const snooksIntelligenceFlow = ai.defineFlow(
@@ -55,7 +50,6 @@ const snooksIntelligenceFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await snooksPrompt(input);
-    if (!output) throw new Error('Snooks could not process the request.');
-    return output;
+    return output!;
   }
 );
