@@ -42,28 +42,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden text-black font-sans selection:bg-black/5">
+    <div className="flex h-screen w-full overflow-hidden text-black font-pixel selection:bg-black/5">
       <CustomCursor name={user?.displayName || user?.email || "Studio User"} />
       
-      {/* Sidebar: Glassmorphic & Shrinkable */}
+      {/* Sidebar: Hyper-Glassmorphic */}
       <motion.aside 
         initial={false}
-        animate={{ width: isCollapsed ? 80 : 240 }}
-        className="relative h-full glass border-r-0 flex flex-col shrink-0 z-50 m-4 rounded-[2rem]"
+        animate={{ width: isCollapsed ? 80 : 260 }}
+        className="relative h-full glass border-r border-white/40 flex flex-col shrink-0 z-50 m-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
       >
-        <div className="p-6 flex items-center justify-between">
+        <div className="p-8 flex items-center justify-between">
           {!isCollapsed && (
-            <span className="font-pixel text-[8px] font-bold tracking-tighter text-black">STUDIO</span>
+            <span className="text-[10px] font-bold tracking-tighter text-black">STUDIO</span>
           )}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 hover:bg-black/5 rounded-xl transition-colors mx-auto"
+            className="p-2 hover:bg-black/5 rounded-2xl transition-colors mx-auto"
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
 
-        <nav className="flex-1 px-3 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-3 mt-4">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -71,36 +71,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-medium transition-all duration-200 group relative",
+                  "flex items-center gap-4 px-5 py-5 rounded-3xl text-sm font-medium transition-all duration-300 group relative",
                   isActive 
-                    ? "bg-black text-white shadow-lg" 
-                    : "text-black/40 hover:bg-black/5 hover:text-black"
+                    ? "bg-black text-white shadow-2xl scale-[1.02]" 
+                    : "text-black/40 hover:bg-white/60 hover:text-black"
                 )}
               >
                 <item.icon size={20} className={cn("shrink-0", isActive ? "text-white" : "text-black/40 group-hover:text-black")} />
-                {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>}
+                {!isCollapsed && <span className="text-[8px] font-bold uppercase tracking-widest">{item.label}</span>}
                 {isCollapsed && isActive && (
-                  <motion.div layoutId="active-pill" className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
+                  <motion.div layoutId="active-pill" className="absolute left-0 w-1 h-8 bg-white rounded-r-full" />
                 )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-black/5">
+        <div className="p-6 border-t border-black/5">
           <button 
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-4 py-4 text-red-400 hover:bg-red-500/5 rounded-2xl transition-colors group"
+            className="w-full flex items-center gap-4 px-5 py-5 text-red-500 hover:bg-red-500/5 rounded-3xl transition-colors group"
           >
             <LogOut size={20} className="shrink-0" />
-            {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Sign Out</span>}
+            {!isCollapsed && <span className="text-[8px] font-bold uppercase tracking-widest">Exit</span>}
           </button>
         </div>
       </motion.aside>
 
-      {/* Main Content Area */}
+      {/* Main Content Area: Floating Glass */}
       <main className="flex-1 overflow-y-auto relative p-4 pl-0">
-        <div className="glass h-full rounded-[2rem] overflow-y-auto custom-scrollbar relative">
+        <div className="glass h-full rounded-[3rem] overflow-y-auto custom-scrollbar relative border border-white/40 shadow-2xl">
           <div className="min-h-full">
             {children}
           </div>

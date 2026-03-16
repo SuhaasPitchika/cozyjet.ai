@@ -24,27 +24,28 @@ export default function SkippyPage() {
   }, [isActive]);
 
   return (
-    <div className="p-10 min-h-screen relative flex flex-col items-center justify-center">
+    <div className="p-10 min-h-screen relative flex flex-col items-center justify-center font-pixel">
       {/* Character Section */}
-      <div className="text-center space-y-8">
+      <div className="text-center space-y-12">
         <motion.div
           animate={{
-            y: isActive ? [0, -10, 0] : 0,
-            scale: isActive ? 1.1 : 1
+            y: isActive ? [0, -15, 0] : 0,
+            scale: isActive ? 1.15 : 1,
+            rotate: isActive ? [0, 5, -5, 0] : 0
           }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           className={cn(
-            "w-48 h-48 mx-auto rounded-3xl flex items-center justify-center transition-all duration-500",
-            isActive ? "neumorphic-out bg-white" : "neumorphic-in bg-gray-50"
+            "w-56 h-56 mx-auto rounded-[3rem] flex items-center justify-center transition-all duration-700 shadow-2xl",
+            isActive ? "bg-white border-4 border-black" : "bg-gray-100 border-2 border-dashed border-black/10"
           )}
         >
-          <Bot size={80} className={isActive ? "text-black" : "text-black/10"} />
+          <Bot size={100} className={isActive ? "text-black" : "text-black/10"} />
         </motion.div>
 
-        <div className="space-y-4">
-          <h1 className="text-2xl font-bold uppercase tracking-tighter">Skippy <span className="text-black/40">Intelligence</span></h1>
-          <p className="text-black/40 text-[10px] font-bold uppercase tracking-[0.2em] max-w-sm mx-auto">
-            Autonomous screen observation engine. Understanding your workflow in real-time.
+        <div className="space-y-6">
+          <h1 className="text-xl font-bold uppercase tracking-tighter">Skippy <span className="text-black/40">Intel</span></h1>
+          <p className="text-black/40 text-[8px] font-bold uppercase tracking-[0.3em] max-w-md mx-auto leading-loose">
+            Autonomous screen observation engine. <br/>Seeing and understanding your workflow in real-time.
           </p>
         </div>
 
@@ -52,11 +53,13 @@ export default function SkippyPage() {
         <button
           onClick={() => setIsActive(!isActive)}
           className={cn(
-            "px-12 py-4 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all duration-300",
-            isActive ? "neumorphic-in text-black" : "neumorphic-out text-black/40 bg-white"
+            "px-16 py-6 rounded-full font-bold text-[8px] uppercase tracking-[0.2em] transition-all duration-500 shadow-xl",
+            isActive 
+              ? "bg-black text-white scale-105" 
+              : "bg-white text-black border-2 border-black/5 hover:border-black"
           )}
         >
-          {isActive ? "Observing Engine: ON" : "Initialize Agent"}
+          {isActive ? "Observing: ON" : "Initialize Skippy"}
         </button>
       </div>
 
@@ -67,18 +70,19 @@ export default function SkippyPage() {
             initial={{ opacity: 0, y: 50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-10 right-10 z-[60] flex flex-col items-end gap-4"
+            className="fixed bottom-12 right-12 z-[60] flex flex-col items-end gap-6"
           >
-            <div className="bg-black text-white p-6 rounded-3xl rounded-br-none shadow-2xl relative">
-              <div className="absolute -bottom-2 right-0 w-4 h-4 bg-black rotate-45" />
-              <p className="font-pixel text-[10px] leading-relaxed">
-                YO! YOU GOOD? LOOKS LIKE YOU'RE STUCK ON THAT COMPONENT. 👀<br/>
+            <div className="bg-black text-white p-8 rounded-[2rem] rounded-br-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] relative border-2 border-white/20 max-w-sm">
+              <div className="absolute -bottom-3 right-0 w-6 h-6 bg-black rotate-45" />
+              <p className="text-[10px] leading-relaxed uppercase tracking-tighter">
+                YO! YOU GOOD? 👀<br/>
+                LOOKS LIKE YOU'RE STUCK ON THAT COMPONENT.<br/>
                 WANNA TALK IT OUT?
               </p>
             </div>
             <Button 
               onClick={() => setShowChat(true)}
-              className="bg-white text-black hover:bg-gray-100 rounded-2xl shadow-xl px-8 font-bold text-[10px] uppercase border-black/5"
+              className="bg-white text-black hover:bg-gray-100 rounded-3xl shadow-2xl px-10 h-14 font-bold text-[8px] uppercase border-2 border-black"
             >
               Start Debug Session
             </Button>
@@ -90,32 +94,33 @@ export default function SkippyPage() {
       <AnimatePresence>
         {showChat && (
           <motion.div
-            initial={{ x: 400 }}
+            initial={{ x: 500 }}
             animate={{ x: 0 }}
-            exit={{ x: 400 }}
-            className="fixed inset-y-4 right-4 w-96 glass rounded-[2.5rem] shadow-2xl z-[70] flex flex-col overflow-hidden"
+            exit={{ x: 500 }}
+            className="fixed inset-y-6 right-6 w-[400px] glass rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.2)] z-[70] flex flex-col overflow-hidden border border-white/60"
           >
-            <div className="p-6 border-b border-black/5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
-                  <Bot size={16} className="text-white" />
+            <div className="p-8 border-b border-black/5 flex items-center justify-between bg-white/40">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center">
+                  <Bot size={20} className="text-white" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest">Skippy Guide</span>
               </div>
-              <button onClick={() => setShowChat(false)} className="text-black/40 hover:text-black">×</button>
+              <button onClick={() => setShowChat(false)} className="text-black/40 hover:text-black text-xl">×</button>
             </div>
             
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-              <div className="bg-black text-white p-4 rounded-2xl rounded-tl-none text-[10px] leading-relaxed">
-                I see you're trying to connect the Firebase listener. Tap the "Configure Sync" button in your dashboard first!
+            <div className="flex-1 p-8 space-y-6 overflow-y-auto bg-white/20">
+              <div className="bg-black text-white p-6 rounded-3xl rounded-tl-none text-[8px] leading-loose uppercase tracking-tight shadow-xl">
+                I see you're trying to connect the Firebase listener. <br/><br/>
+                Tap the "Configure Sync" button in your dashboard first!
               </div>
             </div>
 
-            <div className="p-6 bg-white/50 border-t border-black/5">
+            <div className="p-8 bg-white/60 border-t border-black/5">
               <div className="relative">
-                <Input className="pr-12 h-14 rounded-2xl bg-white border-black/5 focus:ring-black/5" placeholder="Ask Skippy..." />
-                <button className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-xl">
-                  <Send size={16} />
+                <Input className="pr-16 h-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black text-[10px]" placeholder="Ask Skippy..." />
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl">
+                  <Send size={18} />
                 </button>
               </div>
             </div>
