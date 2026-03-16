@@ -23,6 +23,7 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { skippyProvideContextualAssistance } from "@/ai/flows/skippy-provide-contextual-assistance";
+import { skippyChat } from "@/ai/flows/skippy-chat-interaction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -32,6 +33,11 @@ const NAV_ITEMS = [
   { label: "Snooks", href: "/dashboard/snooks", icon: MessageSquare },
   { label: "AI Tuning", href: "/dashboard/tuning", icon: Settings2 },
 ];
+
+interface ChatMsg {
+  role: 'user' | 'bot';
+  content: string;
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,6 +59,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const [isThinking, setIsThinking] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [localMessages, setLocalMessages] = useState<ChatMsg[]>([]);
+  const [isSending, setIsSending] = useState(false);
 
   // Session Protection Redirect
   useEffect(() => {
@@ -100,6 +108,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
+  const handleSkippyChat = async () => {
+    if (!chatInput.trim() || isSending) return;
+    
+    const userMsg = chatInput;
+    setChatInput("");
+    setLocalMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setIsSending(true);
+
+    try {
+      const result = await skippyChat({
+        userMessage: userMsg,
+        currentView: pathname,
+        observationContext: assistanceMsg || "Active observation in progress."
+      });
+
+      setLocalMessages(prev => [...prev, { role: 'bot', content: result.response }]);
+    } catch (e) {
+      console.error("Skippy Chat Error:", e);
+      setLocalMessages(prev => [...prev, { role: 'bot', content: "Bleep bloop... brain glitch. Try again!" }]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (isUserLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-white">
@@ -111,14 +143,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // If not logged in, render nothing while redirect handles it
   if (!user) return null;
 
   return (
     <div className="flex h-screen w-full overflow-hidden text-black font-pixel selection:bg-black/5 bg-white">
       <CustomCursor name={user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "User"} />
       
-      {/* Sidebar */}
       <motion.aside 
         initial={false}
         animate={{ width: isCollapsed ? 80 : 260 }}
@@ -168,7 +198,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </motion.aside>
 
-      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto relative p-4 pl-0">
         <div className="glass h-full rounded-[3rem] overflow-y-auto custom-scrollbar relative border border-white/40 shadow-2xl">
           <div className="min-h-full">
@@ -177,7 +206,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* Persistent Skippy Overlay */}
       <AnimatePresence>
         {skippyActive && (
           <>
@@ -238,11 +266,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <button onClick={() => setShowGlobalChat(false)} className="text-black/40 hover:text-black text-xl">×</button>
                 </div>
                 
-                <div className="flex-1 p-8 space-y-6 overflow-y-auto bg-white/20">
+                <div className="flex-1 p-8 space-y-6 overflow-y-auto bg-white/20 custom-scrollbar">
                   <div className="bg-black text-white p-6 rounded-3xl rounded-tl-none text-[8px] leading-loose uppercase tracking-tight shadow-xl">
                     {assistanceMsg || "I see you're working through the system. Need a hand with the current view?"}
                   </div>
+
+                  {localMessages.map((msg, i) => (
+                    <div key={i} className={cn(
+                      "flex gap-4",
+                      msg.role === 'user' ? "flex-row-reverse" : ""
+                    )}>
+                      <div className={cn(
+                        "p-4 rounded-2xl text-[8px] leading-loose uppercase tracking-tight shadow-md",
+                        msg.role === 'user' ? "bg-black text-white rounded-tr-none" : "bg-white text-black border-2 border-black rounded-tl-none"
+                      )}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
                   
+                  {isSending && (
+                    <div className="flex justify-center">
+                      <Loader2 className="animate-spin text-black/20" size={16} />
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 p-4 bg-amber-500/10 border-2 border-amber-500 rounded-2xl">
                     <Sparkles size={16} className="text-amber-500" />
                     <span className="text-[6px] font-bold uppercase text-amber-500">Local context sync active</span>
@@ -254,10 +302,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Input 
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSkippyChat()}
+                      disabled={isSending}
                       className="pr-16 h-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black text-[8px] uppercase font-bold" 
                       placeholder="Ask Skippy..." 
                     />
-                    <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl">
+                    <button 
+                      onClick={handleSkippyChat}
+                      disabled={isSending || !chatInput.trim()}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl disabled:opacity-50"
+                    >
                       <Send size={18} />
                     </button>
                   </div>

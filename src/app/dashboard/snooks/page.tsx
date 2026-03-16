@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -9,7 +8,7 @@ import { Send, Sparkles, User, Bot, Edit3, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { snooksGenerateMarketingContent } from "@/ai/flows/snooks-generate-marketing-content";
+import { snooksIntelligence } from "@/ai/flows/snooks-generate-marketing-content";
 
 export default function SnooksPage() {
   const { user } = useUser();
@@ -52,7 +51,7 @@ export default function SnooksPage() {
       });
 
       // 2. Call AI Flow
-      const response = await snooksGenerateMarketingContent({
+      const response = await snooksIntelligence({
         userPrompt: userInput,
         userContext: JSON.stringify({
           tone: "Authoritative",
@@ -61,18 +60,25 @@ export default function SnooksPage() {
         })
       });
 
-      // 3. Construct Bot Response
-      const botContent = `GENERATED CONTENT STRATEGY:\n\n` +
-        `[LINKEDIN]: ${response.linkedinPost}\n\n` +
-        `[X]: ${response.xTweet}\n\n` +
-        `[EMAIL]: ${response.emailContent}`;
+      // 3. Construct Bot Response String
+      let botContent = response.responseText;
+      
+      if (response.generatedContent) {
+        const gc = response.generatedContent;
+        if (gc.linkedinPost || gc.xTweet || gc.emailContent) {
+          botContent += `\n\nGENERATED ASSETS:\n`;
+          if (gc.linkedinPost) botContent += `\n[LINKEDIN]:\n${gc.linkedinPost}\n`;
+          if (gc.xTweet) botContent += `\n[X]:\n${gc.xTweet}\n`;
+          if (gc.emailContent) botContent += `\n[EMAIL]:\n${gc.emailContent}\n`;
+        }
+      }
 
       // 4. Save Bot Message
       await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
         userId: user.uid,
         role: "bot",
         content: botContent,
-        type: "content",
+        type: response.generatedContent ? "content" : "text",
         createdAt: serverTimestamp(),
       });
 
@@ -88,12 +94,12 @@ export default function SnooksPage() {
       <div className="p-8 border-b border-black/5 bg-white/40 backdrop-blur-sm flex justify-between items-center">
         <div>
           <h1 className="text-sm font-bold uppercase tracking-tighter">Snooks <span className="text-black/40">Market</span></h1>
-          <p className="text-black/40 text-[6px] font-bold uppercase tracking-[0.3em] mt-1">High-Fidelity Content Memory Engine</p>
+          <p className="text-black/40 text-[6px] font-bold uppercase tracking-[0.3em] mt-1">Unified Marketing Intelligence</p>
         </div>
         {isGenerating && (
           <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 rounded-full border border-amber-500/20">
             <Loader2 size={10} className="animate-spin text-amber-500" />
-            <span className="text-[6px] font-bold uppercase text-amber-500">Snooks is thinking...</span>
+            <span className="text-[6px] font-bold uppercase text-amber-500">Processing...</span>
           </div>
         )}
       </div>
@@ -128,7 +134,7 @@ export default function SnooksPage() {
               )}>
                 {msg.type === 'content' && (
                   <div className="mb-4 p-2 bg-gray-100 rounded-xl flex items-center justify-between border border-black/5">
-                    <span className="text-[5px] font-bold uppercase tracking-widest text-black/40">Generated Draft</span>
+                    <span className="text-[5px] font-bold uppercase tracking-widest text-black/40">Intel Report</span>
                     <Edit3 size={10} className="text-black/40" />
                   </div>
                 )}
@@ -153,20 +159,17 @@ export default function SnooksPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             disabled={isGenerating}
-            placeholder="Tell Snooks what to write..."
+            placeholder="Ask Snooks anything about marketing..."
             className="h-16 pl-6 pr-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black transition-all text-[8px] uppercase font-bold"
           />
           <button 
             onClick={handleSend}
             disabled={isGenerating || !input.trim()}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:hover:scale-100"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-50"
           >
             <Send size={18} />
           </button>
         </div>
-        <p className="mt-4 text-center text-[5px] font-bold text-black/20 uppercase tracking-[0.4em]">
-          Powered by Snooks Marketing Intelligence v4.0
-        </p>
       </div>
     </div>
   );
