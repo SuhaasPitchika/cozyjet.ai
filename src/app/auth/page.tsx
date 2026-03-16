@@ -12,15 +12,15 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  onAuthStateChanged
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  // Default to signup (Create Account) as requested
+  const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function AuthPage() {
   
   const skyImage = PlaceHolderImages.find(img => img.id === "auth-sky");
 
-  // Redirect if already logged in
+  // Auto-redirect if user is already logged in
   useEffect(() => {
     if (user && !isLoading) {
       router.push("/dashboard");
@@ -47,12 +47,15 @@ export default function AuthPage() {
     const now = new Date().toISOString();
 
     if (!userSnap.exists()) {
-      // New User Identity Initialization - Strict Schema Alignment
+      // New Identity Creation
+      const firstName = firebaseUser.displayName?.split(" ")[0] || "Studio";
+      const lastName = firebaseUser.displayName?.split(" ").slice(1).join(" ") || "User";
+
       await setDoc(userRef, {
         id: firebaseUser.uid,
         email: firebaseUser.email || "",
-        firstName: firebaseUser.displayName?.split(" ")[0] || "Studio",
-        lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "User",
+        firstName,
+        lastName,
         onboarded: false,
         lastLogin: now,
         createdAt: now,
@@ -68,7 +71,7 @@ export default function AuthPage() {
         skippyEncryptedDataBlob: ""
       });
     } else {
-      // Returning User - Update Session
+      // Update existing identity session
       await setDoc(userRef, {
         lastLogin: now,
         updatedAt: now,
@@ -84,16 +87,16 @@ export default function AuthPage() {
       const result = await signInWithPopup(auth, provider);
       await syncUserProfile(result.user);
       toast({
-        title: "Identity Verified",
-        description: `Welcome, ${result.user.displayName}`,
+        title: "Access Granted",
+        description: `Welcome back, ${result.user.displayName || "User"}`,
       });
       router.push("/dashboard");
     } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
+      console.error("Google Auth Error:", error);
       toast({
         variant: "destructive",
-        title: "Auth Failure",
-        description: error.message || "Could not complete Google verification.",
+        title: "Authentication Failed",
+        description: error.message || "Failed to connect via Google.",
       });
       setIsLoading(false);
     }
@@ -112,16 +115,16 @@ export default function AuthPage() {
       }
       await syncUserProfile(result.user);
       toast({
-        title: isLogin ? "Access Granted" : "Identity Initialized",
-        description: `Studio secure connection established.`,
+        title: isLogin ? "Welcome Back" : "Identity Initialized",
+        description: "Studio secure connection established.",
       });
       router.push("/dashboard");
     } catch (error: any) {
-      console.error("Auth Error:", error);
+      console.error("Email Auth Error:", error);
       toast({
         variant: "destructive",
-        title: "Auth Error",
-        description: error.message || "Invalid credentials or system error.",
+        title: "Authentication Error",
+        description: error.message || "Invalid credentials or system timeout.",
       });
       setIsLoading(false);
     }
@@ -129,24 +132,23 @@ export default function AuthPage() {
 
   if (isUserLoading && !isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="w-8 h-8 border-4 border-white/10 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-black/10 border-t-black rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-pixel">
-      {/* Background Layer */}
       <div className="absolute inset-0 z-0">
         <Image
           src={skyImage?.imageUrl || "https://picsum.photos/seed/sky-dawn/1920/1080"}
-          alt="Cinematic Sky"
+          alt="Atmosphere"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[12px]" />
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-md" />
       </div>
 
       <motion.div
@@ -156,17 +158,17 @@ export default function AuthPage() {
       >
         <div className="glass rounded-[3rem] p-10 shadow-2xl border-white/60">
           <div className="mb-10 text-center">
-            <h1 className="text-lg font-bold mb-3 text-black uppercase tracking-tight">
-              {isLogin ? "Welcome Back" : "Initialize Identity"}
+            <h1 className="text-sm font-bold mb-3 text-black uppercase tracking-tight">
+              {isLogin ? "Welcome Back" : "New Identity"}
             </h1>
-            <p className="text-black/40 text-[8px] uppercase font-bold tracking-[0.2em]">
+            <p className="text-black/40 text-[6px] uppercase font-bold tracking-[0.2em]">
               Autonomous Studio Access
             </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleEmailAuth}>
             <div className="space-y-2">
-              <Label className="text-[8px] uppercase font-bold tracking-widest text-black/60 ml-2">Email Hash</Label>
+              <Label className="text-[6px] uppercase font-bold tracking-widest text-black/60 ml-2">Email Hash</Label>
               <Input 
                 type="email" 
                 required 
@@ -178,7 +180,7 @@ export default function AuthPage() {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-[8px] uppercase font-bold tracking-widest text-black/60 ml-2">Security Passcode</Label>
+              <Label className="text-[6px] uppercase font-bold tracking-widest text-black/60 ml-2">Security Passcode</Label>
               <Input 
                 type="password" 
                 required 
@@ -192,16 +194,16 @@ export default function AuthPage() {
             <Button 
               type="submit"
               disabled={isLoading}
-              className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-[8px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl"
+              className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-bold text-[8px] uppercase tracking-widest transition-all shadow-xl"
             >
-              {isLoading ? "PROCESSSING..." : (isLogin ? "ENTER STUDIO" : "CREATE ACCOUNT")}
+              {isLoading ? "VERIFYING..." : (isLogin ? "ENTER STUDIO" : "INITIALIZE")}
             </Button>
           </form>
 
           <div className="mt-6">
             <div className="relative flex items-center py-4">
               <div className="flex-grow border-t border-black/5"></div>
-              <span className="flex-shrink mx-4 text-[8px] text-black/30 font-bold">VERIFY VIA</span>
+              <span className="flex-shrink mx-4 text-[6px] text-black/30 font-bold">VERIFY VIA</span>
               <div className="flex-grow border-t border-black/5"></div>
             </div>
 
@@ -210,7 +212,7 @@ export default function AuthPage() {
               variant="outline" 
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-[8px] uppercase tracking-widest transition-all shadow-sm"
+              className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-[8px] uppercase tracking-widest transition-all"
             >
               Continue with Google
             </Button>
@@ -220,9 +222,9 @@ export default function AuthPage() {
             <button 
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-[8px] text-black/40 font-bold uppercase tracking-widest hover:text-black transition-colors"
+              className="text-[6px] text-black/40 font-bold uppercase tracking-widest hover:text-black transition-colors"
             >
-              {isLogin ? "New to the Studio? Register" : "Existing Identity? Log In"}
+              {isLogin ? "Need a new identity? Register" : "Already identified? Log In"}
             </button>
           </div>
         </div>

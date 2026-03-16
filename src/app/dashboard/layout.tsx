@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
 
   // Global Skippy State
@@ -54,18 +54,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isThinking, setIsThinking] = useState(false);
   const [chatInput, setChatInput] = useState("");
 
+  // Session Protection Redirect
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/auth");
+    }
+  }, [user, isUserLoading, router]);
+
   // Background Observation Logic
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (skippyActive) {
+    if (skippyActive && user) {
       timer = setInterval(async () => {
         setIsThinking(true);
         try {
-          // In a real app, this would use active window/DOM context
           const result = await skippyProvideContextualAssistance({
             currentActivityContext: `User is currently viewing: ${pathname}`,
-            recentActionsSummary: "Multiple navigation events, steady reading pace",
-            timeSinceLastMeaningfulInteractionSeconds: 70
+            recentActionsSummary: "Navigating between agent nodes",
+            timeSinceLastMeaningfulInteractionSeconds: 75
           });
           
           if (result.assistanceMessage.includes("?")) {
@@ -73,40 +79,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             setSkippyStuck(true);
           }
         } catch (e) {
-          console.error("Skippy Observation Error:", e);
+          console.error("Skippy Logic Error:", e);
         } finally {
           setIsThinking(false);
         }
-      }, 30000); // Check every 30 seconds
+      }, 45000); 
     } else {
       setSkippyStuck(false);
       setShowGlobalChat(false);
     }
     return () => clearInterval(timer);
-  }, [skippyActive, pathname, setSkippyStuck, setAssistanceMsg, setShowGlobalChat]);
+  }, [skippyActive, pathname, user, setSkippyStuck, setAssistanceMsg, setShowGlobalChat]);
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      router.push("/");
+      router.push("/auth");
     } catch (error) {
       console.error("Sign Out Error:", error);
     }
   };
 
+  if (isUserLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-black/5 border-t-black rounded-full animate-spin" />
+          <p className="text-[8px] font-pixel text-black/20 uppercase tracking-widest">Verifying Identity...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not logged in, render nothing while redirect handles it
+  if (!user) return null;
+
   return (
-    <div className="flex h-screen w-full overflow-hidden text-black font-pixel selection:bg-black/5">
-      <CustomCursor name={user?.displayName || user?.email || "Studio User"} />
+    <div className="flex h-screen w-full overflow-hidden text-black font-pixel selection:bg-black/5 bg-white">
+      <CustomCursor name={user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "User"} />
       
-      {/* Sidebar: Hyper-Glassmorphic */}
+      {/* Sidebar */}
       <motion.aside 
         initial={false}
         animate={{ width: isCollapsed ? 80 : 260 }}
-        className="relative h-full glass border-r border-white/40 flex flex-col shrink-0 z-50 m-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+        className="relative h-full glass border-r border-white/40 flex flex-col shrink-0 z-50 m-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
       >
         <div className="p-8 flex items-center justify-between">
           {!isCollapsed && (
-            <span className="text-[10px] font-bold tracking-tighter text-black">STUDIO</span>
+            <span className="text-[8px] font-bold tracking-tighter text-black uppercase">Studio</span>
           )}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -132,9 +152,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <item.icon size={20} className={cn("shrink-0", isActive ? "text-white" : "text-black/40 group-hover:text-black")} />
                 {!isCollapsed && <span className="text-[8px] font-bold uppercase tracking-widest">{item.label}</span>}
-                {isCollapsed && isActive && (
-                  <motion.div layoutId="active-pill" className="absolute left-0 w-1 h-8 bg-white rounded-r-full" />
-                )}
               </Link>
             );
           })}
@@ -160,11 +177,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* PERSISTENT SKIPPY OVERLAY ELEMENTS */}
+      {/* Persistent Skippy Overlay */}
       <AnimatePresence>
         {skippyActive && (
           <>
-            {/* 1. The floating "System Symbol" pill */}
             <motion.div
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -183,7 +199,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isThinking && <Loader2 size={12} className="animate-spin ml-2" />}
             </motion.div>
 
-            {/* 2. The Stuck/Comic Intervention Popup */}
             {skippyStuck && !showGlobalChat && (
               <motion.div
                 initial={{ opacity: 0, y: 50, scale: 0.8 }}
@@ -206,7 +221,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </motion.div>
             )}
 
-            {/* 3. The Global Chat Sidebar */}
             {showGlobalChat && (
               <motion.div
                 initial={{ x: 500 }}
