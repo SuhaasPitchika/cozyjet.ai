@@ -1,70 +1,57 @@
-
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Command, 
+  Eye, 
   Clock, 
-  Mic, 
-  Sparkles, 
-  BarChart3, 
-  Settings, 
-  Rocket, 
-  LogOut 
+  MessageSquare, 
+  Settings2,
+  ChevronLeft,
+  ChevronRight,
+  LogOut
 } from "lucide-react";
-import { useDashboardStore, AgentStatus } from "@/hooks/use-dashboard-store";
-import { formatDistanceToNow } from "date-fns";
+import { CustomCursor } from "@/components/layout/custom-cursor";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/firebase";
 
 const NAV_ITEMS = [
-  { label: "Command Center", href: "/dashboard", icon: Command },
-  { label: "Timeline", href: "/dashboard/timeline", icon: Clock },
-  { label: "Voice Studio", href: "/dashboard/voice", icon: Mic },
-  { label: "Content Factory", href: "/dashboard/factory", icon: Sparkles },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Skippy", href: "/dashboard/skippy", icon: Eye },
+  { label: "Flippo", href: "/dashboard/flippo", icon: Clock },
+  { label: "Snooks", href: "/dashboard/snooks", icon: MessageSquare },
+  { label: "AI Tuning", href: "/dashboard/tuning", icon: Settings2 },
 ];
-
-function StatusIndicator({ name, status }: { name: string; status: AgentStatus }) {
-  const colors = {
-    active: "bg-green-500",
-    processing: "bg-amber-500",
-    idle: "bg-zinc-500"
-  };
-
-  return (
-    <div className="flex items-center gap-3 px-4 py-1.5 group">
-      <div className={cn(
-        "w-2 h-2 rounded-full",
-        colors[status],
-        status === 'processing' && "animate-pulse"
-      )} />
-      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">
-        {name} Agent
-      </span>
-    </div>
-  );
-}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { skippyStatus, flippoStatus, snooksStatus, activities } = useDashboardStore();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useUser();
 
   return (
-    <div className="flex h-screen w-full bg-[#231F2A] overflow-hidden text-zinc-100 font-sans">
-      {/* Sidebar: 240px, Dark Background */}
-      <aside className="w-[240px] h-full bg-[#111116] border-r border-white/5 flex flex-col shrink-0">
-        <div className="p-6">
-          <Link href="/" className="flex items-center gap-3">
-            <Rocket className="w-6 h-6 text-amber-500" />
-            <span className="font-pixel text-[10px] font-bold tracking-tighter text-white">MAXIM</span>
-          </Link>
+    <div className="flex h-screen w-full overflow-hidden text-black font-sans selection:bg-black/5">
+      <CustomCursor name={user?.displayName || user?.email || "Studio User"} />
+      
+      {/* Sidebar: Glassmorphic & Shrinkable */}
+      <motion.aside 
+        initial={false}
+        animate={{ width: isCollapsed ? 80 : 240 }}
+        className="relative h-full glass border-r-0 flex flex-col shrink-0 z-50 m-4 rounded-[2rem]"
+      >
+        <div className="p-6 flex items-center justify-between">
+          {!isCollapsed && (
+            <span className="font-pixel text-[8px] font-bold tracking-tighter text-black">STUDIO</span>
+          )}
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-2 hover:bg-black/5 rounded-xl transition-colors mx-auto"
+          >
+            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
         </div>
 
-        <nav className="flex-1 px-2 space-y-1">
+        <nav className="flex-1 px-3 space-y-2 mt-4">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -72,67 +59,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 group",
+                  "flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-medium transition-all duration-200 group relative",
                   isActive 
-                    ? "bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.2)]" 
-                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-black text-white shadow-lg" 
+                    : "text-black/40 hover:bg-black/5 hover:text-black"
                 )}
               >
-                <item.icon className={cn("w-5 h-5", isActive ? "text-black" : "text-zinc-500 group-hover:text-amber-500")} />
-                {item.label}
+                <item.icon size={20} className={cn("shrink-0", isActive ? "text-white" : "text-black/40 group-hover:text-black")} />
+                {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>}
+                {isCollapsed && isActive && (
+                  <motion.div layoutId="active-pill" className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Agent Status Section */}
-        <div className="py-6 border-t border-white/5">
-          <div className="px-6 mb-4 text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-            Agent Matrix
-          </div>
-          <StatusIndicator name="Skippy" status={skippyStatus} />
-          <StatusIndicator name="Flippo" status={flippoStatus} />
-          <StatusIndicator name="Snooks" status={snooksStatus} />
-        </div>
-
-        {/* Real-time Activity Feed */}
-        <div className="border-t border-white/5 bg-black/20">
-          <div className="px-6 py-4 text-[8px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-            Activity Log
-          </div>
-          <div className="px-6 pb-6 max-height-[160px] overflow-y-auto space-y-3 custom-scrollbar">
-            <AnimatePresence initial={false}>
-              {activities.map((activity) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col gap-0.5"
-                >
-                  <p className="text-[10px] text-zinc-300 leading-tight">
-                    <span className="font-bold text-amber-500/80">{activity.agent}</span> {activity.action}
-                  </p>
-                  <span className="text-[8px] text-zinc-600 font-mono">
-                    {formatDistanceToNow(activity.timestamp)} ago
-                  </span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-white/5">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors group">
-            <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            Sign Out
+        <div className="p-4 border-t border-black/5">
+          <button className="w-full flex items-center gap-4 px-4 py-4 text-red-400 hover:bg-red-500/5 rounded-2xl transition-colors group">
+            <LogOut size={20} className="shrink-0" />
+            {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Sign Out</span>}
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto relative custom-scrollbar">
-        <div className="min-h-full">
-          {children}
+      <main className="flex-1 overflow-y-auto relative p-4 pl-0">
+        <div className="glass h-full rounded-[2rem] overflow-y-auto custom-scrollbar relative">
+          <div className="min-h-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>

@@ -1,137 +1,101 @@
-
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, AlertTriangle, CheckCircle2, Lock, Eye, Globe, User, Fingerprint, Ban, BarChart3 } from "lucide-react";
-import { snooksComplianceCheck } from "@/ai/flows/snooks-compliance-enforcement";
+import { Send, Sparkles, User, Bot, Edit3 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function SnooksCompliancePage() {
-  const [isChecking, setIsChecking] = useState(false);
-  const [report, setReport] = useState<any>(null);
+const INITIAL_MESSAGES = [
+  { id: 1, role: 'bot', content: "I've analyzed your recent Figma work on 'Project Phoenix'. Should I generate a LinkedIn thread or an industry blog post?", type: 'text' },
+];
 
-  const handleRunCheck = async () => {
-    setIsChecking(true);
-    try {
-      const result = await snooksComplianceCheck({
-        content: "Completed brand identity design for Project Phoenix. Contact me at 555-0199 for inquiries!",
-        platform: "LinkedIn",
-        exclusionList: ["Project Phoenix", "Internal UI Specs"]
-      });
-      setReport(result);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsChecking(false);
-    }
-  };
+export default function SnooksPage() {
+  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [input, setInput] = useState("");
 
-  const getStatusIcon = (status: string) => {
-    if (status === 'passed') return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-    if (status === 'warning') return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-    return <Ban className="w-4 h-4 text-red-500" />;
+  const handleSend = () => {
+    if (!input.trim()) return;
+    const newMsg = { id: Date.now(), role: 'user', content: input, type: 'text' };
+    setMessages([...messages, newMsg]);
+    setInput("");
+    
+    // Simulate AI response
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'bot',
+        content: "Drafting LinkedIn Post... Context: User style 'Authoritative', Platform 'LinkedIn'. Check this out: \n\n'Zero-trust is not a feature, it's a foundation...'",
+        type: 'content'
+      }]);
+    }, 1500);
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#231F2A] p-8">
-      <div className="mb-12 flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <ShieldCheck className="w-8 h-8 text-primary" />
-            <h1 className="font-headline text-3xl font-bold uppercase tracking-tighter">SNOOKS <span className="text-white/40">Compliance Engine</span></h1>
-          </div>
-          <p className="text-foreground/60 font-mono text-[10px] uppercase tracking-widest">Edge-Based Adversarial Safety Checking</p>
-        </div>
-        <Button 
-          onClick={handleRunCheck} 
-          disabled={isChecking}
-          className="bg-primary text-white font-bold h-12 px-8 rounded-full shadow-2xl hover:scale-105 transition-all"
-        >
-          {isChecking ? "Scanning Edge..." : "Initialize Compliance Scan"}
-        </Button>
+    <div className="h-full flex flex-col">
+      <div className="p-10 border-b border-black/5">
+        <h1 className="text-3xl font-bold uppercase tracking-tighter">Snooks <span className="text-black/40">Marketing Chat</span></h1>
+        <p className="text-black/40 text-[10px] font-bold uppercase tracking-[0.2em]">High-Fidelity Content Memory Engine</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-white/5 border-white/10 overflow-hidden">
-            <CardHeader className="border-b border-white/5 bg-black/20">
-              <CardTitle className="text-xs font-mono uppercase tracking-widest text-white/60">Active Content Buffer</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <p className="font-mono text-sm leading-relaxed text-white/80 italic">
-                "Completed brand identity design for <span className="bg-red-500/20 text-red-400 px-1 rounded">Project Phoenix</span>. Contact me at <span className="bg-amber-500/20 text-amber-400 px-1 rounded">555-0199</span> for inquiries!"
-              </p>
-            </CardContent>
-          </Card>
-
-          {report && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-              {[
-                { name: "PII Detection", key: "piiCheck", icon: Fingerprint },
-                { name: "Link Safety", key: "linkSafety", icon: Globe },
-                { name: "Sentiment Tone", key: "sentimentAnalysis", icon: User },
-                { name: "Plagiarism Scan", key: "plagiarism", icon: Eye },
-                { name: "Platform Policy", key: "platformPolicy", icon: Lock },
-                { name: "Client Confidentiality", key: "clientConfidentiality", icon: Ban },
-                { name: "Career Risk Score", key: "careerRisk", icon: BarChart3 }
-              ].map((check) => (
-                <div key={check.key} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-black/40">
-                      <check.icon className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{check.name}</p>
-                      <p className="text-xs font-medium text-white/80">{report[check.key].message}</p>
-                    </div>
-                  </div>
-                  {getStatusIcon(report[check.key].status)}
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <Card className="bg-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-widest">Scan Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-white/40">Overall Status</span>
-                {report ? (
-                  <Badge className={report.overallStatus === 'passed' ? 'bg-green-500' : 'bg-red-500'}>
-                    {report.overallStatus.toUpperCase()}
-                  </Badge>
-                ) : (
-                  <span className="text-xs font-mono">IDLE</span>
-                )}
-              </div>
-              <div className="h-px bg-white/5" />
-              <div className="text-[10px] text-white/60 leading-relaxed font-mono">
-                VERA Protocol V2.4 enabled. Parallel checking across Cloudflare Edge nodes.
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="p-6 rounded-3xl border border-white/5 bg-black/40 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <Lock className="w-6 h-6 text-white/20" />
+      <div className="flex-1 p-10 overflow-y-auto space-y-8 custom-scrollbar">
+        {messages.map((msg) => (
+          <motion.div
+            key={msg.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "flex gap-4 max-w-3xl",
+              msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
+            )}
+          >
+            <div className={cn(
+              "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+              msg.role === 'user' ? "bg-black" : "bg-white border border-black/5"
+            )}>
+              {msg.role === 'user' ? <User size={16} className="text-white" /> : <Bot size={16} />}
             </div>
-            <h4 className="text-xs font-bold uppercase tracking-widest mb-2">Audit Hash</h4>
-            <p className="text-[10px] font-mono text-white/40 break-all mb-4">SHA256: 9f86d081884c7d659a2f...</p>
-            <Button variant="outline" size="sm" className="w-full text-[10px] font-bold uppercase tracking-tighter">View Merkle Trail</Button>
-          </div>
+            
+            <div className={cn(
+              "p-6 rounded-3xl text-sm leading-relaxed",
+              msg.role === 'user' 
+                ? "bg-black text-white rounded-tr-none" 
+                : "bg-white border border-black/5 rounded-tl-none shadow-sm"
+            )}>
+              {msg.type === 'content' && (
+                <div className="mb-4 p-2 bg-gray-50 rounded-xl flex items-center justify-between">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-black/40">Generated Draft</span>
+                  <Edit3 size={12} className="text-black/40" />
+                </div>
+              )}
+              <p className={cn(msg.type === 'content' ? "font-serif italic text-base" : "font-pixel text-[10px]")}>
+                {msg.content}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="p-10 bg-white/50 border-t border-black/5">
+        <div className="max-w-4xl mx-auto relative group">
+          <Input 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Tell Snooks what to write..."
+            className="h-16 pl-6 pr-16 rounded-3xl bg-white border-black/5 shadow-xl group-hover:shadow-2xl transition-all"
+          />
+          <button 
+            onClick={handleSend}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl hover:scale-105 transition-all shadow-lg"
+          >
+            <Send size={20} />
+          </button>
         </div>
+        <p className="mt-4 text-center text-[8px] font-bold text-black/20 uppercase tracking-widest">
+          Snooks is using your latest 'Flippo' session data for context.
+        </p>
       </div>
     </div>
   );

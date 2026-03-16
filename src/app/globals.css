@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 35 30% 98%; /* #fdfaf5 Skin tone background */
+    --background: 0 0% 100%;
     --foreground: 0 0% 10%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
@@ -25,16 +25,6 @@
     --ring: 220 10% 20%;
     --radius: 0.75rem;
   }
-
-  .dark {
-    --background: 220 10% 5%;
-    --foreground: 0 0% 98%;
-    --card: 220 10% 10%;
-    --card-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 220 10% 10%;
-    --border: 220 10% 20%;
-  }
 }
 
 @layer base {
@@ -43,62 +33,26 @@
   }
   body {
     @apply bg-background text-foreground font-pixel antialiased;
+    background-image: radial-gradient(#e5e7eb 1.5px, transparent 0);
+    background-size: 24px 24px;
   }
+}
+
+/* Neumorphism Utilities */
+.neumorphic-in {
+  box-shadow: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
+}
+
+.neumorphic-out {
+  box-shadow: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
+}
+
+.glass {
+  @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-xl;
 }
 
 .pixel-text {
   font-family: 'Press Start 2P', cursive;
-}
-
-.font-caveat {
-  font-family: 'Caveat', cursive;
-}
-
-.font-indie {
-  font-family: 'Indie Flower', cursive;
-}
-
-.font-gloria {
-  font-family: 'Gloria Hallelujah', cursive;
-}
-
-@keyframes grid-move-up {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 -32px;
-  }
-}
-
-.hero-grid {
-  background-color: #fdfaf5;
-  background-image: radial-gradient(#94a3b8 1px, transparent 0);
-  background-size: 32px 32px;
-  animation: grid-move-up 3s linear infinite;
-}
-
-.blue-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(186, 230, 253, 0.15) 0%, transparent 80%);
-}
-
-.sticky-note {
-  @apply bg-white p-2 shadow-sm border border-black/10 relative;
-  box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.05);
-}
-
-.sticky-note-hole {
-  @apply absolute top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black/5 border border-black/10;
-}
-
-@keyframes dash {
-  to {
-    stroke-dashoffset: 100;
-  }
-}
-
-.wavy-thread {
-  animation: dash 20s linear infinite;
 }
 
 /* Custom Scrollbar */
@@ -106,17 +60,8 @@
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-background;
+  @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
   @apply bg-black/10 rounded-full hover:bg-black/20 transition-colors;
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
 }

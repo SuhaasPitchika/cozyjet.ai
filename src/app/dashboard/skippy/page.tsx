@@ -1,109 +1,126 @@
-
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Network, Terminal, Shield, RefreshCcw, Layout, FileText, Github } from "lucide-react";
+import { MessageSquare, Send, Bot, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function SkippyWorkspacePage() {
-  const [isSyncing, setIsSyncing] = useState(false);
+export default function SkippyPage() {
+  const [isActive, setIsActive] = useState(false);
+  const [isStuck, setIsStuck] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
-  const integrations = [
-    { id: 'notion', name: 'Notion Workspace', icon: FileText, status: 'Connected', lastSync: '2m ago' },
-    { id: 'figma', name: 'Figma Projects', icon: Layout, status: 'Connected', lastSync: '15m ago' },
-    { id: 'github', name: 'GitHub Repos', icon: Github, status: 'Standby', lastSync: '1h ago' }
-  ];
+  // Simulated "Stuck" detection logic
+  React.useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => setIsStuck(true), 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setIsStuck(false);
+      setShowChat(false);
+    }
+  }, [isActive]);
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
-              <Network className="w-6 h-6 text-primary" />
-            </div>
-            <h1 className="font-headline text-3xl font-bold uppercase tracking-tighter">SKIPPY <span className="text-white/40">Intelligence</span></h1>
-          </div>
-          <p className="text-foreground/60 font-mono text-[10px] uppercase tracking-widest">Local-First Workspace Monitoring & Training</p>
-        </div>
-        <Button 
-          onClick={() => { setIsSyncing(true); setTimeout(() => setIsSyncing(false), 2000); }}
-          className="bg-white text-black font-bold h-12 px-8 rounded-full shadow-2xl hover:scale-105 transition-all"
+    <div className="p-10 min-h-screen relative flex flex-col items-center justify-center">
+      {/* Character Section */}
+      <div className="text-center space-y-8">
+        <motion.div
+          animate={{
+            y: isActive ? [0, -10, 0] : 0,
+            scale: isActive ? 1.1 : 1
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className={cn(
+            "w-48 h-48 mx-auto rounded-3xl flex items-center justify-center transition-all duration-500",
+            isActive ? "neumorphic-out bg-white" : "neumorphic-in bg-gray-50"
+          )}
         >
-          <RefreshCcw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-          Force Local Sync
-        </Button>
-      </div>
+          <Bot size={80} className={isActive ? "text-black" : "text-black/10"} />
+        </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {integrations.map((int) => (
-          <Card key={int.id} className="bg-white/5 border-white/10 group hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-black/40">
-                  <int.icon className="w-4 h-4 text-primary" />
-                </div>
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest">{int.name}</CardTitle>
-              </div>
-              <Badge variant="outline" className="text-[8px] border-primary/20 bg-primary/5">{int.status}</Badge>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center text-[10px] text-white/40 mb-4">
-                <span>Last Sync</span>
-                <span>{int.lastSync}</span>
-              </div>
-              <div className="space-y-2">
-                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary w-[80%] rounded-full" />
-                </div>
-                <p className="text-[8px] font-mono text-white/20 uppercase tracking-tighter">Memory-mapped IPC Active</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="bg-black/40 border-white/5">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-primary" />
-              Inference Engine Logs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="font-mono text-[10px] text-primary/80 space-y-1">
-            <p>[14:22:01] Loading LoRA Adapter: user_v3_balanced.bin</p>
-            <p>[14:22:02] Ollama inference started on localhost:11434</p>
-            <p>[14:22:05] Stream received: "I just completed a major..."</p>
-            <p>[14:22:08] Privacy filter applied: 3 terms redacted</p>
-            <p className="animate-pulse">_</p>
-          </CardContent>
-        </Card>
-
-        <div className="p-8 bg-primary/10 rounded-3xl border border-primary/20 flex flex-col justify-center">
-          <div className="flex items-center gap-4 mb-6">
-            <Shield className="w-10 h-10 text-primary" />
-            <h3 className="font-headline text-2xl font-bold uppercase tracking-tighter">Security Posture</h3>
-          </div>
-          <p className="text-foreground/60 text-xs mb-6 leading-relaxed">
-            SKIPPY's <strong>Integration Reader</strong> is currently sandboxed with zero network access. 
-            All extracted data is stored in your hardware-backed encrypted vault.
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold uppercase tracking-tighter">Skippy <span className="text-black/40">Intelligence</span></h1>
+          <p className="text-black/40 text-[10px] font-bold uppercase tracking-[0.2em] max-w-sm mx-auto">
+            Autonomous screen observation engine. Understanding your workflow in real-time.
           </p>
-          <div className="space-y-3">
-            <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
-              <span>Encryption Algorithm</span>
-              <span className="text-white">AES-256-GCM</span>
-            </div>
-            <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
-              <span>KDF Rounds</span>
-              <span className="text-white">Argon2id (3 Iterations)</span>
-            </div>
-          </div>
         </div>
+
+        {/* Neumorphic Toggle */}
+        <button
+          onClick={() => setIsActive(!isActive)}
+          className={cn(
+            "px-12 py-4 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all duration-300",
+            isActive ? "neumorphic-in text-black" : "neumorphic-out text-black/40 bg-white"
+          )}
+        >
+          {isActive ? "Observing Engine: ON" : "Initialize Agent"}
+        </button>
       </div>
+
+      {/* Comic-style Popup */}
+      <AnimatePresence>
+        {isStuck && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed bottom-10 right-10 z-[60] flex flex-col items-end gap-4"
+          >
+            <div className="bg-black text-white p-6 rounded-3xl rounded-br-none shadow-2xl relative">
+              <div className="absolute -bottom-2 right-0 w-4 h-4 bg-black rotate-45" />
+              <p className="font-pixel text-[10px] leading-relaxed">
+                YO! YOU GOOD? LOOKS LIKE YOU'RE STUCK ON THAT COMPONENT. 👀<br/>
+                WANNA TALK IT OUT?
+              </p>
+            </div>
+            <Button 
+              onClick={() => setShowChat(true)}
+              className="bg-white text-black hover:bg-gray-100 rounded-2xl shadow-xl px-8 font-bold text-[10px] uppercase border-black/5"
+            >
+              Start Debug Session
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Side Chat Interface */}
+      <AnimatePresence>
+        {showChat && (
+          <motion.div
+            initial={{ x: 400 }}
+            animate={{ x: 0 }}
+            exit={{ x: 400 }}
+            className="fixed inset-y-4 right-4 w-96 glass rounded-[2.5rem] shadow-2xl z-[70] flex flex-col overflow-hidden"
+          >
+            <div className="p-6 border-b border-black/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
+                  <Bot size={16} className="text-white" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Skippy Guide</span>
+              </div>
+              <button onClick={() => setShowChat(false)} className="text-black/40 hover:text-black">×</button>
+            </div>
+            
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+              <div className="bg-black text-white p-4 rounded-2xl rounded-tl-none text-[10px] leading-relaxed">
+                I see you're trying to connect the Firebase listener. Tap the "Configure Sync" button in your dashboard first!
+              </div>
+            </div>
+
+            <div className="p-6 bg-white/50 border-t border-black/5">
+              <div className="relative">
+                <Input className="pr-12 h-14 rounded-2xl bg-white border-black/5 focus:ring-black/5" placeholder="Ask Skippy..." />
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-xl">
+                  <Send size={16} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,112 +1,113 @@
-
 "use client";
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { BarChart3, Clock, TrendingUp, Sparkles, Calendar, Share2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Zap, Clock, Activity, ArrowUpRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function FlippoDistributionPage() {
+const TIMELINE_EVENTS = [
+  { time: "09:15 AM", app: "Figma", action: "Redesigned Landing Hero", type: "Creative", emotion: "Focused" },
+  { time: "11:30 AM", app: "VS Code", action: "Debugged Auth Context", type: "Deep Work", emotion: "Intense" },
+  { time: "02:45 PM", app: "Chrome", action: "Researched VERA protocols", type: "Research", emotion: "Curious" },
+];
+
+export default function FlippoPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasData, setHasData] = useState(false);
+
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setHasData(true);
+    }, 2000);
+  };
+
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <BarChart3 className="w-8 h-8 text-primary" />
-            <h1 className="font-headline text-3xl font-bold uppercase tracking-tighter">FLIPPO <span className="text-white/40">Distribution</span></h1>
-          </div>
-          <p className="text-foreground/60 font-mono text-[10px] uppercase tracking-widest">Privacy-Preserving Network Intelligence</p>
+    <div className="p-10 space-y-12">
+      <div className="flex justify-between items-end">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold uppercase tracking-tighter">Flippo <span className="text-black/40">Timeline</span></h1>
+          <p className="text-black/40 text-[10px] font-bold uppercase tracking-[0.2em]">Emotional Productivity Context Engine</p>
         </div>
-        <Button className="bg-primary text-white font-bold h-12 px-8 rounded-full shadow-2xl hover:scale-105 transition-all">
-          Generate MAXIM Wrapped
+        <Button 
+          onClick={handleGenerate}
+          disabled={isGenerating}
+          className="h-14 px-10 rounded-full bg-black text-white hover:bg-black/90 font-bold text-[10px] uppercase tracking-widest shadow-xl"
+        >
+          {isGenerating ? "Analyzing Studio Data..." : "Generate Matrix"}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-              <Clock className="w-3 h-3" />
-              Optimal Posting Time
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">9:15 AM</div>
-            <p className="text-[10px] text-green-500 mt-1 uppercase font-bold">+24% Engagement expected</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-              <TrendingUp className="w-3 h-3" />
-              Viral Velocity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">1.8x</div>
-            <p className="text-[10px] text-foreground/40 mt-1 uppercase font-bold">Trending in #vfx & #motion</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-              <Share2 className="w-3 h-3" />
-              A/B Test Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">V2 WINNING</div>
-            <p className="text-[10px] text-primary mt-1 uppercase font-bold">Storytelling &gt; Listicle</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <h3 className="font-headline text-xl font-bold uppercase tracking-tighter">Distribution Queue</h3>
-          <div className="space-y-4">
-            {[
-              { platform: 'LinkedIn', title: 'VFX Breakdown: Phoenix Project', time: 'Tomorrow, 9:15 AM', status: 'Scheduled' },
-              { platform: 'X (Twitter)', title: '3 Tips for Motion Designers', time: 'Friday, 2:00 PM', status: 'Draft' },
-              { platform: 'Instagram', title: 'Behind the Scenes: Setup', time: 'Saturday, 10:00 AM', status: 'Scheduled' }
-            ].map((item, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center group hover:border-primary/20 transition-all">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline" className="text-[8px] uppercase">{item.platform}</Badge>
-                    <span className="text-[10px] font-bold text-white/80">{item.title}</span>
-                  </div>
-                  <p className="text-[10px] text-white/20 font-mono">{item.time}</p>
-                </div>
-                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 text-xs">Manage</Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-8 bg-black/40 rounded-3xl border border-white/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <Sparkles className="w-32 h-32 text-primary" />
-          </div>
-          <h3 className="font-headline text-2xl font-bold mb-4 uppercase tracking-tighter">Network Intelligence</h3>
-          <p className="text-foreground/60 text-xs mb-8 leading-relaxed max-w-md">
-            FLIPPO aggregates anonymized performance data across 1,200+ users to refine your distribution strategy. 
-            <strong> Your content text is never shared.</strong>
-          </p>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-white">Monthly Voice Trajectory</p>
-                <p className="text-[10px] text-white/40">Your brand is trending towards 'Authoritative Storyteller'</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Score & Matrix */}
+        <Card className="lg:col-span-1 rounded-[2.5rem] overflow-hidden border-black/5 bg-white/50 backdrop-blur-sm shadow-sm">
+          <CardContent className="p-10 space-y-8">
+            <div className="text-center">
+              <div className="w-32 h-32 mx-auto neumorphic-out rounded-full flex flex-col items-center justify-center bg-white border border-black/5">
+                <span className="text-4xl font-bold">84</span>
+                <span className="text-[8px] font-bold text-black/40 uppercase tracking-widest">Focus Score</span>
               </div>
             </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest text-black/40">
+                <span>Deep Work State</span>
+                <span className="text-black">EXCELLENT</span>
+              </div>
+              <div className="h-2 w-full bg-black/5 rounded-full overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: "84%" }} className="h-full bg-black" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 neumorphic-in rounded-2xl text-center">
+                <Zap size={16} className="mx-auto mb-2" />
+                <span className="text-[10px] font-bold">Flow Peaks: 3</span>
+              </div>
+              <div className="p-4 neumorphic-in rounded-2xl text-center">
+                <Activity size={16} className="mx-auto mb-2" />
+                <span className="text-[10px] font-bold">Distractions: 0</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Timeline Visualization */}
+        <div className="lg:col-span-2 space-y-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-black/40 flex items-center gap-2">
+            <Clock size={16} />
+            Causal Thread History
+          </h3>
+          
+          <div className="space-y-4 relative">
+            <div className="absolute left-4 top-0 bottom-0 w-px bg-black/5" />
+            
+            {hasData ? TIMELINE_EVENTS.map((event, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="relative pl-12 group"
+              >
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-black border-4 border-white shadow-sm z-10" />
+                <div className="glass p-6 rounded-3xl group-hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] font-mono text-black/40">{event.time}</span>
+                    <span className="bg-black/5 text-[8px] font-bold uppercase px-3 py-1 rounded-full">{event.emotion}</span>
+                  </div>
+                  <h4 className="text-xs font-bold uppercase mb-1">{event.app}: {event.action}</h4>
+                  <p className="text-[10px] text-black/40">Verified via screen-match and keystroke analysis.</p>
+                </div>
+              </motion.div>
+            )) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed border-black/5 rounded-[2.5rem]">
+                <p className="text-[10px] font-bold text-black/20 uppercase tracking-widest">No matrix generated for current session.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
