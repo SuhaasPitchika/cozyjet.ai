@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -42,61 +43,86 @@ export default function AuthPage() {
 
   const syncUserProfile = async (firebaseUser: any) => {
     const userRef = doc(db, "users", firebaseUser.uid);
-    const userSnap = await getDoc(userRef);
+    
+    try {
+      const userSnap = await getDoc(userRef);
+      const now = new Date().toISOString();
 
-    const now = new Date().toISOString();
+      if (!userSnap.exists()) {
+        // New Identity Creation
+        const displayName = firebaseUser.displayName || "";
+        const firstName = displayName.split(" ")[0] || "Studio";
+        const lastName = displayName.split(" ").slice(1).join(" ") || "User";
 
-    if (!userSnap.exists()) {
-      // New Identity Creation
-      const firstName = firebaseUser.displayName?.split(" ")[0] || "Studio";
-      const lastName = firebaseUser.displayName?.split(" ").slice(1).join(" ") || "User";
-
-      await setDoc(userRef, {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || "",
-        firstName,
-        lastName,
-        onboarded: false,
-        lastLogin: now,
-        createdAt: now,
-        updatedAt: now,
-        localOnlyMode: true,
-        anonymizedAnalytics: true,
-        skippyEnabled: true,
-        flippoEnabled: true,
-        snooksEnabled: true,
-        deepWorkSessionLength: 25,
-        stuckDetectionSensitivity: 50,
-        appearanceTheme: "light",
-        skippyEncryptedDataBlob: ""
-      });
-    } else {
-      // Update existing identity session
-      await setDoc(userRef, {
-        lastLogin: now,
-        updatedAt: now,
-      }, { merge: true });
+        await setDoc(userRef, {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          firstName,
+          lastName,
+          onboarded: false,
+          lastLogin: now,
+          createdAt: now,
+          updatedAt: now,
+          localOnlyMode: true,
+          anonymizedAnalytics: true,
+          skippyEnabled: true,
+          flippoEnabled: true,
+          snooksEnabled: true,
+          deepWorkSessionLength: 25,
+          stuckDetectionSensitivity: 50,
+          appearanceTheme: "light",
+          skippyEncryptedDataBlob: ""
+        });
+      } else {
+        // Update existing identity session
+        await setDoc(userRef, {
+          lastLogin: now,
+          updatedAt: now,
+        }, { merge: true });
+      }
+    } catch (error: any) {
+      console.error("Firestore Sync Error:", error);
+      // We don't block the UI here, as the user is still technically authenticated in Auth
     }
   };
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return;
     setIsLoading(true);
+    
     const provider = new GoogleAuthProvider();
+    // Add custom parameters to force account selection if needed
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     try {
       const result = await signInWithPopup(auth, provider);
-      await syncUserProfile(result.user);
-      toast({
-        title: "Access Granted",
-        description: `Welcome back, ${result.user.displayName || "User"}`,
-      });
-      router.push("/dashboard");
+      if (result.user) {
+        await syncUserProfile(result.user);
+        toast({
+          title: "Access Granted",
+          description: `Welcome, ${result.user.displayName || "User"}`,
+        });
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       console.error("Google Auth Error:", error);
+      
+      let errorMessage = "Failed to connect via Google.";
+      
+      if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked. Please enable popups for this site.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "The sign-in window was closed before completion.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Sign-in request was cancelled.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: error.message || "Failed to connect via Google.",
+        description: errorMessage,
       });
       setIsLoading(false);
     }
@@ -113,12 +139,15 @@ export default function AuthPage() {
       } else {
         result = await createUserWithEmailAndPassword(auth, email, password);
       }
-      await syncUserProfile(result.user);
-      toast({
-        title: isLogin ? "Welcome Back" : "Identity Initialized",
-        description: "Studio secure connection established.",
-      });
-      router.push("/dashboard");
+      
+      if (result.user) {
+        await syncUserProfile(result.user);
+        toast({
+          title: isLogin ? "Welcome Back" : "Identity Initialized",
+          description: "Studio secure connection established.",
+        });
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       console.error("Email Auth Error:", error);
       toast({
@@ -133,7 +162,10 @@ export default function AuthPage() {
   if (isUserLoading && !isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-12 h-12 border-4 border-black/10 border-t-black rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-black/10 border-t-black rounded-full animate-spin" />
+          <p className="text-[8px] font-pixel uppercase tracking-widest text-black/40">Verifying Identity...</p>
+        </div>
       </div>
     );
   }
@@ -214,7 +246,7 @@ export default function AuthPage() {
               disabled={isLoading}
               className="w-full h-14 rounded-2xl border-white bg-white/50 hover:bg-white text-black font-bold text-[8px] uppercase tracking-widest transition-all"
             >
-              Continue with Google
+              {isLoading ? "CONNECTING..." : "Continue with Google"}
             </Button>
           </div>
 
