@@ -1,100 +1,171 @@
+
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Sparkles, User, Bot, Edit3 } from "lucide-react";
+import { Send, Sparkles, User, Bot, Edit3, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const INITIAL_MESSAGES = [
-  { id: 1, role: 'bot', content: "I'VE ANALYZED YOUR RECENT FIGMA WORK ON 'PROJECT PHOENIX'. SHOULD I GENERATE A LINKEDIN THREAD OR AN INDUSTRY BLOG POST?", type: 'text' },
-];
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
+import { snooksGenerateMarketingContent } from "@/ai/flows/snooks-generate-marketing-content";
 
 export default function SnooksPage() {
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const { user } = useUser();
+  const db = useFirestore();
   const [input, setInput] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const newMsg = { id: Date.now(), role: 'user', content: input.toUpperCase(), type: 'text' };
-    setMessages([...messages, newMsg]);
+  const messagesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(db, "users", user.uid, "snooksMessages"),
+      orderBy("createdAt", "asc")
+    );
+  }, [db, user]);
+
+  const { data: messages, isLoading } = useCollection(messagesQuery);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || !user || isGenerating) return;
+
+    const userInput = input;
     setInput("");
-    
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        role: 'bot',
-        content: "DRAFTING LINKEDIN POST... CONTEXT: USER STYLE 'AUTHORITATIVE', PLATFORM 'LINKEDIN'. \n\n'ZERO-TRUST IS NOT A FEATURE, IT'S A FOUNDATION...'",
-        type: 'content'
-      }]);
-    }, 1500);
+    setIsGenerating(true);
+
+    try {
+      // 1. Save User Message
+      await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
+        userId: user.uid,
+        role: "user",
+        content: userInput,
+        type: "text",
+        createdAt: serverTimestamp(),
+      });
+
+      // 2. Call AI Flow
+      const response = await snooksGenerateMarketingContent({
+        userPrompt: userInput,
+        userContext: JSON.stringify({
+          tone: "Authoritative",
+          niche: "Solopreneur SaaS",
+          platform: "Multi-channel"
+        })
+      });
+
+      // 3. Construct Bot Response
+      const botContent = `GENERATED CONTENT STRATEGY:\n\n` +
+        `[LINKEDIN]: ${response.linkedinPost}\n\n` +
+        `[X]: ${response.xTweet}\n\n` +
+        `[EMAIL]: ${response.emailContent}`;
+
+      // 4. Save Bot Message
+      await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
+        userId: user.uid,
+        role: "bot",
+        content: botContent,
+        type: "content",
+        createdAt: serverTimestamp(),
+      });
+
+    } catch (error) {
+      console.error("Snooks Error:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
     <div className="h-full flex flex-col font-pixel">
-      <div className="p-12 border-b border-black/5 bg-white/40 backdrop-blur-sm">
-        <h1 className="text-2xl font-bold uppercase tracking-tighter">Snooks <span className="text-black/40">Market</span></h1>
-        <p className="text-black/40 text-[8px] font-bold uppercase tracking-[0.3em] mt-2">High-Fidelity Content Memory Engine</p>
+      <div className="p-8 border-b border-black/5 bg-white/40 backdrop-blur-sm flex justify-between items-center">
+        <div>
+          <h1 className="text-sm font-bold uppercase tracking-tighter">Snooks <span className="text-black/40">Market</span></h1>
+          <p className="text-black/40 text-[6px] font-bold uppercase tracking-[0.3em] mt-1">High-Fidelity Content Memory Engine</p>
+        </div>
+        {isGenerating && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 rounded-full border border-amber-500/20">
+            <Loader2 size={10} className="animate-spin text-amber-500" />
+            <span className="text-[6px] font-bold uppercase text-amber-500">Snooks is thinking...</span>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 p-12 overflow-y-auto space-y-10 custom-scrollbar bg-white/10">
-        {messages.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={cn(
-              "flex gap-6 max-w-4xl",
-              msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
-            )}
-          >
-            <div className={cn(
-              "w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-xl border-2",
-              msg.role === 'user' ? "bg-black border-white" : "bg-white border-black"
-            )}>
-              {msg.role === 'user' ? <User size={20} className="text-white" /> : <Bot size={20} />}
-            </div>
-            
-            <div className={cn(
-              "p-8 rounded-[2.5rem] text-[10px] leading-loose shadow-2xl border-2",
-              msg.role === 'user' 
-                ? "bg-black text-white border-white rounded-tr-none" 
-                : "bg-white text-black border-black rounded-tl-none"
-            )}>
-              {msg.type === 'content' && (
-                <div className="mb-6 p-3 bg-gray-100 rounded-2xl flex items-center justify-between border-2 border-black/10">
-                  <span className="text-[6px] font-bold uppercase tracking-widest text-black/40">Generated Draft</span>
-                  <Edit3 size={14} className="text-black/40" />
-                </div>
+      <div 
+        ref={scrollRef}
+        className="flex-1 p-8 overflow-y-auto space-y-8 custom-scrollbar bg-white/10"
+      >
+        <AnimatePresence>
+          {messages?.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={cn(
+                "flex gap-4 max-w-2xl",
+                msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
               )}
-              <p className="uppercase tracking-tight">
-                {msg.content}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+            >
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg border-2",
+                msg.role === 'user' ? "bg-black border-white" : "bg-white border-black"
+              )}>
+                {msg.role === 'user' ? <User size={16} className="text-white" /> : <Bot size={16} />}
+              </div>
+              
+              <div className={cn(
+                "p-6 rounded-[2rem] text-[8px] leading-loose shadow-xl border-2",
+                msg.role === 'user' 
+                  ? "bg-black text-white border-white rounded-tr-none" 
+                  : "bg-white text-black border-black rounded-tl-none"
+              )}>
+                {msg.type === 'content' && (
+                  <div className="mb-4 p-2 bg-gray-100 rounded-xl flex items-center justify-between border border-black/5">
+                    <span className="text-[5px] font-bold uppercase tracking-widest text-black/40">Generated Draft</span>
+                    <Edit3 size={10} className="text-black/40" />
+                  </div>
+                )}
+                <p className="uppercase tracking-tight whitespace-pre-wrap">
+                  {msg.content}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        {isLoading && (
+          <div className="flex justify-center p-4">
+            <Loader2 className="animate-spin text-black/10" size={24} />
+          </div>
+        )}
       </div>
 
-      <div className="p-12 bg-white/60 border-t border-black/5 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto relative group">
+      <div className="p-8 bg-white/60 border-t border-black/5 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto relative">
           <Input 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            disabled={isGenerating}
             placeholder="Tell Snooks what to write..."
-            className="h-20 pl-8 pr-20 rounded-[2.5rem] bg-white border-4 border-black shadow-[0_20px_50px_rgba(0,0,0,0.1)] focus:scale-[1.01] transition-all text-xs"
+            className="h-16 pl-6 pr-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black transition-all text-[8px] uppercase font-bold"
           />
           <button 
             onClick={handleSend}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-4 bg-black text-white rounded-3xl hover:scale-110 active:scale-95 transition-all shadow-xl"
+            disabled={isGenerating || !input.trim()}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:hover:scale-100"
           >
-            <Send size={24} />
+            <Send size={18} />
           </button>
         </div>
-        <p className="mt-6 text-center text-[6px] font-bold text-black/20 uppercase tracking-[0.4em]">
-          Using latest 'Flippo' session data for context.
+        <p className="mt-4 text-center text-[5px] font-bold text-black/20 uppercase tracking-[0.4em]">
+          Powered by Snooks Marketing Intelligence v4.0
         </p>
       </div>
     </div>

@@ -1,291 +1,65 @@
+
 {
   "entities": {
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user's profile within CozyJet.AI, storing their personal preferences, settings, and an encrypted blob of Skippy's client-side activity data. This entity links to an external authentication system and does not store authentication credentials like passwords.",
+      "description": "Represents a user's profile within CozyJet.AI, storing their personal preferences and settings.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The primary email address associated with the user's account, obtained from the authentication provider.",
-          "format": "email"
-        },
-        "authProviderId": {
-          "type": "string",
-          "description": "The unique identifier provided by the external authentication system (e.g., Google ID). This links the UserProfile to the authenticated user."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "The user's first name, used for personalization across the application (e.g., custom cursor label)."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "The user's last name (optional)."
-        },
-        "onboarded": {
-          "type": "boolean",
-          "description": "A flag indicating whether the user has completed the initial onboarding process."
-        },
-        "lastLogin": {
-          "type": "string",
-          "description": "Timestamp of the user's most recent successful login.",
-          "format": "date-time"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the user profile was first created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the user profile was last updated.",
-          "format": "date-time"
-        },
-        "localOnlyMode": {
-          "type": "boolean",
-          "description": "User privacy setting: if true, prevents any data from leaving the user's device. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "anonymizedAnalytics": {
-          "type": "boolean",
-          "description": "User privacy setting: if true, enables the collection of anonymized usage analytics. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "skippyEnabled": {
-          "type": "boolean",
-          "description": "Setting to enable or disable the Skippy AI agent for the user. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "flippoEnabled": {
-          "type": "boolean",
-          "description": "Setting to enable or disable the Flippo AI agent for the user. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "snooksEnabled": {
-          "type": "boolean",
-          "description": "Setting to enable or disable the Snooks AI agent for the user. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "deepWorkSessionLength": {
-          "type": "number",
-          "description": "Configured length in minutes for deep work sessions, used by Skippy and Flippo. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "stuckDetectionSensitivity": {
-          "type": "number",
-          "description": "Sensitivity threshold (0-100) for Skippy's 'stuck detection' feature. (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "appearanceTheme": {
-          "type": "string",
-          "description": "User's preferred UI theme (e.g., 'light', 'dark'). (Relationship: UserProfile 1:1 Preferences)"
-        },
-        "skippyEncryptedDataBlob": {
-          "type": "string",
-          "description": "An AES-256-GCM encrypted binary blob containing Skippy's local activity data. This data is never decrypted by the server and is stored as opaque client-side data. (Relationship: UserProfile 1:1 SkippyData)"
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "firstName": { "type": "string" },
+        "onboarded": { "type": "boolean" },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "email",
-        "authProviderId",
-        "firstName",
-        "onboarded",
-        "lastLogin",
-        "createdAt",
-        "updatedAt",
-        "localOnlyMode",
-        "anonymizedAnalytics",
-        "skippyEnabled",
-        "flippoEnabled",
-        "snooksEnabled",
-        "deepWorkSessionLength",
-        "stuckDetectionSensitivity",
-        "appearanceTheme",
-        "skippyEncryptedDataBlob"
-      ]
+      "required": ["id", "email", "firstName", "onboarded", "lastLogin", "createdAt", "updatedAt"]
     },
-    "ContentOutput": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ContentOutput",
+    "ChatMessage": {
+      "title": "ChatMessage",
       "type": "object",
-      "description": "Stores marketing content generated by the Snooks AI agent for a specific user, including the original prompt, generated text for various platforms, and associated strategy details.",
+      "description": "A single message in the Snooks marketing chat.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ContentOutput entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile who generated this content. (Relationship: UserProfile 1:N ContentOutput)"
-        },
-        "prompt": {
-          "type": "string",
-          "description": "The original text prompt provided by the user to the Snooks agent."
-        },
-        "generatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when this marketing content was generated by Snooks.",
-          "format": "date-time"
-        },
-        "platformOutputs": {
-          "type": "array",
-          "description": "An array containing the marketing content outputs, each optimized for a specific platform.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "viralStrategy": {
-          "type": "array",
-          "description": "A structured breakdown of the viral strategy provided by Snooks for the generated content.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "imageGenerationUrl": {
-          "type": "string",
-          "description": "Optional URL to an on-brand marketing image generated by Snooks, relevant to the content.",
-          "format": "uri"
-        }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "bot"] },
+        "content": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "content"] },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "userId",
-        "prompt",
-        "generatedAt",
-        "platformOutputs",
-        "viralStrategy"
-      ]
+      "required": ["id", "userId", "role", "content", "type", "createdAt"]
     },
     "ProductivitySession": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ProductivitySession",
       "type": "object",
-      "description": "Records a user's productivity session data, including deep work scores and a summarized timeline, generated by the Flippo AI agent based on client-side activity summaries.",
+      "description": "Analysis of a user's productivity generated by Flippo.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProductivitySession entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the UserProfile associated with this productivity session. (Relationship: UserProfile 1:N ProductivitySession)"
-        },
-        "sessionDate": {
-          "type": "string",
-          "description": "The date and time when this productivity session was recorded or generated.",
-          "format": "date-time"
-        },
-        "deepWorkScore": {
-          "type": "number",
-          "description": "The calculated deep work score for this session, ranging from 0 to 100."
-        },
-        "timelineSummary": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "score": { "type": "number" },
+        "insights": { "type": "string" },
+        "timeline": {
           "type": "array",
-          "description": "An array of summarized activity segments, forming the user's work timeline for this session.",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "time": { "type": "string" },
+              "app": { "type": "string" },
+              "action": { "type": "string" },
+              "type": { "type": "string" },
+              "emotion": { "type": "string" }
+            }
           }
         },
-        "deepWorkMatrix": {
-          "type": "array",
-          "description": "A grid visualization data representing focus blocks versus distraction spikes during the session.",
-          "items": {
-            "type": "string"
-          }
-        }
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "userId",
-        "sessionDate",
-        "deepWorkScore",
-        "timelineSummary",
-        "deepWorkMatrix"
-      ]
-    },
-    "WaitlistEntry": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "WaitlistEntry",
-      "type": "object",
-      "description": "Stores email addresses of users who have joined the waitlist for upcoming features or product launches.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the WaitlistEntry entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user who joined the waitlist.",
-          "format": "email"
-        },
-        "joinedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the user's email was added to the waitlist.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "email",
-        "joinedAt"
-      ]
-    },
-    "Testimonial": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Testimonial",
-      "type": "object",
-      "description": "Represents a user testimonial displayed on the public-facing landing page, including author details and the quote itself.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Testimonial entity."
-        },
-        "authorName": {
-          "type": "string",
-          "description": "The full name of the person providing the testimonial."
-        },
-        "authorTitle": {
-          "type": "string",
-          "description": "The title, role, or company of the testimonial author (optional)."
-        },
-        "authorAvatarUrl": {
-          "type": "string",
-          "description": "URL to the author's avatar image (optional).",
-          "format": "uri"
-        },
-        "quote": {
-          "type": "string",
-          "description": "The main quote or statement of the testimonial."
-        },
-        "isVisible": {
-          "type": "boolean",
-          "description": "A flag indicating whether the testimonial is approved and currently visible on the public website."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the testimonial was originally created or submitted.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the testimonial was last updated or reviewed.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "authorName",
-        "quote",
-        "isVisible",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "userId", "score", "timeline", "createdAt"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "google.com"]
   },
   "firestore": {
     "structure": [
@@ -293,107 +67,26 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores individual user profiles, preferences, and the encrypted Skippy data blob. This collection is private, with documents accessible only by the authenticated user whose UID matches the 'userId' parameter in the path. Includes the 'skippyEncryptedDataBlob' which holds client-side encrypted activity data, ensuring authorization independence for this sensitive data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, corresponding to Firebase Authentication's request.auth.uid."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/UserProfile" },
+          "description": "Private user profile document."
         }
       },
       {
-        "path": "/users/{userId}/contentOutputs/{contentOutputId}",
+        "path": "/users/{userId}/snooksMessages/{messageId}",
         "definition": {
-          "entityName": "ContentOutput",
-          "schema": {
-            "$ref": "#/backend/entities/ContentOutput"
-          },
-          "description": "Stores marketing content generated by the Snooks AI agent for a specific user. This subcollection is nested under a user's profile, making it private and accessible only by the owning user. Authorization is based on the 'userId' in the path matching request.auth.uid, ensuring authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this content output, corresponding to Firebase Authentication's request.auth.uid."
-            },
-            {
-              "name": "contentOutputId",
-              "description": "The unique identifier for a specific content output document."
-            }
-          ]
+          "entityName": "ChatMessage",
+          "schema": { "$ref": "#/backend/entities/ChatMessage" },
+          "description": "Messages in the Snooks chat."
         }
       },
       {
         "path": "/users/{userId}/productivitySessions/{sessionId}",
         "definition": {
           "entityName": "ProductivitySession",
-          "schema": {
-            "$ref": "#/backend/entities/ProductivitySession"
-          },
-          "description": "Records productivity session data generated by the Flippo AI agent for a specific user. This subcollection is nested under a user's profile, making it private and accessible only by the owning user. Authorization is based on the 'userId' in the path matching request.auth.uid, ensuring authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this productivity session, corresponding to Firebase Authentication's request.auth.uid."
-            },
-            {
-              "name": "sessionId",
-              "description": "The unique identifier for a specific productivity session document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/waitlistEntries/{entryId}",
-        "definition": {
-          "entityName": "WaitlistEntry",
-          "schema": {
-            "$ref": "#/backend/entities/WaitlistEntry"
-          },
-          "description": "Stores email addresses for users who have joined the waitlist. This is a public-facing collection where anyone can create a new entry (add their email), but only authenticated administrators can read or delete entries. This structural segregation simplifies security rules for public write and administrative read/delete operations.",
-          "params": [
-            {
-              "name": "entryId",
-              "description": "The unique identifier for a specific waitlist entry."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/testimonials/{testimonialId}",
-        "definition": {
-          "entityName": "Testimonial",
-          "schema": {
-            "$ref": "#/backend/entities/Testimonial"
-          },
-          "description": "Contains user testimonials displayed on the public landing page. Documents in this collection are publicly readable only if the 'isVisible' field is true. Creation, updates, and deletions are restricted to administrators. This separation of concerns ensures QAPs for public lists and administrative control.",
-          "params": [
-            {
-              "name": "testimonialId",
-              "description": "The unique identifier for a specific testimonial document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{adminId}",
-        "definition": {
-          "entityName": "AdminRole",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "A dedicated collection for Database Access Control (DBAC) to define administrative roles. The existence of a document at `/roles_admin/{request.auth.uid}` signifies that the authenticated user is an administrator. This allows for simple and robust role-based authorization checks using `exists()` in security rules, maintaining authorization independence and clarity of intent.",
-          "params": [
-            {
-              "name": "adminId",
-              "description": "The unique identifier of an administrator, corresponding to Firebase Authentication's request.auth.uid."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/ProductivitySession" },
+          "description": "Past productivity sessions analyzed by Flippo."
         }
       }
-    ],
-    "reasoning": "The Firestore structure for CozyJet.AI is designed to strictly adhere to the core principles of Authorization Independence, Structural Segregation, and consistent Access Modeling, prioritizing security, scalability, and debuggability. \n\n**Authorization Independence:** This is achieved primarily through path-based ownership and denormalization. For user-specific data like `UserProfile`, `ContentOutput`, and `ProductivitySession`, the `userId` is embedded directly into the document path (e.g., `/users/{userId}/...`). This means that Firestore security rules can directly compare `request.auth.uid` to the `userId` wildcard in the path, eliminating the need for expensive and complex `get()` calls to parent documents for authorization checks. For instance, to access a `ContentOutput`, the rule only needs to verify `request.auth.uid == userId`, ensuring atomic operations and simplified rule logic.\n\nFor `Testimonial` and `WaitlistEntry` collections, authorization does not depend on hierarchical parent data. `Testimonial` read access is governed by an intrinsic `isVisible` field, directly within the document, rather than an external check. Write/delete access for both `WaitlistEntry` and `Testimonial` (and potentially other administrative actions) is handled via a dedicated `roles_admin/{adminId}` collection. Rules will use an `exists()` check against this collection (`exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))`), which adheres to authorization independence as it does not create a dependency chain on specific document data for its authorization context.\n\n**QAPs (Rules are not Filters):** This structure inherently supports secure `list` operations by ensuring that collections are segregated by their security posture and access patterns:\n*   **User-Owned Data (`/users/{userId}/...`):** These paths are strictly scoped to the authenticated user. A `list` operation on `/users/{userId}/contentOutputs` will only ever return content outputs belonging to `request.auth.uid`, making the query inherently secure without needing to filter results client-side after a broad read.\n*   **Public/Admin Data (`/testimonials`, `/waitlistEntries`):** The `testimonials` collection, for example, will have rules configured such that `read` operations for unauthenticated or non-admin users only succeed if `resource.data.isVisible == true`. This effectively 'filters' public reads at the rule level, ensuring only approved testimonials are fetched. For `waitlistEntries`, anonymous users can `create` but cannot `read` other entries, while administrators (checked via the `roles_admin` collection) can `list` all entries.\n\n**Structural Segregation:** Each collection (`users`, `waitlistEntries`, `testimonials`, `roles_admin`) serves a distinct purpose with a uniform security requirement across its documents. For example, `UserProfile` documents are all private to their owner, `WaitlistEntry` documents are all publicly creatable but admin-readable, and `Testimonial` documents are publicly readable if `isVisible` and admin-manageable. This avoids mixing data with different access levels in the same collection, simplifying security rules significantly.\n\n**DBAC (Database Access Control):** The use of a dedicated `/roles_admin/{adminId}` collection for managing global administrative roles allows for robust, scalable DBAC. Authorization logic in rules can simply check for the existence of the `request.auth.uid` within this collection to grant elevated permissions, without relying on custom claims or complex queries.\n\nOverall, this structure provides a clear, maintainable, and secure foundation for CozyJet.AI, aligning with all specified design principles and mandates."
+    ]
   }
 }

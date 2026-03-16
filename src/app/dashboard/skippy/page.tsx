@@ -1,26 +1,51 @@
+
 "use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Bot, Eye, Sparkles } from "lucide-react";
+import { MessageSquare, Send, Bot, Eye, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { skippyProvideContextualAssistance } from "@/ai/flows/skippy-provide-contextual-assistance";
 
 export default function SkippyPage() {
   const [isActive, setIsActive] = useState(false);
   const [isStuck, setIsStuck] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [assistanceMsg, setAssistanceMsg] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
 
-  // Simulated "Stuck" detection logic
+  // Simulated "Stuck" detection logic via AI Flow
   React.useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isActive) {
-      const timer = setTimeout(() => setIsStuck(true), 5000);
-      return () => clearTimeout(timer);
+      // Every 10 seconds check if stuck
+      timer = setInterval(async () => {
+        setIsThinking(true);
+        try {
+          const result = await skippyProvideContextualAssistance({
+            currentActivityContext: "Working on complex React state management in the dashboard",
+            recentActionsSummary: "Multiple clicks on the same line, no keystrokes for 45 seconds",
+            timeSinceLastMeaningfulInteractionSeconds: 65
+          });
+          
+          if (result.assistanceMessage.includes("?")) { // Heuristic for helpful intervention
+            setAssistanceMsg(result.assistanceMessage);
+            setIsStuck(true);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsThinking(false);
+        }
+      }, 15000);
     } else {
       setIsStuck(false);
       setShowChat(false);
     }
+    return () => clearInterval(timer);
   }, [isActive]);
 
   return (
@@ -44,9 +69,10 @@ export default function SkippyPage() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute -top-4 -right-4 bg-amber-500 text-black px-4 py-2 rounded-2xl border-2 border-black shadow-lg"
+              className="absolute -top-4 -right-4 bg-amber-500 text-black px-4 py-2 rounded-2xl border-2 border-black shadow-lg flex items-center gap-2"
             >
-              <span className="text-[8px] font-bold">READY</span>
+              {isThinking ? <Loader2 size={10} className="animate-spin" /> : <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+              <span className="text-[8px] font-bold">OBSERVING</span>
             </motion.div>
           )}
         </motion.div>
@@ -72,7 +98,7 @@ export default function SkippyPage() {
         </button>
       </div>
 
-      {/* Persistent Active Symbol (Like Screen Recording Indicator) */}
+      {/* Persistent Active Symbol */}
       <AnimatePresence>
         {isActive && (
           <motion.div
@@ -86,7 +112,7 @@ export default function SkippyPage() {
               <div className="absolute inset-0 w-4 h-4 rounded-full bg-red-500 animate-ping opacity-40" />
             </div>
             <Bot size={20} className="text-black" />
-            <span className="text-[8px] font-bold uppercase tracking-widest">Skippy observing</span>
+            <span className="text-[8px] font-bold uppercase tracking-widest">Active observer</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -103,9 +129,7 @@ export default function SkippyPage() {
             <div className="bg-black text-white p-8 rounded-[2rem] rounded-br-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] relative border-2 border-white/20 max-w-sm">
               <div className="absolute -bottom-3 right-0 w-6 h-6 bg-black rotate-45" />
               <p className="text-[10px] leading-relaxed uppercase tracking-tighter">
-                YO! YOU GOOD? 👀<br/>
-                LOOKS LIKE YOU'RE STUCK ON THAT COMPONENT.<br/>
-                WANNA TALK IT OUT?
+                {assistanceMsg.toUpperCase() || "YO! YOU GOOD? 👀"}
               </p>
             </div>
             <Button 
@@ -139,19 +163,23 @@ export default function SkippyPage() {
             
             <div className="flex-1 p-8 space-y-6 overflow-y-auto bg-white/20">
               <div className="bg-black text-white p-6 rounded-3xl rounded-tl-none text-[8px] leading-loose uppercase tracking-tight shadow-xl">
-                I see you're trying to connect the Firebase listener. <br/><br/>
-                Tap the "Configure Sync" button in your dashboard first!
+                {assistanceMsg || "I see you're working on the system architecture. Want me to pull up relevant documentation?"}
               </div>
               
               <div className="flex items-center gap-2 p-4 bg-amber-500/10 border-2 border-amber-500 rounded-2xl">
                 <Sparkles size={16} className="text-amber-500" />
-                <span className="text-[6px] font-bold uppercase">Pro Tip: Check integration health</span>
+                <span className="text-[6px] font-bold uppercase text-amber-500">Local context sync active</span>
               </div>
             </div>
 
             <div className="p-8 bg-white/60 border-t border-black/5">
               <div className="relative">
-                <Input className="pr-16 h-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black text-[10px]" placeholder="Ask Skippy..." />
+                <Input 
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  className="pr-16 h-16 rounded-[2rem] bg-white border-2 border-black/10 focus:border-black text-[8px] uppercase font-bold" 
+                  placeholder="Ask Skippy..." 
+                />
                 <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black text-white rounded-2xl">
                   <Send size={18} />
                 </button>
