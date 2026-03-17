@@ -22,7 +22,7 @@ import {
   Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { snooksComplianceCheck } from "@/ai/flows/snooks-compliance-enforcement";
+import { snooksComplianceCheckClient as snooksComplianceCheck } from "@/ai/client";
 import { useToast } from "@/hooks/use-toast";
 
 const STEPS = [

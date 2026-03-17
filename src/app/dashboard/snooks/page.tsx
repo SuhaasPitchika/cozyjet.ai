@@ -8,7 +8,7 @@ import { Send, Sparkles, User, Bot, Edit3, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { snooksIntelligence } from "@/ai/flows/snooks-generate-marketing-content";
+import { snooksIntelligenceClient as snooksIntelligence } from "@/ai/client";
 
 export default function SnooksPage() {
   const { user } = useUser();

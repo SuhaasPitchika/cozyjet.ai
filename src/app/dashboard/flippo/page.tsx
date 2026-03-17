@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Loader2, Zap } from "lucide-react";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy, limit } from "firebase/firestore";
-import { flippoAnalyzeProductivity } from "@/ai/flows/flippo-analyze-productivity";
+import { flippoAnalyzeProductivityClient as flippoAnalyzeProductivity } from "@/ai/client";
 import { cn } from "@/lib/utils";
 
 export default function FlippoPage() {

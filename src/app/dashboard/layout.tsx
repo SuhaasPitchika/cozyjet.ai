@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
-import { skippyChat } from "@/ai/flows/skippy-chat-interaction";
+import { skippyChatClient as skippyChat } from "@/ai/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
