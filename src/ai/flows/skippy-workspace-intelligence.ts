@@ -1,5 +1,5 @@
 
-'use server';
+
 /**
  * @fileOverview SKIPPY Workspace Intelligence Agent.
  * Handles local workspace monitoring and content brief generation.

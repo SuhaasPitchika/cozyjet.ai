@@ -1,4 +1,4 @@
-'use server';
+
 /**
  * @fileOverview This file implements a Genkit flow for the Flippo AI agent to analyze
  * summarized work activity, generate a structured productivity timeline, and

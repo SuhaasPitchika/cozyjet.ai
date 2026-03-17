@@ -1,5 +1,5 @@
 
-'use server';
+
 /**
  * @fileOverview SNOOKS Compliance Enforcement Agent.
  * Executes the 7 safety checks for content publishing.

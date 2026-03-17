@@ -1,5 +1,5 @@
 
-'use server';
+
 /**
  * @fileOverview Concise chat interaction flow for Skippy.
  * Focuses on intellectual but empathetic workspace guidance.

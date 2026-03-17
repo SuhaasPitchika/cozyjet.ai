@@ -1,5 +1,5 @@
 
-'use server';
+
 /**
  * @fileOverview A unified marketing intelligence flow for Snooks.
  * Refined for conciseness, empathy, and high-fidelity strategy.
