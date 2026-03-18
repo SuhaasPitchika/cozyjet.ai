@@ -17,7 +17,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { skippyChatClient as skippyChat, skippyScreenAnalysisClient as skippyScreenAnalysis } from "@/ai/client";
 import { saveChatHistory, loadChatHistory, ChatMessage } from "@/lib/encrypted-storage";
 import dynamic from "next/dynamic";
 

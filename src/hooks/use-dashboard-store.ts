@@ -30,15 +30,15 @@ interface DashboardState {
 
 // Handle cross-tab sync
 if (typeof window !== 'undefined' && skippyChannel) {
-  skippyChannel.onmessage = (event) => {
+  skippyChannel.onmessage = (event: MessageEvent) => {
     const { type, payload } = event.data;
-    
+
     // Listen for state changes from other tabs
     if (type === 'SKIPPY_STATE_CHANGE') {
       // Update local state via zustand - we'll handle this in the component
       window.dispatchEvent(new CustomEvent('skippy-sync', { detail: payload }));
     }
-  });
+  };
 }
 
 // Function to broadcast state changes

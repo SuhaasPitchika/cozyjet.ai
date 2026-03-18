@@ -152,9 +152,9 @@ function SnooksBot({ isActive = false, size = "medium" }: { isActive: boolean; s
           {[...Array(5)].map((_, i) => (
             <Float key={i} speed={2} floatIntensity={1}>
               <mesh position={[
-                Math.cos(t * 2 + i) * 1.2,
-                Math.sin(i * 1.5) * 0.8 + 0.5,
-                Math.sin(t + i) * 0.5
+                Math.cos(i * 1.5) * 1.2,
+                Math.sin(i * 2) * 0.8 + 0.5,
+                Math.sin(i * 2) * 0.5
               ]}>
                 <planeGeometry args={[0.15, 0.15]} />
                 <meshBasicMaterial color="#facc15" transparent opacity={0.8} side={THREE.DoubleSide} />

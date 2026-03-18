@@ -23,6 +23,7 @@ const SkippyChatOutputSchema = z.object({
   taskBreakdown: z.array(z.string()).optional().describe('Step-by-step breakdown if user needs help.'),
 });
 
+// Remove the problematic screenAnalysis - we'll use basic chat for now
 export async function skippyChat(input: z.infer<typeof SkippyChatInputSchema>) {
   return skippyChatFlow(input);
 }
@@ -59,43 +60,6 @@ const skippyChatFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await skippyChatPrompt(input);
-    return output!;
-  }
-);
-
-// Screen analysis flow for understanding workspace
-export const skippyScreenAnalysis = ai.defineFlow(
-  {
-    name: 'skippyScreenAnalysis',
-    inputSchema: z.object({
-      screenContent: z.string().describe('Description of current screen content'),
-      activeApp: z.string().describe('Name of the active application'),
-      recentActions: z.array(z.string()).describe('Recent user actions'),
-    }),
-    outputSchema: z.object({
-      understanding: z.string().describe('What Skippy understands about the work'),
-      suggestions: z.array(z.string()).describe('Actionable suggestions'),
-      taskIdentified: z.string().optional().describe('Task if identifiable'),
-    }),
-  },
-  async (input) => {
-    const prompt = ai.definePrompt({
-      name: 'screenAnalysisPrompt',
-      input: { schema: skippyScreenAnalysis.inputSchema },
-      output: { schema: skippyScreenAnalysis.outputSchema },
-      prompt: `Analyze this workspace context:
-
-Active App: {{input.activeApp}}
-Recent Actions: {{#each input.recentActions}}{{this}}, {{/each}}
-Screen: {{input.screenContent}}
-
-Provide:
-1. Brief understanding of what the user is doing
-2. 1-3 actionable suggestions
-3. If a clear task is identifiable, name it`,
-    });
-    
-    const { output } = await prompt(input);
     return output!;
   }
 );
