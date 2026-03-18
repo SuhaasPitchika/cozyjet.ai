@@ -1,162 +1,159 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, Sparkles, User, Bot, Edit3, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { snooksIntelligenceClient as snooksIntelligence } from "@/ai/client";
+import React from "react";
+import { motion } from "framer-motion";
+import { Sparkles, TrendingUp, MessageCircle, Hash, Zap, ArrowRight, Send, Twitter, Linkedin, Youtube, Instagram } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const Snooks3DCharacter = dynamic(
+  () => import("@/components/3d/SnooksCharacter").then((mod) => mod.Snooks3DCharacter),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-64 h-64 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+      </div>
+    )
+  }
+);
 
 export default function SnooksPage() {
-  const { user } = useUser();
-  const db = useFirestore();
-  const [input, setInput] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const stats = [
+    { label: "Viral Score", value: "94", change: "+12", icon: Sparkles },
+    { label: "Engagement", value: "8.2K", change: "+23%", icon: TrendingUp },
+    { label: "Shares", value: "1.4K", change: "+45%", icon: MessageCircle },
+  ];
 
-  const messagesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-      collection(db, "users", user.uid, "snooksMessages"),
-      orderBy("createdAt", "asc")
-    );
-  }, [db, user]);
+  const platforms = [
+    { name: "Twitter", icon: Twitter, color: "bg-black", posts: 12 },
+    { name: "LinkedIn", icon: Linkedin, color: "bg-blue-600", posts: 5 },
+    { name: "YouTube", icon: Youtube, color: "bg-red-600", posts: 2 },
+    { name: "Instagram", icon: Instagram, color: "bg-pink-600", posts: 8 },
+  ];
 
-  const { data: messages, isLoading } = useCollection(messagesQuery);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || !user || isGenerating) return;
-
-    const userInput = input;
-    setInput("");
-    setIsGenerating(true);
-
-    try {
-      await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-        userId: user.uid,
-        role: "user",
-        content: userInput,
-        type: "text",
-        createdAt: serverTimestamp(),
-      });
-
-      const response = await snooksIntelligence({
-        userPrompt: userInput,
-        userContext: JSON.stringify({
-          tone: "Authoritative but Empathic",
-          niche: "Solopreneur SaaS",
-          platform: "Multi-channel"
-        })
-      });
-
-      let botContent = response.responseText;
-      if (response.generatedContent) {
-        const gc = response.generatedContent;
-        if (gc.linkedinPost || gc.xTweet || gc.emailContent) {
-          botContent += `\n\n### Generated Drafts\n`;
-          if (gc.linkedinPost) botContent += `\n**LinkedIn:**\n${gc.linkedinPost}\n`;
-          if (gc.xTweet) botContent += `\n**X:**\n${gc.xTweet}\n`;
-          if (gc.emailContent) botContent += `\n**Email:**\n${gc.emailContent}\n`;
-        }
-      }
-
-      await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-        userId: user.uid,
-        role: "bot",
-        content: botContent,
-        type: response.generatedContent ? "content" : "text",
-        createdAt: serverTimestamp(),
-      });
-
-    } catch (error) {
-      console.error("Snooks Error:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  const suggestions = [
+    { title: "Post thread on AI trends", platform: "Twitter", impact: "High", viral: 92 },
+    { title: "Share productivity tips", platform: "LinkedIn", impact: "Medium", viral: 78 },
+    { title: "Create carousel on growth", platform: "Instagram", impact: "High", viral: 88 },
+  ];
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="px-8 py-5 border-b border-gray-50 flex justify-between items-center">
-        <div>
-          <h1 className="text-sm font-bold tracking-tight">Marketing Intelligence</h1>
-          <p className="text-[10px] text-gray-400 font-medium">Snooks AI Agent</p>
-        </div>
-        {isGenerating && (
-          <div className="flex items-center gap-2">
-            <Loader2 size={12} className="animate-spin text-gray-300" />
-            <span className="text-[10px] text-gray-400">Processing request...</span>
+    <div className="p-8 h-full flex flex-col bg-gradient-to-br from-orange-50 to-amber-50 overflow-y-auto">
+      <div className="max-w-4xl mx-auto w-full space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Snooks</h1>
+            <p className="text-sm text-slate-500">Viral Content Strategist</p>
           </div>
-        )}
-      </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-xs font-bold">
+            <Zap size={14} className="animate-pulse" />
+            AI Marketing
+          </div>
+        </motion.div>
 
-      <div 
-        ref={scrollRef}
-        className="flex-1 p-8 overflow-y-auto space-y-6 custom-scrollbar"
-      >
-        <AnimatePresence>
-          {messages?.map((msg) => (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="w-full h-64 bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-lg flex items-center justify-center overflow-hidden"
+        >
+          <Snooks3DCharacter isActive={true} size="large" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-3 gap-4"
+        >
+          {stats.map((stat, i) => (
             <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 5 }}
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "flex gap-4 max-w-3xl",
-                msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
-              )}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="bg-white rounded-2xl p-5 shadow-lg border border-slate-100"
             >
-              <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border",
-                msg.role === 'user' ? "bg-gray-50 border-gray-100" : "bg-black border-black"
-              )}>
-                {msg.role === 'user' ? <User size={14} /> : <Bot size={14} className="text-white" />}
-              </div>
-              
-              <div className={cn(
-                "p-4 rounded-xl text-xs leading-relaxed shadow-sm",
-                msg.role === 'user' 
-                  ? "bg-gray-50 text-black rounded-tr-none" 
-                  : "bg-white border border-gray-100 text-black rounded-tl-none"
-              )}>
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              </div>
+              <stat.icon size={20} className="text-orange-500 mb-3" />
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+              <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
+              <p className="text-[9px] text-green-500 font-bold mt-1">{stat.change}</p>
             </motion.div>
           ))}
-        </AnimatePresence>
-        {isLoading && (
-          <div className="flex justify-center p-4">
-            <Loader2 className="animate-spin text-gray-100" size={20} />
-          </div>
-        )}
-      </div>
+        </motion.div>
 
-      <div className="p-6 border-t border-gray-50">
-        <div className="max-w-3xl mx-auto relative">
-          <Input 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            disabled={isGenerating}
-            placeholder="Ask Snooks to draft content or strategy..."
-            className="h-12 pl-5 pr-12 rounded-xl border-gray-100 text-xs shadow-none"
-          />
-          <button 
-            onClick={handleSend}
-            disabled={isGenerating || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-all disabled:opacity-20"
-          >
-            <Send size={14} />
-          </button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-3xl p-6 shadow-lg"
+        >
+          <h2 className="text-lg font-bold text-slate-800 mb-4">Connected Platforms</h2>
+          <div className="grid grid-cols-4 gap-4">
+            {platforms.map((platform, i) => (
+              <motion.div
+                key={platform.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className="text-center"
+              >
+                <div className={`w-14 h-14 ${platform.color} rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg`}>
+                  <platform.icon size={24} className="text-white" />
+                </div>
+                <p className="text-xs font-bold text-slate-700">{platform.name}</p>
+                <p className="text-[9px] text-slate-400">{platform.posts} posts</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-6 text-white"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold">AI Suggestions</h2>
+            <Sparkles size={20} className="animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            {suggestions.map((suggestion, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 + i * 0.1 }}
+                className="bg-white/20 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-bold text-sm">{suggestion.title}</p>
+                  <p className="text-xs text-orange-100">{suggestion.platform}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold">{suggestion.impact} Impact</p>
+                  <p className="text-xs">Viral: {suggestion.viral}%</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="w-full py-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:from-slate-700 hover:to-slate-600 transition-all shadow-lg"
+        >
+          <Send size={16} />
+          Generate Viral Content
+          <ArrowRight size={16} />
+        </motion.button>
       </div>
     </div>
   );

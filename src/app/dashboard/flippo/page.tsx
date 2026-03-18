@@ -1,158 +1,136 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Loader2, Zap } from "lucide-react";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, orderBy, limit } from "firebase/firestore";
-import { flippoAnalyzeProductivityClient as flippoAnalyzeProductivity } from "@/ai/client";
-import { cn } from "@/lib/utils";
+import React from "react";
+import { motion } from "framer-motion";
+import { Clock, Zap, TrendingUp, Award, Activity, ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const Flippo3DCharacter = dynamic(
+  () => import("@/components/3d/FlippoCharacter").then((mod) => mod.Flippo3DCharacter),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-64 h-64 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+      </div>
+    )
+  }
+);
 
 export default function FlippoPage() {
-  const { user } = useUser();
-  const db = useFirestore();
-  const [isGenerating, setIsGenerating] = useState(false);
+  const stats = [
+    { label: "Today's Focus", value: "4h 23m", change: "+12%", icon: Clock },
+    { label: "Flow Score", value: "94%", change: "+8%", icon: Zap },
+    { label: "Streak", value: "12 days", change: "Best!", icon: Award },
+  ];
 
-  const sessionsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-      collection(db, "users", user.uid, "productivitySessions"),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
-  }, [db, user]);
-
-  const { data: sessions } = useCollection(sessionsQuery);
-  const latestSession = sessions?.[0];
-
-  const handleGenerate = async () => {
-    if (!user || isGenerating) return;
-    setIsGenerating(true);
-
-    try {
-      const result = await flippoAnalyzeProductivity({
-        activitySummaries: [
-          { startTime: "09:00", endTime: "10:30", description: "Strategic UI architecture and component logic" },
-          { startTime: "10:30", endTime: "10:35", description: "Brief comms catchup" },
-          { startTime: "10:35", endTime: "12:00", description: "Backend integration and AI flow tuning" }
-        ]
-      });
-
-      await addDoc(collection(db, "users", user.uid, "productivitySessions"), {
-        userId: user.uid,
-        score: result.deepWorkScore,
-        insights: result.productivityInsights,
-        timeline: result.timeline.map(event => ({
-          time: event.timestamp,
-          app: event.type === 'deep_work' ? 'IDE' : 'Browser',
-          action: event.description,
-          type: event.type,
-          emotion: event.type === 'deep_work' ? 'High Focus' : 'Surface Level'
-        })),
-        createdAt: serverTimestamp(),
-      });
-
-    } catch (error) {
-      console.error("Flippo Error:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  const timeline = [
+    { time: "9:00 AM", activity: "Deep work session", score: 98 },
+    { time: "11:30 AM", activity: "Code review", score: 85 },
+    { time: "2:00 PM", activity: "Team meeting", score: 72 },
+    { time: "4:00 PM", activity: "Documentation", score: 91 },
+  ];
 
   return (
-    <div className="p-8 space-y-10 bg-white min-h-full">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Activity Timeline</h1>
-          <p className="text-xs text-gray-400 font-medium">Deep Work Analysis by Flippo</p>
-        </div>
-        <Button 
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="rounded-xl bg-black text-white hover:bg-gray-800 text-xs px-6 h-11"
+    <div className="p-8 h-full flex flex-col bg-gradient-to-br from-slate-50 to-cyan-50 overflow-y-auto">
+      <div className="max-w-4xl mx-auto w-full space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between"
         >
-          {isGenerating ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="animate-spin" size={14} />
-              <span>Analyzing...</span>
-            </div>
-          ) : "Analyze Session"}
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="rounded-2xl border-gray-100 shadow-sm">
-          <CardContent className="p-8 space-y-8">
-            <div className="text-center">
-              <div className="w-32 h-32 mx-auto rounded-full flex flex-col items-center justify-center border border-gray-100 bg-gray-50/50 relative">
-                <span className="text-3xl font-bold">{latestSession?.score || "--"}</span>
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Score</span>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                <span>Flow Quality</span>
-                <span className="text-black">{latestSession ? "Stable" : "Awaiting Data"}</span>
-              </div>
-              <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }} 
-                  animate={{ width: `${latestSession?.score || 0}%` }} 
-                  className="h-full bg-black rounded-full" 
-                />
-              </div>
-            </div>
-
-            <div className="p-5 bg-gray-50 rounded-xl">
-              <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">Flippo Insight</h4>
-              <p className="text-xs leading-relaxed text-gray-600 italic">
-                {latestSession?.insights || "Initializing observation logs..."}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
-            <Clock size={14} />
-            Focus Events
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Flippo</h1>
+            <p className="text-sm text-slate-500">Productivity Timeline</p>
           </div>
-          
-          <div className="space-y-4 relative">
-            <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-50" />
-            
-            {latestSession ? latestSession.timeline.map((event: any, i: number) => (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full text-xs font-bold">
+            <Activity size={14} className="animate-pulse" />
+            Live Tracking
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="w-full h-64 bg-gradient-to-br from-white to-cyan-50 rounded-3xl shadow-lg flex items-center justify-center overflow-hidden"
+        >
+          <Flippo3DCharacter isActive={true} size="large" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-3 gap-4"
+        >
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="bg-white rounded-2xl p-5 shadow-lg border border-slate-100"
+            >
+              <stat.icon size={20} className="text-cyan-500 mb-3" />
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+              <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
+              <p className="text-[9px] text-green-500 font-bold mt-1">{stat.change}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-3xl p-6 shadow-lg"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-slate-800">Today's Timeline</h2>
+            <button className="text-xs font-bold text-cyan-600 flex items-center gap-1">
+              View Full <ArrowRight size={12} />
+            </button>
+          </div>
+          <div className="space-y-4">
+            {timeline.map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="relative pl-10"
+                transition={{ delay: 0.6 + i * 0.1 }}
+                className="flex items-center gap-4"
               >
-                <div className="absolute left-3 top-3 w-2 h-2 rounded-full bg-black border-2 border-white shadow-sm" />
-                <div className="p-5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-mono text-gray-400">{event.time}</span>
-                    <span className={cn(
-                      "text-[9px] font-bold uppercase px-2 py-0.5 rounded-md",
-                      event.type === 'deep_work' ? "bg-black text-white" : "bg-gray-100 text-gray-500"
-                    )}>
-                      {event.type}
-                    </span>
+                <div className="w-16 text-[10px] font-mono text-slate-400">{item.time}</div>
+                <div className="flex-1 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">{item.activity}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-cyan-600">{item.score}%</span>
+                    <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style={{ width: `${item.score}%` }} />
+                    </div>
                   </div>
-                  <h4 className="text-sm font-bold tracking-tight">{event.app}: {event.action}</h4>
                 </div>
               </motion.div>
-            )) : (
-              <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-gray-50 rounded-2xl">
-                <p className="text-[10px] font-bold text-gray-300 uppercase">No active log found</p>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-3xl p-6 text-white"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-cyan-100 text-xs font-bold uppercase tracking-wider">Weekly Progress</p>
+              <p className="text-3xl font-bold mt-2">+23%</p>
+              <p className="text-cyan-100 text-sm mt-1">Better than last week</p>
+            </div>
+            <TrendingUp size={48} className="opacity-50" />
+          </div>
+        </motion.div>
       </div>
     </div>
   );
