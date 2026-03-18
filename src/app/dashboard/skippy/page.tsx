@@ -2,9 +2,43 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Bot, Power, Zap, ShieldCheck } from "lucide-react";
+import { Power, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+import dynamic from "next/dynamic";
+
+// Dynamically import 3D component with SSR disabled
+const Skippy3DCharacter = dynamic(
+  () => import("@/components/3d/SkippyCharacter").then((mod) => mod.Skippy3DCharacter),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-64 h-64 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-[#8c6b4f]/20 border-t-[#8c6b4f] rounded-full animate-spin" />
+      </div>
+    )
+  }
+);
+
+// Fallback component for when 3D fails
+function SkippyFallback({ isActive }: { isActive: boolean }) {
+  return (
+    <div className={cn(
+      "w-48 h-48 rounded-full flex items-center justify-center",
+      isActive 
+        ? "bg-gradient-to-br from-[#8c6b4f] to-[#6b523c] shadow-[0_0_30px_rgba(245,158,11,0.4)]" 
+        : "bg-gradient-to-br from-gray-200 to-gray-300"
+    )}>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill={isActive ? "#f59e0b" : "#9ca3af"} />
+        <circle cx="8.5" cy="10" r="2" fill="white" />
+        <circle cx="15.5" cy="10" r="2" fill="white" />
+        <circle cx="8.5" cy="10" r="1" fill={isActive ? "#1e293b" : "#64748b"} />
+        <circle cx="15.5" cy="10" r="1" fill={isActive ? "#1e293b" : "#64748b"} />
+      </svg>
+    </div>
+  );
+}
 
 export default function SkippyPage() {
   const { skippyActive, setSkippyActive } = useDashboardStore();
@@ -13,7 +47,7 @@ export default function SkippyPage() {
     <div className="p-10 h-full flex flex-col items-center justify-center bg-[#fdfaf5]">
       <div className="text-center space-y-12 max-w-xl">
         
-        {/* Neumorphic Character Container */}
+        {/* 3D Character Container */}
         <motion.div
           animate={{
             y: skippyActive ? [0, -10, 0] : 0,
@@ -21,30 +55,13 @@ export default function SkippyPage() {
           }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           className={cn(
-            "w-64 h-64 mx-auto rounded-[3.5rem] flex items-center justify-center transition-all duration-700",
+            "w-64 h-64 mx-auto rounded-[3.5rem] flex items-center justify-center transition-all duration-700 overflow-hidden",
             skippyActive 
               ? "neumorphic-button-active border-2 border-white/50" 
               : "neumorphic-flat border-transparent"
           )}
         >
-          <div className="relative">
-            <Bot 
-              size={100} 
-              className={cn(
-                "transition-all duration-700",
-                skippyActive ? "text-[#8c6b4f]" : "text-[#d9d6d1]"
-              )} 
-            />
-            {skippyActive && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute -top-4 -right-4 p-3 bg-amber-400 rounded-full shadow-lg border-2 border-white"
-              >
-                <Zap size={20} className="text-white fill-white" />
-              </motion.div>
-            )}
-          </div>
+          <Skippy3DCharacter isActive={skippyActive} size="medium" />
         </motion.div>
 
         <div className="space-y-4">
