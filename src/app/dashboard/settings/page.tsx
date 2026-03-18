@@ -1,15 +1,49 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Shield, Key, Bell, Database } from "lucide-react";
+import { Shield, Key, Bell, Database, MessageSquare, Trash2 } from "lucide-react";
+import { getSecureItem, setSecureItem, clearSecureStorage, STORAGE_KEYS } from "@/lib/encrypted-storage";
 
 export default function SettingsPage() {
+  const [tempChatMode, setTempChatMode] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+
+  // Load preference on mount
+  useEffect(() => {
+    const loadPreference = async () => {
+      const pref = await getSecureItem<{ tempChat: boolean }>(STORAGE_KEYS.USER_PREFERENCES);
+      if (pref) {
+        setTempChatMode(pref.tempChat);
+      }
+    };
+    loadPreference();
+  }, []);
+
+  const handleTempChatToggle = async (checked: boolean) => {
+    setTempChatMode(checked);
+    await setSecureItem(STORAGE_KEYS.USER_PREFERENCES, { tempChat: checked });
+    
+    // If turning on temporary mode, clear existing chat history
+    if (checked) {
+      await clearSecureStorage();
+    }
+  };
+
+  const handleClearAllData = async () => {
+    if (confirm("Are you sure you want to delete ALL local data? This cannot be undone.")) {
+      setIsClearing(true);
+      await clearSecureStorage();
+      setIsClearing(false);
+      alert("All local data has been cleared.");
+    }
+  };
+
   return (
     <div className="p-10 space-y-10 max-w-4xl mx-auto">
       <div>
@@ -46,18 +80,32 @@ export default function SettingsPage() {
         <Card className="bg-zinc-900/50 border-white/5">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-              <Database className="w-4 h-4 text-amber-500" />
-              Workspace Integration
+              <MessageSquare className="w-4 h-4 text-amber-500" />
+              Chat & History
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label className="text-xs text-zinc-500 uppercase font-bold">Sync Frequency</Label>
-              <Input className="bg-white/5 border-white/10" placeholder="15 minutes" />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-zinc-200">Temporary Chat Mode</Label>
+                <p className="text-[10px] text-zinc-500">Automatically clear chats after each session</p>
+              </div>
+              <Switch 
+                checked={tempChatMode} 
+                onCheckedChange={handleTempChatToggle}
+              />
             </div>
-            <Button variant="outline" className="w-full border-white/10 hover:bg-white/5">
-              Force Re-index All integrations
-            </Button>
+            <div className="pt-2 border-t border-white/10">
+              <Button 
+                variant="outline" 
+                className="w-full border-red-500/20 text-red-400 hover:bg-red-500/10"
+                onClick={handleClearAllData}
+                disabled={isClearing}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isClearing ? "Clearing..." : "Clear All Local Data"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
