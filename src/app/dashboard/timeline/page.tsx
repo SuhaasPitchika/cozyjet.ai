@@ -13,7 +13,7 @@ export default function TimelinePage() {
   const score = 84;
 
   const timelineData = useMemo(() => {
-    return integrationActivities.map((a, i) => ({
+    return integrationActivities.map((a: { id: string; name: string; timestamp: number; status: string }, i: number) => ({
       ...a,
       x: 100 + i * 250,
       y: 200 + Math.sin(i) * 40
@@ -83,7 +83,7 @@ export default function TimelinePage() {
             transition={{ duration: 2 }}
             className="opacity-20"
           />
-          {timelineData.map((node, i) => (
+          {timelineData.map((node: { id: string; x: number; y: number; name: string; timestamp: number; status: string }, i: number) => (
             <g key={node.id}>
               <motion.circle
                 cx={node.x} cy={node.y} r="8"
@@ -94,10 +94,10 @@ export default function TimelinePage() {
                 className="cursor-pointer transition-colors"
               />
               <text x={node.x} y={node.y - 25} textAnchor="middle" className="fill-zinc-400 text-[10px] font-bold uppercase tracking-tighter">
-                {node.title.length > 20 ? node.title.slice(0, 20) + "..." : node.title}
+                {(node.name || 'Activity').length > 20 ? (node.name || 'Activity').slice(0, 20) + "..." : (node.name || 'Activity')}
               </text>
               <text x={node.x} y={node.y + 35} textAnchor="middle" className="fill-zinc-600 text-[8px] font-mono">
-                {node.timestamp.toLocaleDateString()}
+                {new Date(node.timestamp).toLocaleDateString()}
               </text>
             </g>
           ))}

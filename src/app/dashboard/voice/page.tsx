@@ -104,7 +104,7 @@ export default function VoiceStudioPage() {
         {/* Right: Rating System */}
         <section className="space-y-6">
           <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Generation Rating</h3>
-          {contentQueue.slice(0, 1).map(item => (
+          {contentQueue.slice(0, 1).map((item: { id: string; title?: string; body?: string }) => (
             <Card key={item.id} className="bg-zinc-900/50 border-white/5">
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-2">

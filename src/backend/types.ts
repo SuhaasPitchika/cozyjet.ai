@@ -20,4 +20,4 @@ interface RequestPayload {
     timestamp: Date;
 }
 
-export { User, Agent, RequestPayload };
+export type { User, Agent, RequestPayload };

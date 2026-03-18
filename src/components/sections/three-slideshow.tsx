@@ -112,14 +112,14 @@ const ThreeSlideshowComponent = () => {
 
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     isDraggingRef.current = true;
-    const x = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    const x = 'touches' in e ? (e as unknown as TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
     lastMouseXRef.current = x;
     velocityRef.current = 0;
   };
 
   const handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (!isDraggingRef.current) return;
-    const x = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+    const x = 'touches' in e ? (e as unknown as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
     const deltaX = x - lastMouseXRef.current;
     const rotationOffset = deltaX / (window.innerWidth * 0.8);
     rotationRef.current -= rotationOffset;

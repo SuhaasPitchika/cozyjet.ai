@@ -208,7 +208,7 @@ function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
       >
         {mounted ? (
           <Canvas 
-            shadow={false} 
+            shadows={false} 
             dpr={[0.4, 0.4]} 
             gl={{ antialias: false, pixelRatio: 0.5 }}
           >

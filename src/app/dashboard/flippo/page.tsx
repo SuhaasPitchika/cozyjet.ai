@@ -44,7 +44,7 @@ export default function FlippoPage() {
         userId: user.uid,
         score: result.deepWorkScore,
         insights: result.productivityInsights,
-        timeline: result.timeline.map(event => ({
+        timeline: result.timeline.map((event: { timestamp: string; type: string; description: string }) => ({
           time: event.timestamp,
           app: event.type === 'deep_work' ? 'IDE' : 'Browser',
           action: event.description,
