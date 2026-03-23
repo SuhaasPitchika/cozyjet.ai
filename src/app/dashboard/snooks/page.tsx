@@ -2,13 +2,25 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, Sparkles, User, Bot, Edit3, Loader2 } from "lucide-react";
+import { Send, Sparkles, User, Bot, Loader2, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { snooksIntelligenceClient as snooksIntelligence } from "@/ai/client";
+import { snooksIntelligenceClient } from "@/ai/client";
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handle = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={handle} className="p-1 rounded hover:bg-white/10 transition-colors text-white/30 hover:text-white/60">
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+    </button>
+  );
+}
 
 export default function SnooksPage() {
   const { user } = useUser();
@@ -19,144 +31,165 @@ export default function SnooksPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(
-      collection(db, "users", user.uid, "snooksMessages"),
-      orderBy("createdAt", "asc")
-    );
+    return query(collection(db, "users", user.uid, "snooksMessages"), orderBy("createdAt", "asc"));
   }, [db, user]);
 
   const { data: messages, isLoading } = useCollection(messagesQuery);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || !user || isGenerating) return;
-
     const userInput = input;
     setInput("");
     setIsGenerating(true);
-
     try {
       await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-        userId: user.uid,
-        role: "user",
-        content: userInput,
-        type: "text",
-        createdAt: serverTimestamp(),
+        userId: user.uid, role: "user", content: userInput, type: "text", createdAt: serverTimestamp(),
       });
-
-      const response = await snooksIntelligence({
+      const response = await snooksIntelligenceClient({
         userPrompt: userInput,
-        userContext: JSON.stringify({
-          tone: "Authoritative but Empathic",
-          niche: "Solopreneur SaaS",
-          platform: "Multi-channel"
-        })
+        userContext: JSON.stringify({ tone: "Authoritative but Empathic", niche: "Solopreneur SaaS", platform: "Multi-channel" }),
       });
-
-      let botContent = response.responseText;
-      if (response.generatedContent) {
-        const gc = response.generatedContent;
-        if (gc.linkedinPost || gc.xTweet || gc.emailContent) {
-          botContent += `\n\n### Generated Drafts\n`;
-          if (gc.linkedinPost) botContent += `\n**LinkedIn:**\n${gc.linkedinPost}\n`;
-          if (gc.xTweet) botContent += `\n**X:**\n${gc.xTweet}\n`;
-          if (gc.emailContent) botContent += `\n**Email:**\n${gc.emailContent}\n`;
-        }
+      let botContent = response.responseText ?? "";
+      const gc = response.generatedContent;
+      if (gc?.linkedinPost || gc?.xTweet || gc?.emailContent) {
+        botContent += `\n\n---\n`;
+        if (gc.linkedinPost) botContent += `**LinkedIn:**\n${gc.linkedinPost}\n\n`;
+        if (gc.xTweet) botContent += `**X / Twitter:**\n${gc.xTweet}\n\n`;
+        if (gc.emailContent) botContent += `**Email:**\n${gc.emailContent}`;
       }
-
       await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-        userId: user.uid,
-        role: "bot",
-        content: botContent,
-        type: response.generatedContent ? "content" : "text",
-        createdAt: serverTimestamp(),
+        userId: user.uid, role: "bot", content: botContent.trim(), type: gc ? "content" : "text", createdAt: serverTimestamp(),
       });
-
-    } catch (error) {
-      console.error("Snooks Error:", error);
+    } catch (e) {
+      console.error("Snooks error:", e);
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="px-8 py-5 border-b border-gray-50 flex justify-between items-center">
+    <div className="h-full bg-[#0f0f0f] flex flex-col">
+      {/* Header */}
+      <div className="px-8 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-sm font-bold tracking-tight">Marketing Intelligence</h1>
-          <p className="text-[10px] text-gray-400 font-medium">Snooks AI Agent</p>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+            <span className="text-[11px] text-white/30 font-medium uppercase tracking-widest">Marketing Agent</span>
+          </div>
+          <h1 className="text-lg font-semibold text-white tracking-tight">Snooks</h1>
         </div>
         {isGenerating && (
           <div className="flex items-center gap-2">
-            <Loader2 size={12} className="animate-spin text-gray-300" />
-            <span className="text-[10px] text-gray-400">Processing request...</span>
+            <Loader2 size={12} className="animate-spin text-white/30" />
+            <span className="text-[11px] text-white/40">Generating strategy...</span>
           </div>
         )}
       </div>
 
-      <div 
-        ref={scrollRef}
-        className="flex-1 p-8 overflow-y-auto space-y-6 custom-scrollbar"
-      >
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+        {!isLoading && messages?.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center gap-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+              <Sparkles size={18} className="text-white/20" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/40">Start a conversation with Snooks</p>
+              <p className="text-xs text-white/20 mt-1 max-w-xs">
+                Ask for LinkedIn posts, marketing strategy, tweet threads, email campaigns, or positioning advice.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center mt-2">
+              {["Write a LinkedIn post about my new feature", "Give me a tweet thread idea", "Help me write a cold email"].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setInput(s)}
+                  className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <AnimatePresence>
           {messages?.map((msg) => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 5 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "flex gap-4 max-w-3xl",
-                msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
-              )}
+              className={cn("flex gap-3 max-w-3xl", msg.role === "user" ? "ml-auto flex-row-reverse" : "")}
             >
-              <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border",
-                msg.role === 'user' ? "bg-gray-50 border-gray-100" : "bg-black border-black"
-              )}>
-                {msg.role === 'user' ? <User size={14} /> : <Bot size={14} className="text-white" />}
+              <div
+                className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                  msg.role === "user" ? "bg-white/10" : "bg-white/5"
+                )}
+              >
+                {msg.role === "user" ? (
+                  <User size={12} className="text-white/50" />
+                ) : (
+                  <Bot size={12} className="text-white/50" />
+                )}
               </div>
-              
-              <div className={cn(
-                "p-4 rounded-xl text-xs leading-relaxed shadow-sm",
-                msg.role === 'user' 
-                  ? "bg-gray-50 text-black rounded-tr-none" 
-                  : "bg-white border border-gray-100 text-black rounded-tl-none"
-              )}>
-                <p className="whitespace-pre-wrap">{msg.content}</p>
+              <div
+                className={cn(
+                  "px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[80%] relative group",
+                  msg.role === "user"
+                    ? "bg-white text-black rounded-tr-sm"
+                    : "bg-white/5 text-white/70 rounded-tl-sm border border-white/5"
+                )}
+              >
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {msg.role === "bot" && (
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <CopyButton text={msg.content} />
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
-        {isLoading && (
-          <div className="flex justify-center p-4">
-            <Loader2 className="animate-spin text-gray-100" size={20} />
+
+        {isGenerating && (
+          <div className="flex gap-3">
+            <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+              <Bot size={12} className="text-white/50" />
+            </div>
+            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 border border-white/5">
+              <Loader2 size={12} className="animate-spin text-white/30" />
+            </div>
           </div>
         )}
       </div>
 
-      <div className="p-6 border-t border-gray-50">
-        <div className="max-w-3xl mx-auto relative">
-          <Input 
+      {/* Input */}
+      <div className="px-8 py-4 border-t border-white/5 shrink-0">
+        <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 focus-within:ring-1 focus-within:ring-white/10 transition-all">
+          <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             disabled={isGenerating}
-            placeholder="Ask Snooks to draft content or strategy..."
-            className="h-12 pl-5 pr-12 rounded-xl border-gray-100 text-xs shadow-none"
+            placeholder="Ask for strategy, content, or positioning advice..."
+            className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/20 outline-none"
           />
-          <button 
+          <button
             onClick={handleSend}
             disabled={isGenerating || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-all disabled:opacity-20"
+            className="p-2 rounded-lg bg-white text-black disabled:opacity-20 hover:bg-white/90 transition-colors shrink-0"
           >
-            <Send size={14} />
+            <Send size={13} />
           </button>
         </div>
+        <p className="text-[10px] text-white/20 mt-2 text-center">
+          Powered by OpenRouter · Snooks is your marketing intelligence agent
+        </p>
       </div>
     </div>
   );

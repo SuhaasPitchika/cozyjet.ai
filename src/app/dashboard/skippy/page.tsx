@@ -2,103 +2,116 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Bot, Power, Zap, ShieldCheck } from "lucide-react";
+import { Eye, Power, ShieldCheck, Zap, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+
+const CAPABILITY_ITEMS = [
+  { label: "IDE Activity", desc: "VSCode, Cursor, Neovim tracking" },
+  { label: "Browser Context", desc: "Tab titles, domain patterns" },
+  { label: "Commit Detection", desc: "Git hooks + push signals" },
+  { label: "PII Filtering", desc: "Zero-leak local redaction" },
+];
 
 export default function SkippyPage() {
   const { skippyActive, setSkippyActive } = useDashboardStore();
 
   return (
-    <div className="p-10 h-full flex flex-col items-center justify-center bg-[#fdfaf5]">
-      <div className="text-center space-y-12 max-w-xl">
-        
-        {/* Neumorphic Character Container */}
-        <motion.div
-          animate={{
-            y: skippyActive ? [0, -10, 0] : 0,
-            scale: skippyActive ? 1.02 : 1,
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+    <div className="h-full bg-[#0f0f0f] p-8 flex flex-col gap-8">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+            <span className="text-[11px] text-white/30 font-medium uppercase tracking-widest">Observer Agent</span>
+          </div>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Skippy</h1>
+          <p className="text-sm text-white/40 mt-1">Workspace perception & context intelligence</p>
+        </div>
+
+        <button
+          onClick={() => setSkippyActive(!skippyActive)}
           className={cn(
-            "w-64 h-64 mx-auto rounded-[3.5rem] flex items-center justify-center transition-all duration-700",
-            skippyActive 
-              ? "neumorphic-button-active border-2 border-white/50" 
-              : "neumorphic-flat border-transparent"
+            "relative flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+            skippyActive
+              ? "bg-white text-black"
+              : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
           )}
         >
-          <div className="relative">
-            <Bot 
-              size={100} 
-              className={cn(
-                "transition-all duration-700",
-                skippyActive ? "text-[#8c6b4f]" : "text-[#d9d6d1]"
-              )} 
+          <Power size={15} />
+          <span>{skippyActive ? "Active" : "Activate"}</span>
+          {skippyActive && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-1.5 h-1.5 rounded-full bg-emerald-500"
             />
-            {skippyActive && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute -top-4 -right-4 p-3 bg-amber-400 rounded-full shadow-lg border-2 border-white"
-              >
-                <Zap size={20} className="text-white fill-white" />
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f5e6d3] text-[#8c6b4f] text-[9px] font-bold uppercase tracking-[0.2em] mb-4">
-            <ShieldCheck size={12} />
-            Secure Studio Observer
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#8c6b4f]">
-            Observer <span className="text-[#6b523c]/40 font-light italic">Intelligence</span>
-          </h1>
-          <p className="text-xs text-[#8c6b4f]/60 leading-relaxed font-medium max-w-sm mx-auto">
-            Skippy activates your workspace perception. High-fidelity observation 
-            of IDE, Browser, and Comms to protect your flow state and provide 
-            contextual reasoning.
-          </p>
-        </div>
-
-        {/* 3D Neumorphic Start Button */}
-        <div className="flex justify-center pt-4">
-          <button
-            onClick={() => setSkippyActive(!skippyActive)}
-            className={cn(
-              "group relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95",
-              skippyActive 
-                ? "neumorphic-inset" 
-                : "neumorphic-flat hover:scale-105"
-            )}
-          >
-            <div className={cn(
-              "p-4 rounded-full transition-all duration-300",
-              skippyActive 
-                ? "bg-[#8c6b4f] shadow-inner" 
-                : "bg-white shadow-sm group-hover:bg-[#f5e6d3]"
-            )}>
-              <Power 
-                size={24} 
-                className={cn(
-                  "transition-colors",
-                  skippyActive ? "text-white" : "text-[#d9d6d1] group-hover:text-[#8c6b4f]"
-                )} 
-              />
-            </div>
-          </button>
-        </div>
-        
-        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#8c6b4f]/40">
-          {skippyActive ? "Status: Observing Workspace" : "Status: Dormant"}
-        </div>
+          )}
+        </button>
       </div>
 
-      <div className="mt-20 text-center max-w-md">
-        <p className="text-[9px] text-[#8c6b4f]/30 font-bold uppercase tracking-[0.2em] leading-loose">
-          Privacy-First Architecture <br/>
-          Encrypted Metadata Extraction · Non-Persistent Visual Buffering
+      <div
+        className={cn(
+          "rounded-2xl border p-6 transition-all duration-500",
+          skippyActive ? "border-white/10 bg-white/5" : "border-white/5 bg-white/[0.02]"
+        )}
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className={cn(
+              "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500",
+              skippyActive ? "bg-white text-black" : "bg-white/5 text-white/20"
+            )}
+          >
+            <Eye size={22} />
+          </div>
+          <div>
+            <div className="text-base font-medium text-white">
+              {skippyActive ? "Observation Running" : "Observer Dormant"}
+            </div>
+            <div className="text-sm text-white/40 mt-0.5">
+              {skippyActive
+                ? "Capturing workspace events in real-time"
+                : "Toggle the button above to start observation"}
+            </div>
+          </div>
+          {skippyActive && (
+            <div className="ml-auto flex items-center gap-2">
+              <Activity size={14} className="text-emerald-400" />
+              <span className="text-xs text-emerald-400 font-medium">Live</span>
+            </div>
+          )}
+        </div>
+
+        {skippyActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 grid grid-cols-2 gap-3"
+          >
+            {CAPABILITY_ITEMS.map((cap, i) => (
+              <motion.div
+                key={cap.label}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/5"
+              >
+                <Zap size={12} className="text-white/30 shrink-0" />
+                <div>
+                  <div className="text-xs font-medium text-white/70">{cap.label}</div>
+                  <div className="text-[10px] text-white/30">{cap.desc}</div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </div>
+
+      <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5">
+        <ShieldCheck size={14} className="text-white/30 mt-0.5 shrink-0" />
+        <p className="text-[11px] text-white/30 leading-relaxed">
+          Privacy-first architecture. All workspace data is processed locally with zero-persistence.
+          PII blocklist is applied before any content leaves your device.
         </p>
       </div>
     </div>

@@ -1,32 +1,33 @@
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { initializeFirebase } from '@/firebase';
+async function callAPI(endpoint: string, body: object) {
+  const res = await fetch(`/api/ai/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(err.error || `API error ${res.status}`);
+  }
+  return res.json();
+}
 
-const getFirebaseFunctions = () => {
-    const { firebaseApp } = initializeFirebase();
-    // Assuming the functions are in the default region 'us-central1'
-    return getFunctions(firebaseApp);
-};
+export const skippyChatClient = (input: {
+  userMessage: string;
+  currentView: string;
+  observationContext: string;
+}) => callAPI('skippy', input);
 
-export const skippyChatClient = async (input: any) => {
-    const fn = httpsCallable(getFirebaseFunctions(), 'skippyChatFlow');
-    const result = await fn(input);
-    return result.data as any;
-};
+export const flippoAnalyzeProductivityClient = (input: {
+  activitySummaries: { startTime: string; endTime: string; description: string }[];
+}) => callAPI('flippo', input);
 
-export const flippoAnalyzeProductivityClient = async (input: any) => {
-    const fn = httpsCallable(getFirebaseFunctions(), 'flippoAnalyzeProductivityFlow');
-    const result = await fn(input);
-    return result.data as any;
-};
+export const snooksIntelligenceClient = (input: {
+  userPrompt: string;
+  userContext: string | object;
+}) => callAPI('snooks', input);
 
-export const snooksIntelligenceClient = async (input: any) => {
-    const fn = httpsCallable(getFirebaseFunctions(), 'snooksIntelligenceFlow');
-    const result = await fn(input);
-    return result.data as any;
-};
-
-export const snooksComplianceCheckClient = async (input: any) => {
-    const fn = httpsCallable(getFirebaseFunctions(), 'snooksComplianceFlow');
-    const result = await fn(input);
-    return result.data as any;
-};
+export const skippyWorkspaceClient = (input: {
+  integration: string;
+  rawContent: string;
+  privacyBlocklist: string[];
+}) => callAPI('workspace', input);

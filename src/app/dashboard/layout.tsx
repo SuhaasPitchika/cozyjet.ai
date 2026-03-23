@@ -1,248 +1,252 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Eye, 
-  Clock, 
-  MessageSquare, 
-  Settings2,
-  ChevronLeft,
-  ChevronRight,
+import {
+  Eye,
+  BarChart2,
+  Sparkles,
+  SlidersHorizontal,
   LogOut,
   Bot,
   Send,
   X,
-  Zap
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
-import { CustomCursor } from "@/components/layout/custom-cursor";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
-import { skippyChatClient as skippyChat } from "@/ai/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { skippyChatClient } from "@/ai/client";
 
 const NAV_ITEMS = [
   { label: "Observer", href: "/dashboard/skippy", icon: Eye },
-  { label: "Timeline", href: "/dashboard/flippo", icon: Clock },
-  { label: "Marketing", href: "/dashboard/snooks", icon: MessageSquare },
-  { label: "Tuning", href: "/dashboard/tuning", icon: Settings2 },
+  { label: "Timeline", href: "/dashboard/flippo", icon: BarChart2 },
+  { label: "Marketing", href: "/dashboard/snooks", icon: Sparkles },
+  { label: "Tuning", href: "/dashboard/tuning", icon: SlidersHorizontal },
 ];
 
 interface ChatMsg {
-  role: 'user' | 'bot';
+  role: "user" | "bot";
   content: string;
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-
-  const { 
-    skippyActive, 
-    assistanceMsg, 
-    showGlobalChat, 
-    setShowGlobalChat 
-  } = useDashboardStore();
+  const { assistanceMsg, showGlobalChat, setShowGlobalChat } = useDashboardStore();
 
   const [chatInput, setChatInput] = useState("");
-  const [localMessages, setLocalMessages] = useState<ChatMsg[]>([]);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push("/auth");
-    }
+    if (!isUserLoading && !user) router.push("/auth");
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       router.push("/auth");
-    } catch (error) {
-      console.error("Sign Out Error:", error);
+    } catch (e) {
+      console.error("Sign out error:", e);
     }
   };
 
   const handleSkippyChat = async () => {
     if (!chatInput.trim() || isSending) return;
-    
     const userMsg = chatInput;
     setChatInput("");
-    setLocalMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setMessages((p) => [...p, { role: "user", content: userMsg }]);
     setIsSending(true);
-
     try {
-      const result = await skippyChat({
+      const result = await skippyChatClient({
         userMessage: userMsg,
         currentView: pathname,
-        observationContext: assistanceMsg || "Active observation in progress."
+        observationContext: assistanceMsg || "Active observation in progress.",
       });
-
-      setLocalMessages(prev => [...prev, { role: 'bot', content: result.response }]);
-    } catch (e) {
-      setLocalMessages(prev => [...prev, { role: 'bot', content: "I'm having a brief brain glitch. Try that again?" }]);
+      setMessages((p) => [...p, { role: "bot", content: result.response }]);
+    } catch {
+      setMessages((p) => [...p, { role: "bot", content: "I'm having a brief brain glitch. Try again?" }]);
     } finally {
       setIsSending(false);
     }
   };
 
-  if (isUserLoading) return null;
-  if (!user) return null;
+  if (isUserLoading || !user) return null;
+
+  const activeLabel = NAV_ITEMS.find((n) => n.href === pathname)?.label ?? "Studio";
+  const initials = (user.displayName || user.email || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#fdfaf5] selection:bg-black/5">
-      <CustomCursor name={user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "User"} />
-      
-      {/* Sidebar with "Skinish" color theme */}
-      <motion.aside 
-        initial={false}
-        animate={{ width: isCollapsed ? 70 : 240 }}
-        className="relative h-full bg-[#f5e6d3] border-r border-black/5 flex flex-col shrink-0 z-50 m-2 rounded-3xl shadow-sm"
-      >
-        <div className="p-6 flex items-center justify-between">
-          {!isCollapsed && (
-            <span className="font-headline text-lg font-bold tracking-tight text-[#8c6b4f]">Studio</span>
-          )}
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 hover:bg-black/5 rounded-lg transition-colors mx-auto text-[#8c6b4f]"
-          >
-            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </button>
+    <div className="flex h-screen w-full overflow-hidden bg-[#0f0f0f] text-white">
+      {/* Sidebar */}
+      <aside className="w-[220px] shrink-0 flex flex-col border-r border-white/5 bg-[#141414] z-40">
+        <div className="px-5 py-5 border-b border-white/5">
+          <span className="text-sm font-bold tracking-tight text-white">CozyJet</span>
+          <span className="text-sm font-bold tracking-tight text-white/30">.ai</span>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1.5 mt-2">
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-2xl text-sm transition-all group",
-                  isActive 
-                    ? "bg-[#8c6b4f] text-white shadow-md" 
-                    : "text-[#8c6b4f]/60 hover:bg-black/5 hover:text-[#8c6b4f]"
-                )}
-              >
-                <item.icon size={18} className="shrink-0" />
-                {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>}
+              <Link key={item.href} href={item.href}>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 cursor-pointer",
+                    isActive
+                      ? "bg-white text-black font-medium"
+                      : "text-white/40 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <item.icon size={15} />
+                  <span>{item.label}</span>
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-black/5">
-          <button 
-            onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-3 py-3 text-red-400 hover:bg-red-50 rounded-2xl transition-colors"
+        <div className="px-3 py-4 border-t border-white/5 space-y-0.5">
+          <button
+            onClick={() => setShowGlobalChat(!showGlobalChat)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all"
           >
-            <LogOut size={18} className="shrink-0" />
-            {!isCollapsed && <span className="text-[10px] font-bold uppercase tracking-wider">Exit</span>}
+            <Bot size={15} />
+            <span>Skippy Chat</span>
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+          >
+            <LogOut size={15} />
+            <span>Sign out</span>
           </button>
         </div>
-      </motion.aside>
 
-      <main className="flex-1 overflow-y-auto relative p-2 pl-0">
-        <div className="bg-white/80 h-full rounded-3xl overflow-y-auto border border-black/5 shadow-inner">
-          {children}
+        <div className="px-4 py-4 border-t border-white/5 flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/60">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-white/70 truncate">
+              {user.displayName || user.email?.split("@")[0]}
+            </div>
+            <div className="text-[10px] text-white/30 truncate">{user.email}</div>
+          </div>
         </div>
-      </main>
+      </aside>
 
-      {/* Persistent Skippy Symbol (Visible on every screen) */}
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-12 shrink-0 flex items-center justify-between px-6 border-b border-white/5 bg-[#141414]">
+          <div className="flex items-center gap-2 text-sm text-white/40">
+            <span>Studio</span>
+            <ChevronRight size={12} />
+            <span className="text-white/80">{activeLabel}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-[11px] text-white/30">Live</span>
+          </div>
+        </header>
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
+
+      {/* Skippy Chat Panel */}
       <AnimatePresence>
-        {skippyActive && (
-          <>
-            <motion.div
-              initial={{ y: -100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -100, opacity: 0 }}
-              onClick={() => setShowGlobalChat(true)}
-              className="fixed top-6 right-8 z-[100] flex items-center gap-4 bg-white/90 backdrop-blur-xl border border-black/5 pl-4 pr-5 py-2.5 rounded-full shadow-2xl cursor-pointer group hover:scale-105 transition-all"
-            >
-              <div className="relative">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-red-500 blur-sm animate-ping" />
+        {showGlobalChat && (
+          <motion.div
+            initial={{ x: 400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 400, opacity: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            className="fixed right-0 top-0 bottom-0 w-[360px] bg-[#141414] border-l border-white/5 flex flex-col z-50 shadow-2xl"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <Bot size={14} className="text-white/60" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-white">Skippy</div>
+                  <div className="text-[10px] text-white/30">Workspace Intelligence</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Bot size={16} className="text-[#8c6b4f]" />
-                <span className="text-[9px] font-bold uppercase tracking-widest text-[#8c6b4f]">Skippy Intel active</span>
-              </div>
-              <Zap size={12} className="text-amber-400 fill-amber-400" />
-            </motion.div>
-
-            {showGlobalChat && (
-              <motion.div
-                initial={{ x: 400 }}
-                animate={{ x: 0 }}
-                exit={{ x: 400 }}
-                className="fixed inset-y-4 right-4 w-[380px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-[120] flex flex-col overflow-hidden border border-black/5"
+              <button
+                onClick={() => setShowGlobalChat(false)}
+                className="p-1.5 rounded-lg hover:bg-white/5 text-white/30 hover:text-white transition-colors"
               >
-                <div className="p-6 border-b border-black/5 flex items-center justify-between bg-[#fdfaf5]">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#8c6b4f] rounded-xl">
-                      <Bot size={18} className="text-white" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-[#8c6b4f] block">Skippy Guide</span>
-                      <span className="text-[8px] uppercase tracking-widest text-[#8c6b4f]/40">Active Observation</span>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowGlobalChat(false)} className="text-[#8c6b4f]/40 hover:text-[#8c6b4f] transition-colors p-2 hover:bg-black/5 rounded-full">
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-[#fdfaf5]/30">
-                  <div className="bg-[#8c6b4f] text-white p-5 rounded-[1.5rem] rounded-tl-none text-[11px] leading-relaxed shadow-lg">
-                    {assistanceMsg || "I'm monitoring your flow state. If you need a pivot or strategic insight, just ask."}
-                  </div>
+                <X size={14} />
+              </button>
+            </div>
 
-                  {localMessages.map((msg, i) => (
-                    <div key={i} className={cn(
-                      "flex gap-3",
-                      msg.role === 'user' ? "flex-row-reverse" : ""
-                    )}>
-                      <div className={cn(
-                        "p-4 rounded-[1.2rem] text-[11px] leading-relaxed shadow-sm max-w-[85%]",
-                        msg.role === 'user' ? "bg-white text-black border border-black/5" : "bg-[#f5e6d3] text-[#8c6b4f]"
-                      )}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  ))}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {messages.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                    <Bot size={18} className="text-white/20" />
+                  </div>
+                  <p className="text-xs text-white/20 max-w-[200px] leading-relaxed">
+                    Ask Skippy anything about your workflow or the studio.
+                  </p>
                 </div>
-
-                <div className="p-6 bg-white border-t border-black/5">
-                  <div className="relative">
-                    <Input 
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSkippyChat()}
-                      disabled={isSending}
-                      className="pr-12 h-14 rounded-2xl text-xs bg-[#fdfaf5] border-transparent focus:ring-[#8c6b4f]/20 shadow-inner" 
-                      placeholder="Ask for strategic guidance..." 
-                    />
-                    <button 
-                      onClick={handleSkippyChat}
-                      disabled={isSending || !chatInput.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-[#8c6b4f] text-white rounded-xl hover:bg-[#6b523c] disabled:opacity-50 transition-all shadow-md active:scale-95"
-                    >
-                      <Send size={16} />
-                    </button>
+              )}
+              {messages.map((msg, i) => (
+                <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
+                  <div
+                    className={cn(
+                      "max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed",
+                      msg.role === "user"
+                        ? "bg-white text-black rounded-br-sm"
+                        : "bg-white/5 text-white/70 rounded-bl-sm"
+                    )}
+                  >
+                    {msg.content}
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </>
+              ))}
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-white/5">
+                    <Loader2 size={12} className="animate-spin text-white/30" />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-4 border-t border-white/5">
+              <div className="flex items-center gap-2 bg-white/5 rounded-xl px-4 py-2.5 focus-within:ring-1 focus-within:ring-white/10 transition-all">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSkippyChat()}
+                  disabled={isSending}
+                  className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/20 outline-none"
+                  placeholder="Ask for guidance..."
+                />
+                <button
+                  onClick={handleSkippyChat}
+                  disabled={isSending || !chatInput.trim()}
+                  className="p-1.5 rounded-lg bg-white text-black disabled:opacity-20 hover:bg-white/90 transition-colors"
+                >
+                  <Send size={12} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

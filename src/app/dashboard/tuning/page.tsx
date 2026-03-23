@@ -2,114 +2,163 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Upload, Settings, Sliders, Database, Save, Sparkles } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { SlidersHorizontal, Sparkles, Loader2, RotateCcw } from "lucide-react";
+
+const PARAMS = [
+  { key: "creativity", label: "Creativity", sublabel: "Temperature", min: 0, max: 1, step: 0.05, default: 0.7 },
+  { key: "focus", label: "Focus", sublabel: "Top-P Nucleus", min: 0, max: 1, step: 0.05, default: 0.9 },
+  { key: "identity", label: "Identity Weight", sublabel: "Brand Consistency", min: 0, max: 1, step: 0.05, default: 0.85 },
+];
 
 export default function TuningPage() {
-  const [trainingProgress, setTrainingProgress] = useState(0);
+  const [values, setValues] = useState<Record<string, number>>(
+    Object.fromEntries(PARAMS.map((p) => [p.key, p.default]))
+  );
   const [isTraining, setIsTraining] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [saved, setSaved] = useState(false);
 
-  const startTraining = () => {
+  const handleTrain = () => {
     setIsTraining(true);
-    let p = 0;
+    setProgress(0);
     const interval = setInterval(() => {
-      p += 5;
-      setTrainingProgress(p);
-      if (p >= 100) {
-        clearInterval(interval);
-        setIsTraining(false);
-      }
-    }, 200);
+      setProgress((p) => {
+        if (p >= 100) { clearInterval(interval); setIsTraining(false); return 100; }
+        return p + 4;
+      });
+    }, 120);
+  };
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = () => {
+    setValues(Object.fromEntries(PARAMS.map((p) => [p.key, p.default])));
   };
 
   return (
-    <div className="p-12 space-y-16 font-pixel">
-      <div className="flex justify-between items-end">
-        <div className="space-y-4">
-          <h1 className="text-2xl font-bold uppercase tracking-tighter">AI <span className="text-black/40">Tuning</span></h1>
-          <p className="text-black/40 text-[8px] font-bold uppercase tracking-[0.3em]">Personalized LLM Calibration Interface</p>
+    <div className="h-full bg-[#0f0f0f] p-8 flex flex-col gap-8 overflow-y-auto">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <span className="text-[11px] text-white/30 font-medium uppercase tracking-widest">Model Configuration</span>
         </div>
-        <Button className="h-16 px-12 rounded-full bg-black text-white hover:bg-black/90 font-bold text-[8px] uppercase tracking-widest shadow-2xl hover:scale-105 transition-all">
-          <Save size={18} className="mr-3" /> Save Weights
-        </Button>
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Tuning</h1>
+        <p className="text-sm text-white/40 mt-1">Customize agent personality and response style</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Upload & Training */}
-        <section className="space-y-10">
-          <Card className="rounded-[3rem] border-4 border-black bg-white/60 backdrop-blur-sm overflow-hidden shadow-2xl">
-            <CardContent className="p-12 space-y-10">
-              <div className="flex items-center gap-4 mb-4">
-                <Database size={24} className="text-black/40" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">Source Material</h3>
-              </div>
-              <div className="p-16 border-4 border-dashed border-black/10 rounded-[3rem] flex flex-col items-center justify-center text-center group hover:bg-black hover:text-white hover:border-white transition-all cursor-pointer shadow-xl">
-                <Upload size={48} className="mb-6 group-hover:scale-110 transition-transform" />
-                <p className="text-[8px] font-bold uppercase tracking-[0.2em]">Drop writing samples or voice clips</p>
-                <p className="text-[6px] text-black/20 group-hover:text-white/40 mt-4 uppercase">Max size: 50MB</p>
-              </div>
-              
-              {isTraining ? (
-                <div className="space-y-6">
-                  <div className="flex justify-between text-[6px] font-bold uppercase tracking-[0.4em]">
-                    <span>Optimizing Weights...</span>
-                    <span>{trainingProgress}%</span>
+      <div className="grid grid-cols-2 gap-6">
+        {/* Hyperparameters */}
+        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 space-y-6">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={14} className="text-white/30" />
+            <span className="text-xs text-white/30 font-medium uppercase tracking-wider">Hyperparameters</span>
+          </div>
+
+          <div className="space-y-8">
+            {PARAMS.map((param) => (
+              <div key={param.key} className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-sm font-medium text-white/70">{param.label}</div>
+                    <div className="text-[10px] text-white/30">{param.sublabel}</div>
                   </div>
-                  <div className="h-4 bg-gray-100 rounded-full border-2 border-black p-1 overflow-hidden">
-                    <motion.div 
-                      className="h-full bg-black rounded-full" 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${trainingProgress}%` }}
-                    />
+                  <div className="text-sm font-mono text-white bg-white/10 px-3 py-1 rounded-lg">
+                    {values[param.key].toFixed(2)}
                   </div>
                 </div>
-              ) : (
-                <Button onClick={startTraining} className="w-full h-16 rounded-[2rem] bg-black text-white font-bold uppercase text-[8px] tracking-widest border-2 border-transparent hover:bg-white hover:text-black hover:border-black transition-all">
-                  <Sparkles size={18} className="mr-3" /> Start Retraining
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* API & Weights */}
-        <section className="space-y-10">
-          <Card className="rounded-[3rem] border-4 border-black bg-white/60 backdrop-blur-sm shadow-2xl">
-            <CardContent className="p-12 space-y-12">
-              <div className="flex items-center gap-4 mb-4">
-                <Settings size={24} className="text-black/40" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">Hyperparameters</h3>
+                <input
+                  type="range"
+                  min={param.min}
+                  max={param.max}
+                  step={param.step}
+                  value={values[param.key]}
+                  onChange={(e) => setValues((v) => ({ ...v, [param.key]: parseFloat(e.target.value) }))}
+                  className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-white"
+                />
               </div>
+            ))}
+          </div>
 
-              {[
-                { label: "Creativity (Temp)", val: 0.7 },
-                { label: "Focus (Top-P)", val: 0.9 },
-                { label: "Identity Weight", val: 0.85 },
-              ].map((param, i) => (
-                <div key={i} className="space-y-6">
-                  <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest">
-                    <span>{param.label}</span>
-                    <span className="px-4 py-2 bg-black text-white rounded-xl shadow-lg">{param.val}</span>
-                  </div>
-                  <div className="h-2 w-full bg-black/10 rounded-full border-2 border-black/5 p-0.5">
-                    <div className="h-full bg-black rounded-full" style={{ width: `${param.val * 100}%` }} />
-                  </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all"
+            >
+              <RotateCcw size={13} />
+              <span>Reset</span>
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-black text-sm font-medium hover:bg-white/90 transition-all"
+            >
+              {saved ? "Saved!" : "Save Configuration"}
+            </button>
+          </div>
+        </div>
+
+        {/* Training + System context */}
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 space-y-5">
+            <div className="flex items-center gap-2">
+              <Sparkles size={14} className="text-white/30" />
+              <span className="text-xs text-white/30 font-medium uppercase tracking-wider">Model Retraining</span>
+            </div>
+
+            {isTraining ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/50">Training in progress...</span>
+                  <span className="font-mono text-white/40">{progress}%</span>
                 </div>
-              ))}
-
-              <div className="pt-8 space-y-6">
-                <div className="p-8 bg-gray-50 border-2 border-black rounded-[2.5rem] shadow-xl">
-                  <h4 className="text-[8px] font-bold uppercase mb-6 text-black/40">Current System Context</h4>
-                  <p className="text-[7px] font-mono leading-loose text-black/60 italic uppercase tracking-tighter">
-                    "Act as a professional marketing lead with high-fidelity knowledge of the user's past 15 projects. Prioritize authoritative tone and zero-trust security..."
-                  </p>
+                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-white rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ ease: "linear" }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-white/30">
+                  <Loader2 size={11} className="animate-spin" />
+                  Fine-tuning identity vectors...
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </section>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Retrain agents on your recent work patterns and communication style to improve personalization.
+                </p>
+                <button
+                  onClick={handleTrain}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-sm transition-all border border-white/5"
+                >
+                  <Sparkles size={13} />
+                  Start Retraining
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+              <span className="text-xs text-white/30 font-medium uppercase tracking-wider">System Context</span>
+            </div>
+            <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+              <p className="text-[11px] font-mono text-white/40 leading-loose italic">
+                "Act as a professional marketing lead with high-fidelity knowledge of the user's recent projects.
+                Prioritize authoritative tone, zero-trust security, and empathetic communication style."
+              </p>
+            </div>
+            <button className="w-full px-4 py-2.5 rounded-xl border border-white/5 text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all">
+              Edit System Prompt
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
