@@ -1,8 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  /* config options here */
+  /* Removed 'output: export' — static export is incompatible with Next.js server features (API routes, server components, etc.) */
   typescript: {
     ignoreBuildErrors: true,
   },
