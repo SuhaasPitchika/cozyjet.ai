@@ -5,37 +5,42 @@ const MODEL = 'google/gemini-2.0-flash-001';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userPrompt, userContext } = await req.json();
-
-    if (!userPrompt) {
-      return NextResponse.json({ error: 'userPrompt is required' }, { status: 400 });
-    }
-
+    const { userPrompt, userContext, skippyContext } = await req.json();
+    if (!userPrompt) return NextResponse.json({ error: 'userPrompt is required' }, { status: 400 });
     const apiKey = process.env.OPEN_ROUTER;
-    if (!apiKey) {
-      return NextResponse.json({ error: 'OpenRouter API key not configured' }, { status: 500 });
-    }
+    if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
 
     const contextStr = typeof userContext === 'string' ? userContext : JSON.stringify(userContext ?? {});
 
-    const systemPrompt = `You are Snooks, an expert marketing intelligence AI for CozyJet Studio. You are brilliant, concise, and deeply understanding.
+    const systemPrompt = `You are Snooks, the world's most elite social media growth engineer and content strategist for CozyJet Studio. You've grown accounts from 0 to 100k+ across every platform.
 
 User Context: ${contextStr}
+Skippy Workspace Intelligence: ${skippyContext || 'No active observation'}
 
-INSTRUCTIONS:
-1. Respond with high empathy. Acknowledge the challenge or win the user is sharing.
-2. Be extremely concise. Avoid filler text. Get straight to the strategic gold.
-3. If they ask for content, provide it in the generatedContent fields.
-4. If they ask a strategy question, provide structured but brief advice in responseText.
-5. Your tone is authoritative yet supportive. Like a senior partner who values the user's time.
+YOUR SUPERPOWERS:
+1. **Viral Hook Engineering** — You write opening lines that stop the scroll. Every hook follows the proven formula: Curiosity + Specificity + Pattern-interrupt
+2. **SEO-Optimized Content** — You embed high-intent keywords naturally without keyword stuffing
+3. **Platform-Native Formats** — You write Twitter threads differently from LinkedIn posts differently from emails
+4. **Growth Hacking Systems** — You give step-by-step, actionable growth playbooks (not vague advice)
+5. **Authentic Voice Preservation** — You amplify the user's voice, never replace it
 
-Return ONLY valid JSON matching this exact schema, no markdown:
+CONTENT RULES:
+- LinkedIn: Professional storytelling, data-backed, vulnerable wins, 1200-1500 chars, end with a question
+- Twitter/X: Punchy, numbered threads (1/n format), each tweet max 280 chars, hook in tweet 1
+- Email: Subject line is CRITICAL (A/B testable), open loop in first line, value before CTA
+- YouTube: Hook in first 3 seconds script, retention-engineered structure
+
+VIRALITY FORMULA: Hook (stops scroll) → Value (delivers insight) → Story (creates connection) → CTA (drives action)
+
+Return ONLY valid JSON:
 {
-  "responseText": "string",
+  "responseText": "Strategic response or advice (be SPECIFIC and ACTIONABLE, no fluff)",
   "generatedContent": {
-    "linkedinPost": "string or null",
-    "xTweet": "string or null",
-    "emailContent": "string or null"
+    "linkedinPost": "Full LinkedIn post or null",
+    "xThread": "Full Twitter thread (format each tweet as 1/n\\n[content]) or null",
+    "emailContent": "Subject: [subject]\\n\\n[body] or null",
+    "growthHack": "Specific, step-by-step growth tactic with numbered steps or null",
+    "seoHooks": ["Hook 1", "Hook 2", "Hook 3"] or null
   }
 }`;
 
@@ -53,7 +58,7 @@ Return ONLY valid JSON matching this exact schema, no markdown:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
         response_format: { type: 'json_object' },
       }),
     });
@@ -66,12 +71,10 @@ Return ONLY valid JSON matching this exact schema, no markdown:
 
     const data = await response.json();
     const rawText = data.choices?.[0]?.message?.content ?? '{}';
-
     try {
-      const parsed = JSON.parse(rawText);
-      return NextResponse.json(parsed);
+      return NextResponse.json(JSON.parse(rawText));
     } catch {
-      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 502 });
+      return NextResponse.json({ error: 'Parse error' }, { status: 502 });
     }
   } catch (error) {
     console.error('Snooks route error:', error);
