@@ -20,6 +20,10 @@ interface DashboardState {
   setFlippoGenerated: (generated: boolean) => void;
   trainingProgress: number;
   setTrainingProgress: (progress: number) => void;
+
+  // Dashboard data from backend (timeline of integration activities)
+  integrationActivities: any[];
+  setIntegrationActivities: (acts: any[]) => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -36,4 +40,8 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   setFlippoGenerated: (generated) => set({ flippoGenerated: generated }),
   trainingProgress: 0,
   setTrainingProgress: (progress) => set({ trainingProgress: progress }),
+
+  // Initialize with empty; will be populated from backend API
+  integrationActivities: [],
+  setIntegrationActivities: (acts) => set({ integrationActivities: acts }),
 }));

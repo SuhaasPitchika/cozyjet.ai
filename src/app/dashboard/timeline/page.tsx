@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,14 +9,39 @@ import { Clock, Trophy, Target, TrendingUp } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 export default function TimelinePage() {
-  const { integrationActivities } = useDashboardStore();
+  const { integrationActivities, setIntegrationActivities } = useDashboardStore();
   const score = 84;
 
+  useEffect(() => {
+    // Try to fetch backend-provided activities if available
+    if (!integrationActivities || integrationActivities.length === 0) {
+      fetch('/api/dashboard/activities')
+        .then(res => res.json())
+        .then(data => {
+          const acts = (data?.activities || []).map((a: any) => ({
+            id: a.id ?? Math.random().toString(36).slice(2),
+            title: a.title ?? 'Untitled',
+            timestamp: a.timestamp ? new Date(a.timestamp) : new Date(),
+            type: a.type ?? 'unknown'
+          }));
+          setIntegrationActivities(acts);
+        })
+        .catch(() => {
+          const fallback = [
+            { id: 'evt-1', title: 'JWT Auth Implemented', timestamp: new Date(), type: 'coding' },
+            { id: 'evt-2', title: 'Frontend Dashboard', timestamp: new Date(Date.now()-86400000), type: 'design' }
+          ];
+          setIntegrationActivities(fallback);
+        });
+    }
+  }, []);
+
   const timelineData = useMemo(() => {
-    return integrationActivities.map((a, i) => ({
+    return integrationActivities.map((a: any, i: number) => ({
       ...a,
       x: 100 + i * 250,
-      y: 200 + Math.sin(i) * 40
+      y: 200 + Math.sin(i) * 40,
+      timestamp: a.timestamp ? new Date(a.timestamp) : new Date()
     }));
   }, [integrationActivities]);
 
