@@ -6,7 +6,5 @@ if [ -z "$GH_PAT" ]; then
   exit 1
 fi
 
-export GIT_TERMINAL_PROMPT=0
-
-git push "https://x-access-token:${GH_PAT}@github.com/SuhaasPitchika/cozyjet.ai.git" HEAD:main
+GIT_TERMINAL_PROMPT=0 git push "https://x-access-token:${GH_PAT}@github.com/SuhaasPitchika/cozyjet.ai.git" HEAD:main
 echo "Pushed to GitHub successfully"
