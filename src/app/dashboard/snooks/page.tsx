@@ -2,11 +2,25 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, User, Bot, Loader2, Copy, Check, Linkedin, Twitter, Mail, TrendingUp, Lightbulb } from "lucide-react";
+import {
+  Send, Sparkles, User, Bot, Loader2, Copy, Check,
+  Linkedin, Twitter, Mail, TrendingUp, Lightbulb, RotateCcw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
+
+interface ChatMsg {
+  id: string;
+  role: "user" | "bot";
+  content: string;
+  generatedContent?: {
+    linkedin?: string;
+    twitter?: string;
+    email?: string;
+    growth?: string;
+    hooks?: string[];
+  };
+}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -18,6 +32,7 @@ function CopyButton({ text }: { text: string }) {
         setTimeout(() => setCopied(false), 1500);
       }}
       className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-white/30 hover:text-white/70"
+      title="Copy"
     >
       {copied ? <Check size={11} /> : <Copy size={11} />}
     </button>
@@ -39,18 +54,28 @@ function ContentBlock({ type, content }: { type: string; content: string | strin
     growth: "Growth Hack",
     hooks: "SEO Hooks",
   };
+  const colors: Record<string, string> = {
+    linkedin: "rgba(10,102,194,0.15)",
+    twitter: "rgba(29,161,242,0.1)",
+    email: "rgba(255,255,255,0.04)",
+    growth: "rgba(52,211,153,0.08)",
+    hooks: "rgba(250,204,21,0.08)",
+  };
   const text = Array.isArray(content) ? content.join("\n") : content;
   if (!text) return null;
   return (
-    <div className="mt-3 rounded-xl overflow-hidden border border-white/8">
-      <div className="flex items-center justify-between px-3 py-2 bg-white/5">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/40 font-medium">
+    <div
+      className="mt-3 rounded-2xl overflow-hidden"
+      style={{ background: colors[type] || "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+    >
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/40 font-semibold uppercase tracking-widest">
           {icons[type]}
-          <span className="uppercase tracking-wider">{labels[type]}</span>
+          <span>{labels[type]}</span>
         </div>
         <CopyButton text={text} />
       </div>
-      <div className="px-3 py-2.5 text-xs text-white/55 leading-relaxed whitespace-pre-wrap bg-white/[0.02]">
+      <div className="px-4 py-3 text-xs text-white/60 leading-relaxed whitespace-pre-wrap">
         {text}
       </div>
     </div>
@@ -58,52 +83,35 @@ function ContentBlock({ type, content }: { type: string; content: string | strin
 }
 
 const STARTER_PROMPTS = [
-  "Write a viral LinkedIn post about shipping a new feature",
-  "Give me a Twitter thread on how I built my AI startup",
-  "What's the fastest way to grow from 0 to 1k Twitter followers?",
-  "Write a cold email to get my first 10 SaaS customers",
-  "Give me 5 SEO hooks for a productivity app",
+  { icon: "✍️", text: "Write a viral LinkedIn post about shipping my first SaaS feature" },
+  { icon: "🧵", text: "Twitter thread: how I built an AI agent studio solo in 2 weeks" },
+  { icon: "📈", text: "Fastest path from 0 to 1k followers for a solo developer" },
+  { icon: "📧", text: "Cold email sequence to land my first 10 SaaS customers" },
+  { icon: "🔍", text: "Give me 5 SEO hooks for a productivity AI app" },
 ];
 
 export default function SnooksPage() {
-  const { user } = useUser();
-  const db = useFirestore();
   const { assistanceMsg } = useDashboardStore();
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [localMessages, setLocalMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const messagesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(db, "users", user.uid, "snooksMessages"), orderBy("createdAt", "asc"));
-  }, [db, user]);
-
-  const { data: savedMessages, isLoading } = useCollection(messagesQuery);
-
-  const allMessages = savedMessages?.length ? savedMessages : localMessages;
-
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [allMessages, isGenerating]);
+  }, [messages, isGenerating]);
 
   const handleSend = async (promptOverride?: string) => {
     const userInput = promptOverride || input;
     if (!userInput.trim() || isGenerating) return;
     setInput("");
 
-    const userMsg = { id: Date.now().toString(), role: "user", content: userInput, createdAt: new Date() };
-    setLocalMessages((p) => [...p, userMsg]);
+    const userMsg: ChatMsg = { id: Date.now().toString(), role: "user", content: userInput };
+    setMessages((p) => [...p, userMsg]);
     setIsGenerating(true);
 
     try {
-      if (user) {
-        await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-          userId: user.uid, role: "user", content: userInput, createdAt: serverTimestamp(),
-        });
-      }
-
       const response = await fetch("/api/ai/snooks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,12 +124,12 @@ export default function SnooksPage() {
 
       if (!response.ok) throw new Error("API error");
       const data = await response.json();
-
       const gc = data.generatedContent || {};
-      const botMsg = {
+
+      const botMsg: ChatMsg = {
         id: (Date.now() + 1).toString(),
         role: "bot",
-        content: data.responseText || "",
+        content: data.responseText || "Here's what I generated for you:",
         generatedContent: {
           linkedin: gc.linkedinPost,
           twitter: gc.xThread,
@@ -129,34 +137,25 @@ export default function SnooksPage() {
           growth: gc.growthHack,
           hooks: gc.seoHooks,
         },
-        createdAt: new Date(),
       };
-      setLocalMessages((p) => [...p, botMsg]);
-
-      if (user) {
-        await addDoc(collection(db, "users", user.uid, "snooksMessages"), {
-          userId: user.uid,
-          role: "bot",
-          content: data.responseText || "",
-          createdAt: serverTimestamp(),
-        });
-      }
+      setMessages((p) => [...p, botMsg]);
     } catch (e) {
       console.error("Snooks error:", e);
-      setLocalMessages((p) => [...p, { id: "err", role: "bot", content: "Failed to generate. Try again.", createdAt: new Date() }]);
+      setMessages((p) => [...p, {
+        id: "err",
+        role: "bot",
+        content: "Failed to generate content. Check your API connection and try again.",
+      }]);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const isEmpty = !isLoading && allMessages.length === 0;
+  const hasMessages = messages.length > 0;
 
   return (
     <div className="h-full bg-[#0f0f0f] flex flex-col">
@@ -169,70 +168,89 @@ export default function SnooksPage() {
           </div>
           <h1 className="text-lg font-semibold text-white tracking-tight">Marketing Intelligence</h1>
         </div>
-        {isGenerating && (
-          <div className="flex items-center gap-2">
-            <Loader2 size={12} className="animate-spin text-white/30" />
-            <span className="text-[11px] text-white/40">Generating strategy...</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {isGenerating && (
+            <div className="flex items-center gap-2">
+              <Loader2 size={12} className="animate-spin text-white/30" />
+              <span className="text-[11px] text-white/40">Generating...</span>
+            </div>
+          )}
+          {hasMessages && (
+            <button
+              onClick={() => setMessages([])}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+            >
+              <RotateCcw size={11} />
+              <span>Clear</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-6">
-        {isEmpty ? (
-          <div className="h-full flex flex-col items-center justify-center gap-6 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center">
-              <Sparkles size={22} className="text-white/20" />
-            </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {!hasMessages ? (
+          <div className="h-full flex flex-col items-center justify-center gap-8 p-8 text-center">
             <div>
-              <h2 className="text-base font-semibold text-white/60">Snooks is ready</h2>
-              <p className="text-xs text-white/25 mt-1.5 max-w-xs leading-relaxed">
-                Ask for viral content, SEO hooks, growth playbooks, email campaigns, or social media strategy.
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-5">
+                <Sparkles size={24} className="text-white/20" />
+              </div>
+              <h2 className="text-xl font-semibold text-white/70">Snooks is ready</h2>
+              <p className="text-xs text-white/30 mt-2 max-w-sm leading-relaxed">
+                Elite social media growth engineer. Expert in viral content, SEO hooks, growth playbooks, and personal branding.
               </p>
             </div>
-            <div className="flex flex-col gap-2 w-full max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
               {STARTER_PROMPTS.map((p) => (
                 <button
-                  key={p}
-                  onClick={() => handleSend(p)}
-                  className="text-left text-xs px-4 py-3 rounded-xl bg-white/[0.03] border border-white/5 text-white/40 hover:bg-white/[0.06] hover:text-white/60 hover:border-white/10 transition-all"
+                  key={p.text}
+                  onClick={() => handleSend(p.text)}
+                  className="flex items-start gap-3 text-left px-4 py-3.5 rounded-2xl bg-white/[0.03] border border-white/5 text-white/40 hover:bg-white/[0.06] hover:text-white/60 hover:border-white/10 transition-all"
                 >
-                  {p}
+                  <span className="text-base shrink-0">{p.icon}</span>
+                  <span className="text-xs leading-relaxed">{p.text}</span>
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          <div className="space-y-6 max-w-3xl mx-auto">
+          <div className="px-6 py-6 space-y-8 max-w-3xl mx-auto">
             <AnimatePresence initial={false}>
-              {allMessages.map((msg: any, i: number) => (
+              {messages.map((msg) => (
                 <motion.div
-                  key={msg.id || i}
-                  initial={{ opacity: 0, y: 8 }}
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={cn("flex gap-3", msg.role === "user" ? "flex-row-reverse" : "")}
                 >
-                  <div className={cn("w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-                    msg.role === "user" ? "bg-white/10" : "bg-white/5")}>
-                    {msg.role === "user" ? <User size={12} className="text-white/50" /> : <Bot size={12} className="text-white/50" />}
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                    msg.role === "user" ? "bg-white" : "bg-white/8 border border-white/10"
+                  )}>
+                    {msg.role === "user"
+                      ? <User size={13} className="text-black" />
+                      : <Bot size={13} className="text-white/50" />
+                    }
                   </div>
-                  <div className={cn("max-w-[80%] relative group", msg.role === "user" ? "items-end" : "")}>
-                    <div className={cn("px-4 py-3 rounded-2xl text-sm leading-relaxed",
+                  <div className={cn("flex-1 max-w-[85%] relative group", msg.role === "user" ? "flex flex-col items-end" : "")}>
+                    <div className={cn(
+                      "px-5 py-4 rounded-2xl text-sm leading-relaxed",
                       msg.role === "user"
-                        ? "bg-white text-black rounded-tr-sm"
-                        : "bg-white/[0.04] text-white/70 rounded-tl-sm border border-white/5"
+                        ? "bg-white text-black rounded-tr-sm max-w-full"
+                        : "bg-white/[0.04] text-white/75 rounded-tl-sm border border-white/6"
                     )}>
                       {msg.content}
                     </div>
 
-                    {/* Generated content blocks */}
                     {msg.generatedContent && (
-                      <div className="mt-2 space-y-2">
+                      <div className="w-full mt-1 space-y-2">
                         {msg.generatedContent.linkedin && <ContentBlock type="linkedin" content={msg.generatedContent.linkedin} />}
                         {msg.generatedContent.twitter && <ContentBlock type="twitter" content={msg.generatedContent.twitter} />}
                         {msg.generatedContent.email && <ContentBlock type="email" content={msg.generatedContent.email} />}
                         {msg.generatedContent.growth && <ContentBlock type="growth" content={msg.generatedContent.growth} />}
-                        {msg.generatedContent.hooks && <ContentBlock type="hooks" content={msg.generatedContent.hooks} />}
+                        {msg.generatedContent.hooks && msg.generatedContent.hooks.length > 0 && (
+                          <ContentBlock type="hooks" content={msg.generatedContent.hooks} />
+                        )}
                       </div>
                     )}
 
@@ -248,14 +266,15 @@ export default function SnooksPage() {
 
             {isGenerating && (
               <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                  <Bot size={12} className="text-white/50" />
+                <div className="w-8 h-8 rounded-full bg-white/8 border border-white/10 flex items-center justify-center shrink-0">
+                  <Bot size={13} className="text-white/50" />
                 </div>
-                <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/[0.04] border border-white/5">
-                  <div className="flex gap-1">
-                    {[0,1,2].map(i => (
-                      <motion.div key={i} animate={{ opacity: [0.3,1,0.3], y: [0,-3,0] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay: i*0.15 }}
+                <div className="px-5 py-4 rounded-2xl rounded-tl-sm bg-white/[0.04] border border-white/6">
+                  <div className="flex gap-1.5">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div key={i}
+                        animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
+                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
                         className="w-1.5 h-1.5 rounded-full bg-white/30"
                       />
                     ))}
@@ -268,18 +287,18 @@ export default function SnooksPage() {
       </div>
 
       {/* Input */}
-      <div className="px-8 py-4 border-t border-white/5 shrink-0">
+      <div className="px-6 py-4 border-t border-white/5 shrink-0">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-3 bg-white/[0.04] rounded-2xl px-4 py-3 border border-white/5 focus-within:border-white/10 transition-all">
+          <div className="flex items-end gap-3 bg-white/[0.05] rounded-2xl px-5 py-3.5 border border-white/6 focus-within:border-white/12 transition-all">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isGenerating}
-              placeholder="Ask for content, strategy, growth hacks..."
+              placeholder="Ask for viral content, SEO hooks, growth strategy..."
               rows={1}
-              className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/20 outline-none resize-none min-h-[24px] max-h-32"
+              className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/25 outline-none resize-none min-h-[24px] max-h-40"
               style={{ lineHeight: "1.5rem" }}
             />
             <button
@@ -290,7 +309,7 @@ export default function SnooksPage() {
               <Send size={13} />
             </button>
           </div>
-          <p className="text-[10px] text-white/15 mt-2 text-center">
+          <p className="text-[10px] text-white/12 mt-2 text-center">
             Snooks generates platform-native viral content · Powered by OpenRouter
           </p>
         </div>

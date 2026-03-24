@@ -1,245 +1,138 @@
-
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Sphere, Box, Cylinder, Torus, Environment, PerspectiveCamera } from "@react-three/drei";
-import * as THREE from "three";
-
-const GooglyEyes = ({ hasSpecs = false, position = [0, 0, 0] as [number, number, number] }) => {
-  const leftEyeRef = useRef<THREE.Group>(null!);
-  const rightEyeRef = useRef<THREE.Group>(null!);
-
-  useFrame((state) => {
-    const t = Math.floor(state.clock.elapsedTime * 8) / 8;
-    if (leftEyeRef.current) {
-      leftEyeRef.current.rotation.z = Math.sin(t * 10) * 0.1;
-    }
-    if (rightEyeRef.current) {
-      rightEyeRef.current.rotation.z = Math.cos(t * 10) * 0.1;
-    }
-  });
-
-  return (
-    <group position={position}>
-      <group ref={leftEyeRef} position={[-0.25, 0, 0]}>
-        <Sphere args={[0.15, 8, 8]}>
-          <meshBasicMaterial color="white" />
-        </Sphere>
-        <Sphere args={[0.07, 8, 8]} position={[0, 0, 0.1]}>
-          <meshBasicMaterial color="black" />
-        </Sphere>
-        {hasSpecs && (
-          <Torus args={[0.18, 0.02, 8, 16]} position={[0, 0, 0.05]}>
-            <meshBasicMaterial color="black" />
-          </Torus>
-        )}
-      </group>
-
-      <group ref={rightEyeRef} position={[0.25, 0, 0]}>
-        <Sphere args={[0.15, 8, 8]}>
-          <meshBasicMaterial color="white" />
-        </Sphere>
-        <Sphere args={[0.07, 8, 8]} position={[0, 0, 0.1]}>
-          <meshBasicMaterial color="black" />
-        </Sphere>
-        {hasSpecs && (
-          <Torus args={[0.18, 0.02, 8, 16]} position={[0, 0, 0.05]}>
-            <meshBasicMaterial color="black" />
-          </Torus>
-        )}
-      </group>
-
-      {hasSpecs && (
-        <Box args={[0.15, 0.02, 0.02]} position={[0, 0, 0.05]}>
-          <meshBasicMaterial color="black" />
-        </Box>
-      )}
-    </group>
-  );
-};
-
-const SkippyModel = () => {
-  return (
-    <group>
-      <Box args={[1, 1.6, 0.8]}>
-        <meshStandardMaterial 
-          color="#FFB6C1" 
-          emissive="#FF69B4" 
-          emissiveIntensity={0.6} 
-          roughness={1}
-          metalness={0}
-        />
-      </Box>
-      <GooglyEyes hasSpecs={true} position={[0, 0.3, 0.41]} />
-    </group>
-  );
-};
-
-const FlippoModel = () => {
-  return (
-    <group>
-      <Box args={[1.2, 1.2, 0.8]}>
-        <meshStandardMaterial 
-          color="#ADD8E6" 
-          emissive="#6297FF" 
-          emissiveIntensity={0.5}
-          roughness={1}
-          metalness={0}
-        />
-      </Box>
-      <GooglyEyes position={[0, 0.2, 0.41]} />
-      <group>
-        <Cylinder args={[0.02, 0.02, 0.8]} position={[-0.7, 0, 0]} rotation={[0, 0, Math.PI / 3]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-        <Cylinder args={[0.02, 0.02, 0.8]} position={[0.7, 0, 0]} rotation={[0, 0, -Math.PI / 3]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-        <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.3, -0.9, 0]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-        <Cylinder args={[0.02, 0.02, 0.6]} position={[0.3, -0.9, 0]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-      </group>
-    </group>
-  );
-};
-
-const SnooksModel = () => {
-  return (
-    <group>
-      <Box args={[1, 1.2, 1]}>
-        <meshStandardMaterial 
-          color="#9370DB" 
-          emissive="#A36BEE" 
-          emissiveIntensity={0.7}
-          roughness={1}
-          metalness={0}
-        />
-      </Box>
-      <GooglyEyes position={[0, 0.2, 0.51]} />
-      <group position={[0, -0.2, 0.52]}>
-        <Box args={[0.2, 0.1, 0.05]} position={[-0.1, 0, 0]} rotation={[0, 0, 0.5]}>
-          <meshBasicMaterial color="black" />
-        </Box>
-        <Box args={[0.2, 0.1, 0.05]} position={[0.1, 0, 0]} rotation={[0, 0, -0.5]}>
-          <meshBasicMaterial color="black" />
-        </Box>
-        <Sphere args={[0.04, 4, 4]}>
-          <meshBasicMaterial color="black" />
-        </Sphere>
-      </group>
-      <group>
-        <Cylinder args={[0.02, 0.02, 0.6]} position={[-0.6, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-        <Cylinder args={[0.02, 0.02, 0.6]} position={[0.6, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
-          <meshBasicMaterial color="black" />
-        </Cylinder>
-      </group>
-    </group>
-  );
-};
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
 const AGENTS = [
   {
     name: "Skippy",
     role: "Screen Intelligence",
-    color: "#FFB6C1",
-    desc: "Autonomous screen analysis and contextual assistance.",
+    color: "#a0a0a0",
+    badge: "Observer",
+    desc: "Autonomous screen analysis and contextual workspace assistance with real-time signal delivery.",
     powers: ["OCR extraction", "Activity tracking", "Anti-stuck logic"],
-    Model: SkippyModel
+    gradient: "from-gray-50 to-white",
+    accent: "bg-gray-100",
+    img: "/jet-sketch.png",
+    imgAlt: "Blueprint sketch of jet — technical precision like Skippy"
   },
   {
     name: "Flippo",
     role: "Productivity Brain",
-    color: "#6297FF",
-    desc: "Data-driven insights and deep work scoring.",
+    color: "#6b7280",
+    badge: "Timeline",
+    desc: "Data-driven productivity insights, deep work scoring, and napkin.ai-style timeline generation.",
     powers: ["Timeline generation", "Flow state analysis", "Focus matrix"],
-    Model: FlippoModel
+    gradient: "from-slate-50 to-white",
+    accent: "bg-slate-100",
+    img: "/jet-color.jpg",
+    imgAlt: "Fighter jet launching — Flippo's productivity engine"
   },
   {
     name: "Snooks",
     role: "Marketing Head",
-    color: "#A36BEE",
-    desc: "Expert content strategy and viral generation.",
+    color: "#374151",
+    badge: "Marketing",
+    desc: "Elite content strategy and viral generation. Platform-native hooks, SEO, and growth playbooks.",
     powers: ["Viral hook drafting", "Multi-platform sync", "SEO optimization"],
-    Model: SnooksModel
-  }
+    gradient: "from-zinc-50 to-white",
+    accent: "bg-zinc-100",
+    img: "/jet-sketch.png",
+    imgAlt: "Jet blueprint — precision marketing like Snooks"
+  },
 ];
 
-function StickyPower({ text, index }: { text: string; index: number }) {
-  const rotations = ["-1deg", "1deg", "-0.5deg"];
+function GlassCard({ agent }: { agent: typeof AGENTS[0] }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="sticky-note w-full py-2 px-3 mb-2 flex items-center justify-center rounded-sm border-black/5"
-      style={{ rotate: rotations[index % rotations.length] }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+      className="relative rounded-2xl overflow-hidden flex flex-col h-full"
+      style={{
+        background: "rgba(255,255,255,0.07)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15)",
+      }}
     >
-      <div className="sticky-note-hole !top-0.5 !w-1 !h-1" />
-      <span className="text-[7px] font-pixel text-black/60 uppercase text-center leading-tight">
-        {text}
-      </span>
-    </motion.div>
-  );
-}
-
-function AgentCard({ agent }: { agent: typeof AGENTS[0] }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl h-full flex flex-col overflow-hidden"
-    >
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-      
-      <div 
-        className="w-full aspect-square rounded-2xl mb-6 relative overflow-hidden bg-black/40 flex items-center justify-center"
+      {/* Image area */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          aspectRatio: "16/9",
+          background: "rgba(255,255,255,0.04)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
-        {mounted ? (
-          <Canvas 
-            shadow={false} 
-            dpr={[0.4, 0.4]} 
-            gl={{ antialias: false, pixelRatio: 0.5 }}
+        <img
+          src={agent.img}
+          alt={agent.imgAlt}
+          className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale"
+          style={{ filter: "grayscale(100%) brightness(1.1)" }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6) 100%)",
+          }}
+        />
+        {/* Badge */}
+        <div className="absolute top-3 left-3">
+          <span
+            className="text-[9px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "rgba(255,255,255,0.7)",
+              backdropFilter: "blur(8px)",
+            }}
           >
-            <PerspectiveCamera makeDefault position={[0, 0, 4]} />
-            <ambientLight intensity={1} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} />
-            <Float 
-              speed={1.5} 
-              rotationIntensity={0.2} 
-              floatIntensity={1}
-            >
-              <agent.Model />
-            </Float>
-            <Environment preset="city" />
-          </Canvas>
-        ) : (
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        )}
+            {agent.badge}
+          </span>
+        </div>
+        {/* Agent name on image */}
+        <div className="absolute bottom-3 left-4">
+          <h3 className="text-2xl font-bold text-white/90 tracking-tight font-pixel">{agent.name}</h3>
+        </div>
       </div>
 
-      <div className="flex-grow">
-        <h3 className="font-pixel text-lg font-bold mb-1 text-white">{agent.name}</h3>
-        <p className="font-bold text-[10px] uppercase tracking-widest mb-4" style={{ color: agent.color }}>{agent.role}</p>
-        <p className="text-[#f2e8d5]/40 text-[9px] leading-relaxed mb-8 font-pixel uppercase">{agent.desc}</p>
-        
-        <div className="flex flex-col gap-1">
-          {agent.powers.map((p, i) => (
-            <StickyPower key={p} text={p} index={i} />
+      {/* Content */}
+      <div className="p-6 flex flex-col flex-1">
+        <p
+          className="text-[9px] font-bold uppercase tracking-[0.25em] mb-3"
+          style={{ color: "rgba(255,255,255,0.35)" }}
+        >
+          {agent.role}
+        </p>
+        <p className="text-[11px] leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
+          {agent.desc}
+        </p>
+
+        <div className="mt-auto space-y-2">
+          {agent.powers.map((power) => (
+            <div
+              key={power}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
+            >
+              <div className="w-1 h-1 rounded-full bg-white/30" />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider font-bold">{power}</span>
+            </div>
           ))}
         </div>
       </div>
+
+      {/* Glass sheen */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-2xl"
+        style={{
+          background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%)",
+        }}
+      />
     </motion.div>
   );
 }
@@ -248,89 +141,90 @@ export function AgentsShowcase() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(-1000);
   const mouseY = useMotionValue(-1000);
-
   const springConfig = { damping: 40, stiffness: 150 };
   const glowX = useSpring(mouseX, springConfig);
   const glowY = useSpring(mouseY, springConfig);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    const unX = glowX.on("change", (v) => setMousePos((p) => ({ ...p, x: v })));
+    const unY = glowY.on("change", (v) => setMousePos((p) => ({ ...p, y: v })));
+    return () => { unX(); unY(); };
+  }, [glowX, glowY]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
   };
 
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const unsubscribeX = glowX.on("change", (v) => setMousePos(prev => ({ ...prev, x: v })));
-    const unsubscribeY = glowY.on("change", (v) => setMousePos(prev => ({ ...prev, y: v })));
-    return () => {
-      unsubscribeX();
-      unsubscribeY();
-    };
-  }, [glowX, glowY]);
-
   return (
-    <section 
-      id="agents" 
+    <section
+      id="agents"
       ref={containerRef}
-      onMouseMove={handleContainerMouseMove}
+      onMouseMove={handleMouseMove}
       className="py-48 px-6 bg-black relative overflow-hidden group"
     >
-      {/* Interactive Fading Dot Grid Background */}
-      <div 
+      {/* Dot grid */}
+      <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle, #ffffff 1.5px, transparent 0)',
-          backgroundSize: '28px 28px',
+          backgroundImage: "radial-gradient(circle, #ffffff 1.5px, transparent 0)",
+          backgroundSize: "28px 28px",
           maskImage: `radial-gradient(circle 500px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.5) 40%, transparent 100%)`,
           WebkitMaskImage: `radial-gradient(circle 500px at ${mousePos.x}px ${mousePos.y}px, black 0%, rgba(0,0,0,0.5) 40%, transparent 100%)`,
         }}
       />
 
-      {/* Intense Localized Glow */}
       <motion.div
         style={{
           left: glowX,
           top: glowY,
-          background: "radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 75%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 75%)",
         }}
         className="absolute -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none blur-[100px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-24 flex flex-col items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="relative inline-block py-10"
           >
-            <motion.h2 
-              animate={{ 
+            <motion.h2
+              animate={{
                 scaleY: [1, 1, 0.05, 1, 1, 0.05, 1],
-                opacity: [1, 1, 0.4, 1, 1, 0.2, 1]
+                opacity: [1, 1, 0.4, 1, 1, 0.2, 1],
               }}
-              transition={{ 
-                duration: 6, 
-                repeat: Infinity, 
+              transition={{
+                duration: 6,
+                repeat: Infinity,
                 times: [0, 0.7, 0.72, 0.74, 0.9, 0.92, 1],
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
               className="font-pixel text-4xl md:text-5xl lg:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight text-white uppercase origin-center"
             >
               The Agent <br />
-              <span className="text-primary drop-shadow-[0_0_20px_rgba(255,255,255,0.25)]">Core Matrix</span>
+              <span className="text-white/60 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">Core Matrix</span>
             </motion.h2>
           </motion.div>
-          
-          <p className="text-[#f2e8d5]/40 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
+
+          <p className="text-white/30 max-w-2xl mx-auto font-pixel text-[10px] leading-loose uppercase tracking-[0.2em]">
             Autonomous entities engineered for pixel-perfect execution.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {AGENTS.map(agent => (
-            <AgentCard key={agent.name} agent={agent} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {AGENTS.map((agent, i) => (
+            <motion.div
+              key={agent.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <GlassCard agent={agent} />
+            </motion.div>
           ))}
         </div>
       </div>
