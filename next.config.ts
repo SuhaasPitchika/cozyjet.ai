@@ -2,7 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* Removed 'output: export' — static export is incompatible with Next.js server features (API routes, server components, etc.) */
-  allowedDevOrigins: ['*.replit.dev', '*.worf.replit.dev'],
+  allowedDevOrigins: ['*.replit.dev', '*.worf.replit.dev', '*.janeway.replit.dev'],
   typescript: {
     ignoreBuildErrors: true,
   },
