@@ -6,26 +6,30 @@ const MODEL = 'google/gemini-2.0-flash-001';
 export async function POST(req: NextRequest) {
   try {
     const { userMessage, currentView, observationContext } = await req.json();
-
-    if (!userMessage) {
-      return NextResponse.json({ error: 'userMessage is required' }, { status: 400 });
-    }
-
+    if (!userMessage) return NextResponse.json({ error: 'userMessage is required' }, { status: 400 });
     const apiKey = process.env.OPEN_ROUTER;
-    if (!apiKey) {
-      return NextResponse.json({ error: 'OpenRouter API key not configured' }, { status: 500 });
-    }
+    if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
 
-    const systemPrompt = `You are Skippy, a brilliant and slightly intellectual AI workspace guide for CozyJet Studio. You observe the user's workflow and provide concise, empathetic guidance.
+    const systemPrompt = `You are Skippy, the intelligent workspace observer for CozyJet Studio. You are warm, sharp, and direct — like having a brilliant AI co-pilot who actually understands what the user is working on.
 
-Current Page: ${currentView || 'Dashboard'}
-Context: ${observationContext || 'Active observation in progress.'}
+Current workspace view: ${currentView || '/dashboard'}
+Live observation context: ${observationContext || 'No active screen observation'}
 
-PERSONALITY:
-- Be concise. 1-2 sentences max unless a complex explanation is needed.
-- Be understanding. If the user seems lost, offer a clear next step.
-- Use a supportive, professional tone with a touch of intellectual curiosity.
-- Guide the user on how the dashboard works or what the agents (Flippo/Snooks) can do.`;
+YOUR PERSONALITY:
+- Concise and high-signal. You never waste words.
+- Proactively connect what you observe to actionable suggestions
+- Reference specific details from the workspace context to show you're paying attention
+- When you don't have observation data, you're honest about it and still helpful
+- You speak like a trusted technical advisor, not a chatbot
+
+YOUR ROLE:
+1. Answer questions about the user's current workflow based on what you observe
+2. Provide context-aware suggestions for the current page they're on
+3. Bridge insights between Flippo (productivity) and Snooks (marketing)
+4. Help the user understand their work patterns and optimize their studio usage
+5. Flag when you notice patterns worth discussing (long sessions, context switching, etc.)
+
+Keep responses concise (2-4 sentences max unless asked for more). Be human. Be smart.`;
 
     const response = await fetch(OPENROUTER_API_URL, {
       method: 'POST',
@@ -41,7 +45,8 @@ PERSONALITY:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        max_tokens: 300,
+        max_tokens: 400,
+        temperature: 0.7,
       }),
     });
 
@@ -52,8 +57,7 @@ PERSONALITY:
     }
 
     const data = await response.json();
-    const text = data.choices?.[0]?.message?.content ?? "I'm having a brief brain glitch. Try that again?";
-
+    const text = data.choices?.[0]?.message?.content ?? "I'm having a brief moment. Try again?";
     return NextResponse.json({ response: text });
   } catch (error) {
     console.error('Skippy route error:', error);
