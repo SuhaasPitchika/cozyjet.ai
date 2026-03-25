@@ -15,7 +15,7 @@ const JET_IMAGES = [
   { id: "jet-8", src: "/assets/jet-blueprint.png", alt: "CozyJet Wing Detail" },
 ];
 
-const CARD_WIDTH = 340;
+const CARD_WIDTH = 480;
 const DEPTH_STRENGTH = 1000;
 const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
@@ -141,7 +141,7 @@ const ThreeSlideshowComponent = () => {
 
       <div
         ref={containerRef}
-        className="relative w-full h-[42vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
+        className="relative w-full h-[58vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
         style={{ perspective: "2500px", transformStyle: "preserve-3d", clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
@@ -152,14 +152,14 @@ const ThreeSlideshowComponent = () => {
               key={img.id}
               ref={(el) => { cardsRef.current[i] = el; }}
               className="absolute bg-black will-change-transform overflow-hidden shadow-2xl rounded-xl"
-              style={{ width: `${CARD_WIDTH}px`, height: `380px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
+              style={{ width: `${CARD_WIDTH}px`, height: `520px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
             >
               <Image
                 src={img.src}
                 alt={img.alt}
                 fill
                 className="object-contain object-center brightness-90 hover:brightness-100 transition-all duration-500 bg-white"
-                sizes="340px"
+                sizes="480px"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none opacity-40" />

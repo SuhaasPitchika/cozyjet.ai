@@ -5,9 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Youtube, Twitter, Mail, Instagram, Linkedin } from "lucide-react";
 
 const ThreadsIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
-    <path d="M14.823 12.961c-.119.695-.454 1.208-.882 1.554a3.12 3.12 0 0 1-2.012.653c-1.454 0-2.311-.854-2.311-2.238 0-1.51.985-2.217 2.374-2.217.514 0 .964.12 1.312.338l.102-.916a2.692 2.692 0 0 0-1.446-.359c-2.1 0-3.647 1.131-3.647 3.153 0 2.257 1.512 3.438 3.535 3.438 1.057 0 1.943-.24 2.536-.783.545-.513.889-1.306.941-2.33h-1.002z" />
-    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10c3.11 0 5.867-1.417 7.682-3.633l-.782-.625C17.28 19.721 14.777 21 12 21c-4.963 0-9-4.037-9-9s4.037-9 9-9c2.427 0 4.625.966 6.242 2.531l.711-.703A9.957 9.957 0 0 0 12 2z" />
+  <svg viewBox="0 0 192 192" fill="currentColor" className={className} style={style}>
+    <path d="M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.11 97.0132 16.9405C119.988 17.1113 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.9276C147.036 9.60354 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C110.107 98.468 114.996 98.9993 119.474 99.9981C117.6 123.74 108.977 128.936 98.4405 129.507Z"/>
   </svg>
 );
 
@@ -43,27 +42,27 @@ const DiscordIcon = ({ className, style }: { className?: string; style?: React.C
 
 const ALL_NODES = [
   { icon: Youtube,       label: "YouTube",   func: "Viral Video Drafting",    color: "#FF0000",
-    noteTitle: "VIDEO SCRIPTS",  noteLines: ["Hook + Script", "Title & SEO", "Retention loops"] },
+    noteTitle: "VIDEO",       noteLines: ["Hook + Script", "Title & SEO", "Retention loops"] },
   { icon: Twitter,       label: "Twitter",   func: "Viral Hook Engine",       color: "#1DA1F2",
-    noteTitle: "TWEET THREADS",  noteLines: ["Viral hooks", "8–12 tweet threads", "Engagement bait"] },
+    noteTitle: "TWEETS",      noteLines: ["Viral hooks", "8–12 tweet threads", "Engagement bait"] },
   { icon: RedditIcon,    label: "Reddit",    func: "Community Engagement",    color: "#FF4500",
-    noteTitle: "REDDIT POSTS",   noteLines: ["Community-native", "Upvote psychology", "No-promo tone"] },
+    noteTitle: "REDDIT",      noteLines: ["Community-native", "Upvote psychology", "No-promo tone"] },
   { icon: TiktokIcon,    label: "TikTok",    func: "Short-Form Content",      color: "#010101",
-    noteTitle: "TIKTOK SCRIPTS", noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"] },
+    noteTitle: "TIKTOK",      noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"] },
   { icon: ThreadsIcon,   label: "Threads",   func: "Knowledge Stacking",      color: "#111111",
-    noteTitle: "THREAD CHAINS",  noteLines: ["Micro-stories", "Knowledge drops", "Reply bait"] },
+    noteTitle: "THREADS",     noteLines: ["Micro-stories", "Knowledge drops", "Reply bait"] },
   { icon: Mail,          label: "Email",     func: "High-CR Outreach",        color: "#EA4335",
-    noteTitle: "EMAIL FLOWS",    noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"] },
+    noteTitle: "EMAIL",       noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"] },
   { icon: Instagram,     label: "Instagram", func: "Visual Storytelling",     color: "#E4405F",
-    noteTitle: "IG CAPTIONS",    noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"] },
+    noteTitle: "INSTAGRAM",   noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"] },
   { icon: PinterestIcon, label: "Pinterest", func: "Visual Discovery",        color: "#BD081C",
-    noteTitle: "PIN COPY",       noteLines: ["SEO descriptions", "Board strategy", "Rich pins"] },
+    noteTitle: "PINTEREST",   noteLines: ["SEO descriptions", "Board strategy", "Rich pins"] },
   { icon: SlackIcon,     label: "Slack",     func: "Team Announcements",      color: "#4A154B",
-    noteTitle: "SLACK UPDATES",  noteLines: ["Team digests", "Launch announcements", "Newsletter"] },
+    noteTitle: "SLACK",       noteLines: ["Team digests", "Launch announcements", "Newsletter"] },
   { icon: DiscordIcon,   label: "Discord",   func: "Community Drops",         color: "#5865F2",
-    noteTitle: "DISCORD DROPS",  noteLines: ["Drop strategy", "Community posts", "Hype builds"] },
+    noteTitle: "DISCORD",     noteLines: ["Drop strategy", "Community posts", "Hype builds"] },
   { icon: Linkedin,      label: "LinkedIn",  func: "Professional Authority",  color: "#0A66C2",
-    noteTitle: "LINKEDIN POSTS", noteLines: ["Thought leadership", "Data stories", "Professional hooks"] },
+    noteTitle: "LINKEDIN",    noteLines: ["Thought leadership", "Data stories", "Pro hooks"] },
 ];
 
 const SUBTITLES = [
@@ -192,7 +191,7 @@ function ComicStickyNote({ node, isTop }: { node: typeof ALL_NODES[0]; isTop: bo
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20"
-      style={{ [isTop ? "bottom" : "top"]: "140%" }}
+      style={{ [isTop ? "bottom" : "top"]: "145%" }}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.8, rotate: isTop ? -3 : 2 }}
@@ -200,7 +199,7 @@ function ComicStickyNote({ node, isTop }: { node: typeof ALL_NODES[0]; isTop: bo
         transition={{ duration: 0.4, type: "spring" }}
         className="relative"
         style={{
-          width: 96,
+          width: 110,
           transform: `rotate(${isTop ? -2 : 1.5}deg)`,
         }}
       >
@@ -212,21 +211,21 @@ function ComicStickyNote({ node, isTop }: { node: typeof ALL_NODES[0]; isTop: bo
           }}
         >
           <div
-            className="px-1.5 py-1 border-b-2 border-black/80"
+            className="px-2 py-1.5 border-b-2 border-black/80"
             style={{ background: "linear-gradient(90deg, #fbbf24, #f59e0b)" }}
           >
             <span
               className="font-bold text-black uppercase tracking-wider"
-              style={{ fontSize: 6, fontFamily: "'Courier New', monospace", letterSpacing: "0.12em" }}
+              style={{ fontSize: 9, fontFamily: "'Courier New', monospace", letterSpacing: "0.12em" }}
             >
               {node.noteTitle}
             </span>
           </div>
-          <div className="px-1.5 py-1.5 space-y-0.5">
+          <div className="px-2 py-2 space-y-1">
             {node.noteLines.map((line, i) => (
               <div key={i} className="flex items-start gap-1">
-                <span style={{ fontSize: 5, color: "#92400e", fontFamily: "monospace", lineHeight: 1.5, marginTop: 1 }}>▸</span>
-                <span style={{ fontSize: 5.5, color: "#1c1917", fontFamily: "'Courier New', monospace", lineHeight: 1.5 }}>
+                <span style={{ fontSize: 7, color: "#92400e", fontFamily: "monospace", lineHeight: 1.5, marginTop: 1 }}>▸</span>
+                <span style={{ fontSize: 8, color: "#1c1917", fontFamily: "'Courier New', monospace", lineHeight: 1.5 }}>
                   {line}
                 </span>
               </div>
@@ -245,14 +244,8 @@ function ComicStickyNote({ node, isTop }: { node: typeof ALL_NODES[0]; isTop: bo
   );
 }
 
-function getNotePosition(i: number, total: number): boolean {
-  const t = i / (total - 1);
-  return t < 0.25 || t > 0.75;
-}
-
-function showNote(i: number, total: number): boolean {
-  const t = i / (total - 1);
-  return t <= 0.25 || t >= 0.75;
+function getNotePosition(i: number): boolean {
+  return i % 2 === 0;
 }
 
 export function Hero() {
@@ -298,7 +291,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-10"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-28"
         style={{ height: `${VH}px` }}
       >
         <ArchSVG />
@@ -306,8 +299,7 @@ export function Hero() {
         {ALL_NODES.map((node, i) => {
           const pt    = NODE_PTS[i];
           const isHub = i === HUB_IDX;
-          const isTop = getNotePosition(i, N);
-          const hasNote = showNote(i, N);
+          const isTop = getNotePosition(i);
 
           return (
             <motion.div
@@ -329,13 +321,13 @@ export function Hero() {
                 zIndex: isHub ? 20 : 10,
               }}
             >
-              {hasNote && <ComicStickyNote node={node} isTop={isTop} />}
+              <ComicStickyNote node={node} isTop={isTop} />
 
               <div
                 className="rounded-xl border-2 border-black transition-all duration-150 hover:scale-110 cursor-pointer relative z-30 flex items-center justify-center"
                 style={{
-                  width: isHub ? "72px" : "58px",
-                  height: isHub ? "72px" : "58px",
+                  width: isHub ? "88px" : "72px",
+                  height: isHub ? "88px" : "72px",
                   background: isHub
                     ? "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"
                     : "#ffffff",
@@ -345,7 +337,7 @@ export function Hero() {
                 }}
               >
                 <node.icon
-                  className={isHub ? "w-9 h-9" : "w-7 h-7"}
+                  className={isHub ? "w-11 h-11" : "w-9 h-9"}
                   style={{ color: node.color }}
                 />
               </div>

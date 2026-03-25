@@ -15,8 +15,7 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowRight, RefreshCw, ArrowLeft } from "lucide-react";
-import { useReplitAuth } from "@/contexts/replit-auth-context";
+import { Eye, EyeOff, Loader2, RefreshCw, ArrowLeft } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -29,40 +28,100 @@ function GoogleIcon() {
   );
 }
 
-function ReplitIcon() {
-  return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 5h3v-3h-3zm0 3h3v-3h-3zm3 0h3v-3h-3z" />
-    </svg>
-  );
-}
+function GraphBg() {
+  const lines = [
+    "M 0 280 L 80 240 L 160 255 L 240 200 L 320 210 L 400 160 L 480 170 L 560 120 L 640 130 L 720 80 L 800 90 L 880 40 L 960 50 L 1040 10",
+    "M 0 320 L 100 290 L 200 300 L 300 250 L 400 240 L 500 190 L 600 200 L 700 150 L 800 140 L 900 100 L 1000 90 L 1100 50",
+    "M 0 360 L 120 330 L 240 340 L 360 290 L 480 280 L 600 230 L 720 220 L 840 175 L 960 165 L 1080 120",
+  ];
 
-function AnimatedGradientBg() {
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: "#050814" }}>
-      <motion.div
-        className="absolute w-[700px] h-[700px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.28) 0%, transparent 70%)", top: "-15%", left: "-10%" }}
-        animate={{ x: [0, 80, -30, 0], y: [0, 60, 100, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+    <div className="absolute inset-0 overflow-hidden bg-white">
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
       />
-      <motion.div
-        className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(236,72,153,0.22) 0%, transparent 70%)", bottom: "-10%", right: "-10%" }}
-        animate={{ x: [0, -60, 20, 0], y: [0, -40, -80, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)", top: "35%", left: "35%" }}
-        animate={{ x: [0, 50, -40, 0], y: [0, -50, 40, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-      />
-      <motion.div
-        className="absolute w-[350px] h-[350px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)", top: "10%", right: "20%" }}
-        animate={{ x: [0, -40, 60, 0], y: [0, 80, -20, 0] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 1040 400"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+      >
+        <defs>
+          <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(59,130,246,0.0)" />
+            <stop offset="30%" stopColor="rgba(59,130,246,0.35)" />
+            <stop offset="100%" stopColor="rgba(59,130,246,0.15)" />
+          </linearGradient>
+          <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(16,185,129,0.0)" />
+            <stop offset="30%" stopColor="rgba(16,185,129,0.25)" />
+            <stop offset="100%" stopColor="rgba(16,185,129,0.1)" />
+          </linearGradient>
+          <linearGradient id="lineGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(139,92,246,0.0)" />
+            <stop offset="30%" stopColor="rgba(139,92,246,0.2)" />
+            <stop offset="100%" stopColor="rgba(139,92,246,0.08)" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <motion.path
+          d={lines[0]}
+          stroke="url(#lineGrad1)"
+          strokeWidth="2.5"
+          filter="url(#glow)"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 3, ease: "easeOut", repeat: Infinity, repeatDelay: 1 }}
+        />
+        <motion.path
+          d={lines[1]}
+          stroke="url(#lineGrad2)"
+          strokeWidth="2"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 3.5, ease: "easeOut", delay: 0.5, repeat: Infinity, repeatDelay: 0.5 }}
+        />
+        <motion.path
+          d={lines[2]}
+          stroke="url(#lineGrad3)"
+          strokeWidth="1.5"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 4, ease: "easeOut", delay: 1, repeat: Infinity, repeatDelay: 0.2 }}
+        />
+        {[
+          { cx: 720, cy: 80, color: "#3b82f6" },
+          { cx: 500, cy: 190, color: "#10b981" },
+          { cx: 840, cy: 175, color: "#8b5cf6" },
+        ].map((dot, i) => (
+          <motion.circle
+            key={i}
+            cx={dot.cx}
+            cy={dot.cy}
+            r="4"
+            fill={dot.color}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.4, 1], opacity: [0, 1, 0.7] }}
+            transition={{ delay: 2 + i * 0.3, duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+          />
+        ))}
+      </svg>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at center, rgba(255,255,255,0.0) 30%, rgba(255,255,255,0.6) 100%)",
+        }}
       />
     </div>
   );
@@ -84,14 +143,14 @@ function PasswordStrength({ password }: { password: string }) {
       <div className="flex gap-1">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
-            style={{ background: i <= score ? colors[score] : "rgba(255,255,255,0.08)" }} />
+            style={{ background: i <= score ? colors[score] : "rgba(0,0,0,0.08)" }} />
         ))}
       </div>
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {checks.map((c) => (
             <span key={c.label} className="text-[9px] font-medium transition-colors duration-200"
-              style={{ color: c.ok ? "#86efac" : "rgba(255,255,255,0.22)" }}>
+              style={{ color: c.ok ? "#16a34a" : "rgba(0,0,0,0.3)" }}>
               {c.ok ? "✓" : "·"} {c.label}
             </span>
           ))}
@@ -128,10 +187,10 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
           onKeyDown={(e) => handleKeyDown(i, e)} onPaste={handlePaste}
           className="w-11 h-14 text-center text-xl font-bold rounded-xl outline-none transition-all duration-200"
           style={{
-            background: "rgba(255,255,255,0.07)", caretColor: "#a78bfa",
-            border: digits[i] ? "1.5px solid rgba(139,92,246,0.7)" : "1.5px solid rgba(255,255,255,0.1)",
-            color: "#fff",
-            boxShadow: digits[i] ? "0 0 0 3px rgba(139,92,246,0.12)" : "none",
+            background: "rgba(0,0,0,0.04)",
+            caretColor: "#3b82f6",
+            border: digits[i] ? "1.5px solid rgba(59,130,246,0.7)" : "1.5px solid rgba(0,0,0,0.12)",
+            color: "#111",
           }} />
       ))}
     </div>
@@ -139,11 +198,11 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(8,8,22,0.72)",
+  background: "rgba(255,255,255,0.92)",
   backdropFilter: "blur(40px) saturate(180%)",
   WebkitBackdropFilter: "blur(40px) saturate(180%)",
-  border: "1px solid rgba(255,255,255,0.10)",
-  boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset",
+  border: "1px solid rgba(0,0,0,0.08)",
+  boxShadow: "0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.8) inset",
 };
 
 export default function AuthPage() {
@@ -165,27 +224,12 @@ export default function AuthPage() {
   const auth = useAuth();
   const db = useFirestore();
   const { user, isUserLoading } = useUser();
-  const { replitUser, isReplitLoading, refetchReplitUser } = useReplitAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (user && !isUserLoading) router.push("/dashboard/skippy");
   }, [user, isUserLoading, router]);
-
-  useEffect(() => {
-    if (replitUser && !isReplitLoading) router.push("/dashboard/skippy");
-  }, [replitUser, isReplitLoading, router]);
-
-  const handleReplitLogin = () => {
-    if (typeof (window as any).LoginWithReplit === "function") {
-      (window as any).LoginWithReplit(() => {
-        refetchReplitUser().then(() => router.push("/dashboard/skippy"));
-      });
-    } else {
-      toast({ title: "Replit Auth unavailable", description: "Please try again in a moment.", variant: "destructive" });
-    }
-  };
 
   useEffect(() => {
     getRedirectResult(auth).then((result) => {
@@ -241,7 +285,7 @@ export default function AuthPage() {
       ) {
         try {
           await signInWithRedirect(auth, provider);
-        } catch (redirectErr: any) {
+        } catch {
           toast({ title: "Sign-in Failed", description: "Please allow popups or try again.", variant: "destructive" });
         }
       } else if (err.code === "auth/unauthorized-domain") {
@@ -372,36 +416,36 @@ export default function AuthPage() {
     if (code.length === 6) handleVerifyCode();
   }, [code]);
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/20 border text-white/90 font-medium";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-black/25 border text-black/90 font-medium";
   const getInputClass = (f: string) =>
-    `${inputBase} bg-white/[0.07] ${focused === f ? "border-violet-400/60 shadow-[0_0_0_2px_rgba(139,92,246,0.15)]" : "border-white/10 hover:border-white/20"}`;
+    `${inputBase} bg-black/[0.03] ${focused === f ? "border-blue-400/60" : "border-black/10 hover:border-black/20"}`;
 
   if (step === "verify") {
     return (
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-        <AnimatedGradientBg />
+        <GraphBg />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="relative z-20 w-full max-w-[420px] mx-4">
           <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
             <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.8), rgba(99,102,241,0.7), transparent)" }} />
+              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
             <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity }}
               className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 8px 32px rgba(124,58,237,0.5)" }}>
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
               <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="8" width="18" height="13" rx="2" />
                 <path d="M16 8V5a4 4 0 0 0-8 0v3" />
                 <circle cx="12" cy="14" r="1.5" fill="currentColor" />
               </svg>
             </motion.div>
-            <h2 className="text-xl font-bold text-white mb-2">Verify your email</h2>
-            <p className="text-sm text-white/40 mb-1">Code sent to</p>
-            <p className="text-sm font-semibold text-violet-400 mb-6">{email}</p>
+            <h2 className="text-xl font-bold text-black/90 mb-2">Verify your email</h2>
+            <p className="text-sm text-black/40 mb-1">Code sent to</p>
+            <p className="text-sm font-semibold text-blue-600 mb-6">{email}</p>
             {devCode && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="rounded-xl p-3 mb-4 text-xs text-amber-300 font-mono"
-                style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
-                Dev mode · No SMTP configured · Code: <strong className="text-amber-200 text-sm tracking-widest">{devCode}</strong>
+                className="rounded-xl p-3 mb-4 text-xs text-amber-700 font-mono"
+                style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)" }}>
+                Dev mode · No SMTP configured · Code: <strong className="text-amber-800 text-sm tracking-widest">{devCode}</strong>
               </motion.div>
             )}
             <div className="mb-6">
@@ -410,16 +454,16 @@ export default function AuthPage() {
             <motion.button onClick={handleVerifyCode} disabled={isVerifying || code.length !== 6}
               whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
               className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5 disabled:opacity-40"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 4px 24px rgba(124,58,237,0.4)" }}>
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
               {isVerifying ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
-                : <><span>Enter Studio</span><ArrowRight size={14} /></>}
+                : <span>Enter Studio</span>}
             </motion.button>
             <button onClick={handleResend} disabled={isResending}
-              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-white/25 hover:text-violet-400 transition-colors disabled:opacity-40">
+              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-black/30 hover:text-blue-600 transition-colors disabled:opacity-40">
               <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
               {isResending ? "Sending..." : "Resend code"}
             </button>
-            <p className="text-[10px] text-white/15 mt-4">Expires in 10 minutes</p>
+            <p className="text-[10px] text-black/25 mt-4">Expires in 10 minutes</p>
           </div>
         </motion.div>
       </div>
@@ -429,50 +473,50 @@ export default function AuthPage() {
   if (mode === "forgot") {
     return (
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-        <AnimatedGradientBg />
+        <GraphBg />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="relative z-20 w-full max-w-[420px] mx-4">
           <div className="relative rounded-3xl p-8" style={glassCard}>
             <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.8), transparent)" }} />
+              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent)" }} />
             <button onClick={() => { setMode("login"); setResetSent(false); }}
-              className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors mb-6">
+              className="flex items-center gap-1.5 text-xs text-black/35 hover:text-black/70 transition-colors mb-6">
               <ArrowLeft size={12} /> Back to sign in
             </button>
             {!resetSent ? (
               <>
-                <h2 className="text-xl font-bold text-white mb-2">Reset your password</h2>
-                <p className="text-xs text-white/35 mb-6 leading-relaxed">
+                <h2 className="text-xl font-bold text-black/90 mb-2">Reset your password</h2>
+                <p className="text-xs text-black/40 mb-6 leading-relaxed">
                   Enter your email and we'll send a reset link.
                 </p>
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Email</label>
+                    <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Email</label>
                     <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com" className={getInputClass("reset-email")}
                       onFocus={() => setFocused("reset-email")} onBlur={() => setFocused(null)} />
                   </div>
                   <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                     className="w-full h-12 rounded-xl text-white text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2.5"
-                    style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 4px 24px rgba(124,58,237,0.4)" }}>
+                    style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
                     {isLoading ? <><Loader2 size={15} className="animate-spin" /><span>Sending...</span></>
-                      : <><span>Send Reset Link</span><ArrowRight size={14} /></>}
+                      : <span>Send Reset Link</span>}
                   </motion.button>
                 </form>
               </>
             ) : (
               <div className="text-center">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 8px 24px rgba(16,185,129,0.4)" }}>
+                  style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
                   <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <h2 className="text-lg font-bold text-white mb-2">Check your inbox</h2>
-                <p className="text-sm text-white/40 leading-relaxed mb-1">Reset link sent to</p>
-                <p className="text-sm font-semibold text-emerald-400 mb-6">{email}</p>
+                <h2 className="text-lg font-bold text-black/90 mb-2">Check your inbox</h2>
+                <p className="text-sm text-black/40 leading-relaxed mb-1">Reset link sent to</p>
+                <p className="text-sm font-semibold text-emerald-600 mb-6">{email}</p>
                 <button onClick={() => { setMode("login"); setResetSent(false); }}
-                  className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                  className="text-xs text-blue-600 hover:text-blue-700 transition-colors">
                   Back to sign in
                 </button>
               </div>
@@ -485,35 +529,39 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-      <AnimatedGradientBg />
+      <GraphBg />
       <motion.div initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-20 w-full max-w-[420px] mx-4">
         <div className="relative rounded-3xl overflow-hidden" style={glassCard}>
           <div className="absolute top-0 inset-x-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.7), rgba(236,72,153,0.5), transparent)" }} />
+            style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
 
           <div className="px-8 pt-8 pb-5 text-center">
             <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 4, repeat: Infinity }}
               className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #ec4899 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
-              <ArrowRight className="w-6 h-6 text-white" />
+              style={{ background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" }}>
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
             </motion.div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
+            <h1 className="text-xl font-bold text-black/90 tracking-tight">
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="text-xs text-white/30 mt-1.5 leading-relaxed">
+            <p className="text-xs text-black/35 mt-1.5 leading-relaxed">
               {mode === "login" ? "Sign in to your AI agentic studio" : "Join your AI-powered marketing & productivity studio"}
             </p>
           </div>
 
-          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.07)" }}>
             {([{ label: "Sign In", val: "login" }, { label: "Create Account", val: "signup" }] as const).map((tab) => (
               <button key={tab.val} onClick={() => { setMode(tab.val); setPassword(""); }}
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
                 style={mode === tab.val
-                  ? { background: "linear-gradient(135deg, rgba(124,58,237,0.9), rgba(236,72,153,0.55))", color: "white", boxShadow: "0 2px 12px rgba(124,58,237,0.3)" }
-                  : { color: "rgba(255,255,255,0.28)" }}>
+                  ? { background: "linear-gradient(135deg, rgba(59,130,246,0.9), rgba(37,99,235,0.8))", color: "white" }
+                  : { color: "rgba(0,0,0,0.35)" }}>
                 {tab.label}
               </button>
             ))}
@@ -524,7 +572,7 @@ export default function AuthPage() {
               {mode === "signup" && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.22 }} className="space-y-1.5 overflow-hidden">
-                  <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Full Name</label>
+                  <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Full Name</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
                     className={getInputClass("name")} onFocus={() => setFocused("name")} onBlur={() => setFocused(null)} />
                 </motion.div>
@@ -532,7 +580,7 @@ export default function AuthPage() {
             </AnimatePresence>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Email</label>
+              <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Email</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" className={getInputClass("email")}
                 onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} />
@@ -540,10 +588,10 @@ export default function AuthPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Password</label>
+                <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Password</label>
                 {mode === "login" && (
                   <button type="button" onClick={() => setMode("forgot")}
-                    className="text-[10px] text-violet-400/70 hover:text-violet-400 transition-colors">
+                    className="text-[10px] text-blue-500/80 hover:text-blue-600 transition-colors">
                     Forgot password?
                   </button>
                 )}
@@ -555,7 +603,7 @@ export default function AuthPage() {
                   className={`${getInputClass("password")} pr-11`}
                   onFocus={() => setFocused("password")} onBlur={() => setFocused(null)} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/55 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/25 hover:text-black/55 transition-colors">
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
@@ -565,40 +613,33 @@ export default function AuthPage() {
             <div className="pt-1">
               <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                 className="w-full h-12 rounded-xl text-white text-sm font-semibold disabled:opacity-40 flex items-center justify-center gap-2.5 relative overflow-hidden group"
-                style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5 50%, #ec4899)", boxShadow: "0 4px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.1)" }}>
-                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/8 transition-colors duration-200" />
+                style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
                 {isLoading ? <><Loader2 size={15} className="animate-spin" /><span>Please wait...</span></>
-                  : <><span>{mode === "login" ? "Sign In" : "Create Account"}</span><ArrowRight size={14} /></>}
+                  : <span>{mode === "login" ? "Sign In" : "Create Account"}</span>}
               </motion.button>
             </div>
           </form>
 
           <div className="px-8 py-5">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-              <span className="text-[10px] text-white/18 font-medium uppercase tracking-widest">or</span>
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+              <span className="text-[10px] text-black/25 font-medium uppercase tracking-widest">or</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
             </div>
             <motion.button onClick={handleGoogle} disabled={isGoogleLoading || isLoading}
               whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium text-white/70 disabled:opacity-40 transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}>
-              {isGoogleLoading ? <Loader2 size={15} className="animate-spin text-white/50" /> : <GoogleIcon />}
+              className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium text-black/70 disabled:opacity-40 transition-all"
+              style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.09)" }}>
+              {isGoogleLoading ? <Loader2 size={15} className="animate-spin text-black/40" /> : <GoogleIcon />}
               <span>Continue with Google</span>
-            </motion.button>
-            <motion.button onClick={handleReplitLogin} disabled={isLoading || isGoogleLoading}
-              whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="mt-3 w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium disabled:opacity-40 transition-all"
-              style={{ background: "rgba(241,90,36,0.12)", border: "1px solid rgba(241,90,36,0.25)", color: "#f97316" }}>
-              <ReplitIcon />
-              <span>Continue with Replit</span>
             </motion.button>
           </div>
 
           <div className="absolute bottom-0 inset-x-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)" }} />
+            style={{ background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent)" }} />
         </div>
-        <p className="text-center text-[10px] text-white/18 mt-5 leading-relaxed">
+        <p className="text-center text-[10px] text-black/30 mt-5 leading-relaxed">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </motion.div>
