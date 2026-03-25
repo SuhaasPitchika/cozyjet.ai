@@ -28,101 +28,62 @@ function GoogleIcon() {
   );
 }
 
-function GraphBg() {
-  const lines = [
-    "M 0 280 L 80 240 L 160 255 L 240 200 L 320 210 L 400 160 L 480 170 L 560 120 L 640 130 L 720 80 L 800 90 L 880 40 L 960 50 L 1040 10",
-    "M 0 320 L 100 290 L 200 300 L 300 250 L 400 240 L 500 190 L 600 200 L 700 150 L 800 140 L 900 100 L 1000 90 L 1100 50",
-    "M 0 360 L 120 330 L 240 340 L 360 290 L 480 280 L 600 230 L 720 220 L 840 175 L 960 165 L 1080 120",
-  ];
-
+function Cloud({ style }: { style: React.CSSProperties }) {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-white">
-      <div
-        className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 1040 400"
-        preserveAspectRatio="xMidYMid slice"
-        fill="none"
+    <div className="absolute" style={style}>
+      <div className="relative" style={{ width: "100%", height: "100%" }}>
+        <div className="absolute bottom-0 left-0 right-0 rounded-full"
+          style={{ height: "55%", background: "rgba(255,255,255,0.92)", borderRadius: "9999px 9999px 0 0" }} />
+        <div className="absolute" style={{
+          width: "40%", height: "65%", bottom: "30%", left: "18%",
+          background: "rgba(255,255,255,0.88)", borderRadius: "9999px",
+        }} />
+        <div className="absolute" style={{
+          width: "35%", height: "80%", bottom: "30%", left: "42%",
+          background: "rgba(255,255,255,0.92)", borderRadius: "9999px",
+        }} />
+        <div className="absolute" style={{
+          width: "28%", height: "55%", bottom: "30%", left: "65%",
+          background: "rgba(255,255,255,0.85)", borderRadius: "9999px",
+        }} />
+      </div>
+    </div>
+  );
+}
+
+function SkyBg() {
+  return (
+    <div className="absolute inset-0 overflow-hidden" style={{
+      background: "linear-gradient(180deg, #a8d8f0 0%, #c2e4f5 25%, #d9eef8 55%, #eaf5fb 78%, #f4f9fd 100%)"
+    }}>
+      <motion.div
+        animate={{ x: [0, 30, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-0 left-0 right-0"
+        style={{ height: "42%" }}
       >
-        <defs>
-          <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(59,130,246,0.0)" />
-            <stop offset="30%" stopColor="rgba(59,130,246,0.35)" />
-            <stop offset="100%" stopColor="rgba(59,130,246,0.15)" />
-          </linearGradient>
-          <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(16,185,129,0.0)" />
-            <stop offset="30%" stopColor="rgba(16,185,129,0.25)" />
-            <stop offset="100%" stopColor="rgba(16,185,129,0.1)" />
-          </linearGradient>
-          <linearGradient id="lineGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(139,92,246,0.0)" />
-            <stop offset="30%" stopColor="rgba(139,92,246,0.2)" />
-            <stop offset="100%" stopColor="rgba(139,92,246,0.08)" />
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <motion.path
-          d={lines[0]}
-          stroke="url(#lineGrad1)"
-          strokeWidth="2.5"
-          filter="url(#glow)"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 3, ease: "easeOut", repeat: Infinity, repeatDelay: 1 }}
-        />
-        <motion.path
-          d={lines[1]}
-          stroke="url(#lineGrad2)"
-          strokeWidth="2"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 3.5, ease: "easeOut", delay: 0.5, repeat: Infinity, repeatDelay: 0.5 }}
-        />
-        <motion.path
-          d={lines[2]}
-          stroke="url(#lineGrad3)"
-          strokeWidth="1.5"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 4, ease: "easeOut", delay: 1, repeat: Infinity, repeatDelay: 0.2 }}
-        />
-        {[
-          { cx: 720, cy: 80, color: "#3b82f6" },
-          { cx: 500, cy: 190, color: "#10b981" },
-          { cx: 840, cy: 175, color: "#8b5cf6" },
-        ].map((dot, i) => (
-          <motion.circle
-            key={i}
-            cx={dot.cx}
-            cy={dot.cy}
-            r="4"
-            fill={dot.color}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: [0, 1.4, 1], opacity: [0, 1, 0.7] }}
-            transition={{ delay: 2 + i * 0.3, duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-          />
-        ))}
-      </svg>
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse at center, rgba(255,255,255,0.0) 30%, rgba(255,255,255,0.6) 100%)",
-        }}
-      />
+        <Cloud style={{ width: "28%", height: "75%", bottom: 0, left: "-2%" }} />
+        <Cloud style={{ width: "22%", height: "60%", bottom: 0, left: "20%" }} />
+        <Cloud style={{ width: "32%", height: "85%", bottom: 0, left: "36%" }} />
+        <Cloud style={{ width: "20%", height: "55%", bottom: 0, left: "63%" }} />
+        <Cloud style={{ width: "30%", height: "80%", bottom: 0, left: "76%" }} />
+      </motion.div>
+
+      <motion.div
+        animate={{ x: [0, -20, 0] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        className="absolute bottom-0 left-0 right-0"
+        style={{ height: "28%", opacity: 0.65 }}
+      >
+        <Cloud style={{ width: "18%", height: "70%", bottom: 0, left: "8%" }} />
+        <Cloud style={{ width: "24%", height: "90%", bottom: 0, left: "30%" }} />
+        <Cloud style={{ width: "16%", height: "60%", bottom: 0, left: "58%" }} />
+        <Cloud style={{ width: "26%", height: "80%", bottom: 0, left: "78%" }} />
+      </motion.div>
+
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(ellipse 60% 40% at 50% 35%, rgba(255,255,255,0.18) 0%, transparent 100%)"
+      }} />
     </div>
   );
 }
@@ -198,11 +159,11 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(255,255,255,0.92)",
-  backdropFilter: "blur(40px) saturate(180%)",
-  WebkitBackdropFilter: "blur(40px) saturate(180%)",
-  border: "1px solid rgba(0,0,0,0.08)",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.8) inset",
+  background: "rgba(255,255,255,0.88)",
+  backdropFilter: "blur(32px) saturate(200%)",
+  WebkitBackdropFilter: "blur(32px) saturate(200%)",
+  border: "1px solid rgba(255,255,255,0.85)",
+  boxShadow: "0 24px 64px rgba(80,140,190,0.18), 0 4px 24px rgba(80,140,190,0.12), 0 0 0 1px rgba(255,255,255,0.9) inset",
 };
 
 export default function AuthPage() {
@@ -423,7 +384,7 @@ export default function AuthPage() {
   if (step === "verify") {
     return (
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-        <GraphBg />
+        <SkyBg />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="relative z-20 w-full max-w-[420px] mx-4">
           <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
@@ -473,7 +434,7 @@ export default function AuthPage() {
   if (mode === "forgot") {
     return (
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-        <GraphBg />
+        <SkyBg />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="relative z-20 w-full max-w-[420px] mx-4">
           <div className="relative rounded-3xl p-8" style={glassCard}>
@@ -529,7 +490,7 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-      <GraphBg />
+      <SkyBg />
       <motion.div initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-20 w-full max-w-[420px] mx-4">
