@@ -23,19 +23,22 @@ src/
       skippy/         # Chat interaction endpoint
       flippo/         # Productivity analysis endpoint
       snooks/         # Marketing intelligence endpoint
+      timeline/       # Flippo timeline generation (rich emotional context)
       workspace/      # Workspace event processing endpoint
     dashboard/        # Protected dashboard pages
-      skippy/         # Observer agent page
-      flippo/         # Timeline/productivity page
-      snooks/         # Marketing chat page
+      skippy/         # Observer agent page (neumorphic toggle, dot cursor)
+      flippo/         # Timeline/productivity page (dark theme, score ring)
+      snooks/         # Marketing chat page with content blocks
       tuning/         # Model configuration page
     auth/             # Auth pages
   ai/
     client.ts         # Client-side API callers (fetch to /api/ai/*)
-    flows/            # Original Genkit flow definitions (reference)
-    genkit.ts         # Genkit config (unused in production)
   firebase/           # Firebase client setup, Auth, Firestore hooks
-  components/         # UI components
+  components/
+    layout/
+      navbar.tsx      # Glassmorphism nav, 64px logo, Launch Studio CTA
+    sections/
+      hero.tsx        # Anime bg, arch SVG timeline, glassmorphism text card
   hooks/              # Zustand stores (useDashboardStore)
 ```
 
@@ -44,21 +47,27 @@ All AI calls go through Next.js API routes in `src/app/api/ai/` which securely a
 
 ## Environment Variables / Secrets
 - `OPEN_ROUTER` — OpenRouter API key (required for all AI features)
-- `GH_PAT` — GitHub Personal Access Token for auto-push to `SuhaasPitchika/cozyjet.ai`
 
 ## Running
-- Dev: `npx next dev -p 5000 -H 0.0.0.0`
+- Dev: `npm run dev` → `next dev -p 5000 -H 0.0.0.0`
 - The workflow "Start application" handles this automatically
-
-## GitHub Auto-Push
-Run `bash scripts/push-to-github.sh "commit message"` to push to GitHub.
-**Note**: `GH_PAT` must be a GitHub Personal Access Token (classic), not a repository URL.
 
 ## Firebase Config
 Firebase config is in `src/firebase/config.ts`. The app uses Firebase Auth and Firestore.
 Project: `studio-9941557236-b9262`
 
-## UI Design
-- Dark theme: `#0f0f0f` background, `#141414` sidebar
-- Modern minimal: white accents, subtle borders (`border-white/5`)
-- Inter font, tight tracking, clean typography
+## Design System
+- **Landing page**: Anime landscape background (hero-bg.webp), no white overlay, glassmorphism cards for text contrast
+- **Navbar**: Frosted glass pill, 64px CozyJet logo, pixel font
+- **Hero**: Quadratic bezier arch SVG with fill + spoke lines to hub, 6 platform nodes with sticky notes, staggered spring animations
+- **Auth**: Cloud sky gradient background (SVG clouds), glassmorphism card, Sign In / Create Account tabs, email verification flow, password strength meter
+- **Dashboard**: Light `#f0f4f8` background, frosted glass sidebar (64px wide), global Skippy chat panel slides in from right
+- **Dashboard pages**: Dark `#0f0f0f` theme with white/opacity text
+- **Font**: `font-pixel` (pixel font) for headings/labels throughout
+
+## Key Design Decisions
+- Hero background: `backgroundPosition: "center 15%"` to show sky/jet, crop bottom greenery slightly
+- No white overlay on hero background — text uses glassmorphism card backdrop
+- Skippy API returns `{ response: string }` — dashboard reads `result.response`
+- Flippo uses `/api/ai/timeline` (richer than `/api/ai/flippo`) for emotional context
+- All AI responses via OpenRouter with `google/gemini-2.0-flash-001`

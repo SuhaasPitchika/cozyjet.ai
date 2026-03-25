@@ -124,49 +124,49 @@ function StableNote({ text, isTop }: { text: string; isTop: boolean }) {
 export function Hero() {
   return (
     <section
-      className="relative flex flex-col items-center pt-44 pb-10 overflow-hidden"
+      className="relative flex flex-col items-center pt-24 pb-8 overflow-hidden"
       style={{
-        minHeight: "88vh",
+        minHeight: "90vh",
         backgroundImage: "url('/hero-bg.webp')",
         backgroundSize: "cover",
-        backgroundPosition: "center 0%",
+        backgroundPosition: "center 15%",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 22 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-        className="text-center max-w-5xl mx-auto z-10 px-4"
-      >
-        <motion.h1
-          initial={{ opacity: 0, y: 18 }}
+      <div className="text-center max-w-5xl mx-auto z-10 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="font-pixel text-2xl md:text-4xl font-bold mb-5 tracking-tight uppercase"
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-block rounded-3xl px-10 py-5 mb-2"
           style={{
-            color: "#0f172a",
-            textShadow: "0 1px 0 rgba(255,255,255,0.6), 0 2px 20px rgba(255,255,255,0.4)",
+            background: "rgba(255,255,255,0.48)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.75)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
           }}
         >
-          AI AGENTIC MARKETING STUDIO
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="font-pixel text-[11px] uppercase tracking-widest"
-          style={{ color: "rgba(15,23,42,0.6)", textShadow: "0 1px 8px rgba(255,255,255,0.5)" }}
-        >
-          The future of autonomous content creation.
-        </motion.p>
-      </motion.div>
+          <h1
+            className="font-pixel text-2xl md:text-3xl font-bold mb-3 tracking-tight uppercase"
+            style={{ color: "#0f172a" }}
+          >
+            AI AGENTIC MARKETING STUDIO
+          </h1>
+          <p
+            className="font-pixel text-[11px] uppercase tracking-widest"
+            style={{ color: "rgba(15,23,42,0.55)" }}
+          >
+            The future of autonomous content creation.
+          </p>
+        </motion.div>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-5xl mx-auto px-6 mt-14"
+        className="relative w-full max-w-5xl mx-auto px-6 mt-8"
         style={{ height: `${CONTAINER_H}px` }}
       >
         <ArchSVG />
@@ -218,12 +218,16 @@ export function Hero() {
         transition={{ delay: 1.3, duration: 0.8 }}
         className="relative z-10 mt-6 text-center"
       >
-        <p
-          className="font-pixel text-[9px] uppercase tracking-[0.35em]"
-          style={{ color: "rgba(15,23,42,0.45)", textShadow: "0 1px 6px rgba(255,255,255,0.4)" }}
+        <span
+          className="font-pixel text-[9px] uppercase tracking-[0.35em] px-4 py-2 rounded-full"
+          style={{
+            color: "rgba(15,23,42,0.5)",
+            background: "rgba(255,255,255,0.35)",
+            backdropFilter: "blur(8px)",
+          }}
         >
           Powered by autonomous AI agents · Built for solopreneurs & startups
-        </p>
+        </span>
       </motion.div>
     </section>
   );
