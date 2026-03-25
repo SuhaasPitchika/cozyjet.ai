@@ -9,6 +9,7 @@ import { LogOut, Eye, Zap, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
+import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
   { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
@@ -21,20 +22,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
+  const isLoading = isUserLoading || isReplitLoading;
+  const isAuthenticated = !!user || !!replitUser;
+
   React.useEffect(() => {
-    if (!isUserLoading && !user) router.push("/auth");
-  }, [user, isUserLoading, router]);
+    if (!isLoading && !isAuthenticated) router.push("/auth");
+  }, [isLoading, isAuthenticated, router]);
 
   const handleSignOut = async () => {
-    try { await signOut(auth); router.push("/auth"); } catch (e) { console.error(e); }
+    try {
+      if (user) await signOut(auth);
+      if (replitUser) signOutReplit();
+      router.push("/auth");
+    } catch (e) { console.error(e); }
   };
 
-  if (isUserLoading || !user) return null;
+  if (isLoading || !isAuthenticated) return null;
 
   const activeItem = NAV_ITEMS.find((n) => n.href === pathname);
-  const initials = (user.displayName || user.email || "U").slice(0, 2).toUpperCase();
+  const displayName = user?.displayName || user?.email || replitUser?.name || "User";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ background: "#f5f5f7" }}>
@@ -131,7 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
               boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
             }}
-            title={user.email || ""}
+            title={user?.email || replitUser?.name || ""}
           >
             <span className="text-[10px] font-bold text-white">{initials}</span>
           </motion.div>
