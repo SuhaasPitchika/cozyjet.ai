@@ -2,382 +2,240 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Monitor, Cpu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ShieldCheck, Cpu } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 function GlowCursorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouse = useRef({ x: -9999, y: -9999 });
   const raf = useRef<number>(0);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
     resize();
     window.addEventListener("resize", resize);
-
-    const GAP = 26;
-    const RADIUS = 120;
-
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     };
-    const onLeave = () => { mouse.current = { x: -9999, y: -9999 }; };
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseleave", onLeave);
-
+    const GAP = 26, RADIUS = 130;
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const mx = mouse.current.x; const my = mouse.current.y;
-      const cols = Math.ceil(canvas.width / GAP) + 1;
-      const rows = Math.ceil(canvas.height / GAP) + 1;
+      const cols = Math.ceil(canvas.width / GAP) + 1, rows = Math.ceil(canvas.height / GAP) + 1;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const x = c * GAP; const y = r * GAP;
-          const dist = Math.hypot(x - mx, y - my);
+          const x = c * GAP, y = r * GAP;
+          const dist = Math.hypot(x - mouse.current.x, y - mouse.current.y);
           if (dist < RADIUS) {
             const t = 1 - dist / RADIUS;
-            const size = 1.5 + t * 2.8;
-            ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(59,130,246,${t * 0.65})`; ctx.fill();
+            ctx.beginPath(); ctx.arc(x, y, 1.5 + t * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(59,130,246,${t * 0.55})`; ctx.fill();
           } else {
-            ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0,0,0,0.055)"; ctx.fill();
+            ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(0,0,0,0.045)"; ctx.fill();
           }
         }
       }
       raf.current = requestAnimationFrame(draw);
     };
     draw();
-    return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseleave", onLeave);
-      cancelAnimationFrame(raf.current);
-    };
+    return () => { window.removeEventListener("resize", resize); window.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf.current); };
   }, []);
-
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }} />;
 }
 
-function PowerSymbol({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-      style={{ color: active ? "#ffffff" : "rgba(0,0,0,0.4)", filter: active ? "drop-shadow(0 0 6px rgba(255,255,255,0.8))" : "none", transition: "all 0.35s ease" }}
-    >
-      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-      <line x1="12" y1="2" x2="12" y2="12" />
-    </svg>
-  );
-}
-
-function GlowingToggleButton({ active, onToggle }: { active: boolean; onToggle: () => void }) {
+function HyperrealisticSwitch({ active, onToggle, isCapturing }: { active: boolean; onToggle: () => void; isCapturing: boolean }) {
   const [pressed, setPressed] = useState(false);
 
   return (
-    <div className="flex flex-col items-center gap-5 select-none">
-      <motion.button
-        onMouseDown={() => setPressed(true)}
-        onMouseUp={() => { setPressed(false); onToggle(); }}
-        onMouseLeave={() => setPressed(false)}
-        onTouchStart={() => setPressed(true)}
-        onTouchEnd={() => { setPressed(false); onToggle(); }}
-        aria-label={active ? "Deactivate Skippy" : "Activate Skippy"}
-        className="focus:outline-none relative cursor-pointer"
-        style={{ WebkitTapHighlightColor: "transparent" }}
-        whileHover={{ y: -2 }}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
-      >
+    <div className="flex flex-col items-center gap-6 select-none">
+      <div className="relative">
         <motion.div
-          animate={{ scale: pressed ? 0.97 : 1 }}
-          transition={{ type: "spring", stiffness: 600, damping: 30 }}
-          style={{
-            width: 80,
-            height: 160,
-            borderRadius: 40,
-            background: active
-              ? "linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%)"
-              : pressed
-              ? "linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%)"
-              : "linear-gradient(180deg, #f5f5f5 0%, #ececec 100%)",
-            boxShadow: pressed
-              ? "inset 4px 4px 14px #c0c0c0, inset -4px -4px 14px #ffffff, 0 0 0 1px rgba(0,0,0,0.06)"
-              : active
-              ? `6px 6px 20px rgba(0,0,0,0.3), -2px -2px 10px rgba(255,255,255,0.05), 0 0 0 1px rgba(0,0,0,0.2), 0 0 60px 20px rgba(236,72,153,0.45), 0 20px 40px 0px rgba(236,72,153,0.3)`
-              : "6px 6px 20px #c0c0c0, -6px -6px 20px #ffffff, 0 0 0 1px rgba(0,0,0,0.05)",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingTop: 18,
-            paddingBottom: 18,
-          }}
+          animate={active ? { boxShadow: ["0 0 60px 20px rgba(236,72,153,0.5), 0 0 120px 40px rgba(236,72,153,0.2)", "0 0 80px 30px rgba(236,72,153,0.7), 0 0 160px 60px rgba(236,72,153,0.3)", "0 0 60px 20px rgba(236,72,153,0.5), 0 0 120px 40px rgba(236,72,153,0.2)"] } : { boxShadow: "none" }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="rounded-full"
+          style={{ padding: 24 }}
         >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <PowerSymbol active={active} />
-          </div>
-
-          <motion.div
-            animate={{
-              background: active
-                ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
-                : "linear-gradient(135deg, #d4d4d4 0%, #b8b8b8 100%)",
-            }}
+          <motion.button
+            onMouseDown={() => setPressed(true)}
+            onMouseUp={() => { setPressed(false); if (!isCapturing) onToggle(); }}
+            onMouseLeave={() => setPressed(false)}
+            onTouchStart={() => setPressed(true)}
+            onTouchEnd={() => { setPressed(false); if (!isCapturing) onToggle(); }}
+            disabled={isCapturing}
+            className="relative focus:outline-none cursor-pointer disabled:cursor-not-allowed"
             style={{
-              width: 52,
-              height: 52,
+              width: 120,
+              height: 120,
               borderRadius: "50%",
+              background: active
+                ? "radial-gradient(circle at 35% 35%, #ff6eb4, #ec4899 40%, #be185d 75%, #831843)"
+                : pressed
+                ? "radial-gradient(circle at 35% 35%, #d4d4d4, #b0b0b0 40%, #888 75%, #555)"
+                : "radial-gradient(circle at 35% 35%, #e8e8e8, #c8c8c8 40%, #a0a0a0 75%, #686868)",
               boxShadow: active
-                ? "3px 3px 10px rgba(219,39,119,0.6), -2px -2px 6px rgba(255,255,255,0.05), 0 0 24px rgba(236,72,153,0.7)"
-                : "3px 3px 10px #b0b0b0, -3px -3px 8px #ffffff, inset 1px 1px 4px #f0f0f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative",
-              transition: "all 0.35s ease",
+                ? `
+                  inset -4px -4px 12px rgba(0,0,0,0.5),
+                  inset 4px 4px 12px rgba(255,180,220,0.3),
+                  0 8px 32px rgba(236,72,153,0.8),
+                  0 2px 8px rgba(0,0,0,0.4),
+                  0 0 0 3px rgba(236,72,153,0.6),
+                  0 0 0 6px rgba(236,72,153,0.2)
+                `
+                : pressed
+                ? `
+                  inset 6px 6px 18px rgba(0,0,0,0.4),
+                  inset -2px -2px 8px rgba(255,255,255,0.2),
+                  0 2px 8px rgba(0,0,0,0.3)
+                `
+                : `
+                  inset -6px -6px 18px rgba(0,0,0,0.35),
+                  inset 6px 6px 18px rgba(255,255,255,0.45),
+                  0 12px 40px rgba(0,0,0,0.3),
+                  0 4px 12px rgba(0,0,0,0.2),
+                  0 0 0 2px rgba(0,0,0,0.08)
+                `,
+              transform: pressed ? "scale(0.96) translateY(2px)" : "scale(1) translateY(0)",
+              transition: "all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
             {active && (
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-                style={{ background: "rgba(236,72,153,0.5)", borderRadius: "50%" }}
-              />
+              <>
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 1.8, repeat: Infinity }}
+                  style={{ background: "rgba(236,72,153,0.4)" }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  animate={{ scale: [1, 1.7, 1], opacity: [0.4, 0, 0.4] }}
+                  transition={{ duration: 1.8, repeat: Infinity, delay: 0.3 }}
+                  style={{ background: "rgba(236,72,153,0.3)" }}
+                />
+              </>
             )}
-            {active ? (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                style={{ width: 18, height: 18, borderRadius: "50%", background: "conic-gradient(from 0deg, #ffffff, #fce7f3, #ffffff)", boxShadow: "0 0 10px rgba(255,255,255,0.6)" }}
-              />
-            ) : (
-              <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(0,0,0,0.15)" }} />
-            )}
-          </motion.div>
 
-          <motion.div
-            animate={{ opacity: active ? 1 : 0 }}
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              fontFamily: "system-ui",
-              letterSpacing: "0.08em",
-              color: "#ec4899",
-              textShadow: "0 0 8px rgba(236,72,153,0.8)",
-            }}
-          >
-            ON
-          </motion.div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg viewBox="0 0 48 48" width="52" height="52" fill="none">
+                <path d="M24 6 L24 22" stroke={active ? "rgba(255,255,255,0.95)" : "rgba(80,80,80,0.7)"}
+                  strokeWidth="4" strokeLinecap="round"
+                  style={{ filter: active ? "drop-shadow(0 0 8px rgba(255,255,255,0.9))" : "none" }} />
+                <path d="M16 10 A16 16 0 1 0 32 10" stroke={active ? "rgba(255,255,255,0.85)" : "rgba(80,80,80,0.6)"}
+                  fill="none" strokeWidth="4" strokeLinecap="round"
+                  style={{ filter: active ? "drop-shadow(0 0 6px rgba(255,255,255,0.7))" : "none" }} />
+              </svg>
+            </div>
 
-          {active && (
-            <>
-              <motion.div
-                className="absolute inset-0 rounded-[40px] pointer-events-none"
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                style={{ boxShadow: "0 0 0 3px rgba(236,72,153,0.3), 0 0 40px rgba(236,72,153,0.2)" }}
-              />
-              <motion.div
-                className="absolute -bottom-8 left-1/2 -translate-x-1/2"
-                style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                <div style={{ width: 22, height: 22, borderRadius: "50%", background: "conic-gradient(from 0deg, #ec4899, #a855f7, #3b82f6, #ec4899)", boxShadow: "0 0 10px rgba(236,72,153,0.6)", animation: "spin 2s linear infinite" }} />
-              </motion.div>
-            </>
-          )}
+            <div
+              className="absolute top-4 left-4 rounded-full pointer-events-none"
+              style={{
+                width: 32, height: 32,
+                background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), transparent 70%)",
+              }}
+            />
+          </motion.button>
         </motion.div>
-      </motion.button>
 
-      <div className="flex items-center gap-2 mt-10">
-        <motion.div
-          animate={{ scale: active ? [1, 1.6, 1] : 1, opacity: active ? 1 : 0.2 }}
-          transition={{ duration: 1.4, repeat: active ? Infinity : 0 }}
-          className="w-2 h-2 rounded-full"
-          style={{ background: active ? "#ec4899" : "#999", boxShadow: active ? "0 0 8px rgba(236,72,153,0.8)" : "none" }}
+        <div
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full"
+          style={{
+            width: 100,
+            height: 20,
+            background: "radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%)",
+            filter: "blur(6px)",
+          }}
         />
-        <span className={cn("text-[11px] font-semibold tracking-[0.22em] uppercase transition-colors duration-400", active ? "text-black/55" : "text-black/18")}>
-          {active ? "Observer Active" : "Observer Off"}
+      </div>
+
+      <div
+        className="rounded-2xl px-6 py-3 flex items-center gap-3"
+        style={{
+          background: active
+            ? "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(219,39,119,0.08))"
+            : "rgba(0,0,0,0.04)",
+          border: active ? "1px solid rgba(236,72,153,0.3)" : "1px solid rgba(0,0,0,0.06)",
+          transition: "all 0.4s ease",
+          boxShadow: active ? "0 4px 20px rgba(236,72,153,0.15)" : "none",
+        }}
+      >
+        <motion.div
+          animate={{ scale: active ? [1, 1.5, 1] : 1, opacity: active ? 1 : 0.3 }}
+          transition={{ duration: 1.4, repeat: active ? Infinity : 0 }}
+          className="w-2.5 h-2.5 rounded-full"
+          style={{
+            background: active ? "#ec4899" : "#999",
+            boxShadow: active ? "0 0 10px rgba(236,72,153,0.9)" : "none",
+          }}
+        />
+        <span className="text-sm font-bold uppercase tracking-[0.2em]"
+          style={{ color: active ? "#ec4899" : "rgba(0,0,0,0.25)", transition: "color 0.4s ease" }}>
+          {isCapturing ? "Capturing..." : active ? "Observer Active" : "Observer Off"}
         </span>
       </div>
     </div>
   );
 }
 
-function ScreenShareButton({ onCapture, isSharing }: { onCapture: (data: string, mime: string) => void; isSharing: boolean }) {
-  const streamRef = useRef<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [capturing, setCapturing] = useState(false);
-
-  const startShare = async () => {
-    setShowModal(false);
-    setCapturing(true);
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { mediaSource: "screen" } as any,
-        audio: false,
-      });
-      streamRef.current = stream;
-
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      video.autoplay = true;
-      videoRef.current = video;
-
-      video.onloadedmetadata = () => {
-        video.play();
-        setTimeout(() => {
-          const canvas = document.createElement("canvas");
-          canvas.width = Math.min(video.videoWidth, 1280);
-          canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-            const base64 = dataUrl.split(",")[1];
-            onCapture(base64, "image/jpeg");
-          }
-          stream.getTracks().forEach((t) => t.stop());
-          streamRef.current = null;
-          setCapturing(false);
-        }, 800);
-      };
-    } catch (err: any) {
-      if (err.name !== "NotAllowedError") console.error("Screen capture error:", err);
-      setCapturing(false);
-    }
-  };
-
-  return (
-    <>
-      <motion.button
-        onClick={() => setShowModal(true)}
-        disabled={isSharing || capturing}
-        whileHover={{ scale: 1.04, y: -1 }}
-        whileTap={{ scale: 0.97 }}
-        className="relative flex items-center gap-3 px-6 py-3.5 rounded-2xl font-semibold text-sm disabled:opacity-50 transition-all"
-        style={{
-          background: isSharing
-            ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
-            : "linear-gradient(135deg, #1e1e2e 0%, #16213e 100%)",
-          color: "white",
-          boxShadow: isSharing
-            ? "0 4px 20px rgba(16,185,129,0.4), 0 0 0 1px rgba(16,185,129,0.3)"
-            : "0 4px 20px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.08)",
-        }}
-      >
-        {isSharing && (
-          <motion.div
-            className="absolute inset-0 rounded-2xl"
-            animate={{ opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{ background: "rgba(16,185,129,0.15)", borderRadius: "1rem" }}
-          />
-        )}
-        <Monitor size={16} />
-        <span>{capturing ? "Capturing..." : isSharing ? "Skippy is Watching" : "Share Screen with Skippy"}</span>
-        {isSharing && (
-          <motion.div
-            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-            className="w-2 h-2 rounded-full bg-white"
-          />
-        )}
-      </motion.button>
-
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
-          >
-            <motion.div
-              initial={{ scale: 0.92, y: 16 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.92, y: 16 }}
-              transition={{ type: "spring", damping: 28 }}
-              className="relative w-full max-w-sm mx-4 rounded-3xl p-8 text-center"
-              style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(24px)", boxShadow: "0 32px 80px rgba(0,0,0,0.25)", border: "1px solid rgba(0,0,0,0.08)" }}
-            >
-              <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors">
-                <X size={14} className="text-black/40" />
-              </button>
-              <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1e1e2e, #2d2d44)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
-                <Monitor size={26} className="text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Allow Screen Access</h3>
-              <p className="text-sm text-gray-500 leading-relaxed mb-6">
-                Skippy will capture a single screenshot to analyze your current workspace. No video is recorded. You choose what to share.
-              </p>
-              <div className="flex gap-2">
-                <button onClick={() => setShowModal(false)} className="flex-1 h-11 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors border border-gray-200">
-                  Cancel
-                </button>
-                <motion.button
-                  onClick={startShare}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 h-11 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, #1e1e2e, #3b82f6)" }}
-                >
-                  Share Screen
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
 const CAPABILITIES = [
-  { label: "Screen Context", desc: "Real-time activity detection", icon: "👁️" },
-  { label: "App Tracking", desc: "IDE, browser, terminal", icon: "📊" },
-  { label: "Commit Detection", desc: "Git hook + push signals", icon: "🔗" },
-  { label: "PII Filtering", desc: "Zero-leak local redaction", icon: "🔒" },
+  { label: "Full Screen Capture", desc: "Entire screen including all tabs & apps", icon: "🖥️" },
+  { label: "App Detection", desc: "IDE, browser, terminal, design tools", icon: "📊" },
+  { label: "Activity Analysis", desc: "Work patterns & context signals", icon: "🧠" },
+  { label: "Privacy Shield", desc: "PII blocklist applied locally", icon: "🔒" },
 ];
 
 export default function SkippyPage() {
   const { skippyActive, setSkippyActive, setAssistanceMsg, setSkippyContext } = useDashboardStore();
-  const [isSharing, setIsSharing] = useState(false);
   const [analysis, setAnalysis] = useState<Record<string, any> | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const handleCapture = useCallback(async (base64: string, mimeType: string) => {
-    setIsAnalyzing(true);
-    setIsSharing(true);
+  const captureAndAnalyze = useCallback(async () => {
+    setIsCapturing(true);
     setApiError(null);
     try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 } } as any,
+        audio: false,
+      });
+
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.autoplay = true;
+
+      await new Promise<void>((resolve) => {
+        video.onloadedmetadata = () => { video.play(); setTimeout(resolve, 600); };
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.min(video.videoWidth || 1280, 1280);
+      canvas.height = Math.round(canvas.width * ((video.videoHeight || 720) / (video.videoWidth || 1280)));
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      stream.getTracks().forEach((t) => t.stop());
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+      const base64 = dataUrl.split(",")[1];
+
       const res = await fetch("/api/ai/screen-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mimeType }),
+        body: JSON.stringify({ imageBase64: base64, mimeType: "image/jpeg" }),
       });
       const data = await res.json();
+
       if (data.error) {
-        if (data.error.includes("API key")) {
-          setApiError("OPEN_ROUTER API key not configured. Screen analysis requires the API key.");
-        } else {
-          setApiError("Analysis failed. Please try again.");
-        }
-        setIsSharing(false);
+        setApiError(data.error.includes("API key")
+          ? "OpenRouter API key not configured. Add OPEN_ROUTER in Secrets."
+          : data.error);
+        setSkippyActive(false);
       } else if (data.analysis) {
         setAnalysis(data.analysis);
-        const msg = data.analysis.signal || data.analysis.activity || "Screen analyzed";
-        setAssistanceMsg(msg);
+        setAssistanceMsg(data.analysis.signal || data.analysis.activity || "Screen analyzed");
         setSkippyContext({
           signal: data.analysis.signal,
           activity: data.analysis.activity,
@@ -386,117 +244,83 @@ export default function SkippyPage() {
           insights: data.analysis.insights,
           focus_score: data.analysis.focus_score,
         });
-        setSkippyActive(true);
       }
-    } catch (err) {
-      console.error("Screen analysis error:", err);
-      setApiError("Connection error during analysis.");
-      setIsSharing(false);
+    } catch (err: any) {
+      if (err.name === "NotAllowedError") {
+        setApiError("Screen access denied. Click the switch again and choose to share your screen.");
+        setSkippyActive(false);
+      } else {
+        setApiError("Capture failed. Please try again.");
+        setSkippyActive(false);
+      }
     } finally {
-      setIsAnalyzing(false);
+      setIsCapturing(false);
     }
   }, [setAssistanceMsg, setSkippyActive, setSkippyContext]);
 
-  const stopSharing = () => {
-    setIsSharing(false);
-    setAnalysis(null);
-    setApiError(null);
+  const handleToggle = async () => {
+    if (skippyActive) {
+      setSkippyActive(false);
+      setAnalysis(null);
+      setApiError(null);
+    } else {
+      setSkippyActive(true);
+      await captureAndAnalyze();
+    }
   };
 
   return (
     <div className="relative min-h-full bg-white flex flex-col items-center justify-center gap-8 p-8 overflow-hidden">
       <GlowCursorCanvas />
 
-      {skippyActive && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.12), rgba(168,85,247,0.08))", border: "1px solid rgba(236,72,153,0.25)", backdropFilter: "blur(8px)" }}
-        >
-          <motion.div
-            animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-            className="w-2 h-2 rounded-full"
-            style={{ background: "#ec4899", boxShadow: "0 0 6px rgba(236,72,153,0.8)" }}
-          />
-          <span className="text-xs font-bold text-pink-500 uppercase tracking-widest">Skippy Active</span>
-        </motion.div>
-      )}
-
-      <div className="relative z-10 text-center space-y-1.5">
+      <div className="relative z-10 text-center space-y-2">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Cpu size={11} className="text-black/20" />
           <span className="text-[10px] text-black/25 font-semibold uppercase tracking-[0.3em]">Observer Agent · Skippy</span>
         </div>
         <h1 className="text-3xl font-bold text-black tracking-tight">Workspace Intelligence</h1>
         <p className="text-sm text-black/38 max-w-xs mx-auto leading-relaxed">
-          Activate Skippy to observe your workspace and feed live context to all agents.
+          Toggle Skippy to capture your full screen and feed live context to all AI agents.
         </p>
       </div>
 
       <div className="relative z-10">
-        <GlowingToggleButton active={skippyActive} onToggle={() => {
-          setSkippyActive(!skippyActive);
-          if (skippyActive) {
-            setIsSharing(false);
-            setAnalysis(null);
-          }
-        }} />
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center gap-3">
-        <ScreenShareButton onCapture={handleCapture} isSharing={isSharing} />
-        {isSharing && (
-          <button onClick={stopSharing} className="text-xs text-black/30 hover:text-black/60 transition-colors">
-            Stop sharing
-          </button>
-        )}
+        <HyperrealisticSwitch active={skippyActive} onToggle={handleToggle} isCapturing={isCapturing} />
       </div>
 
       {apiError && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 px-4 py-3 rounded-2xl max-w-sm text-sm text-red-600 font-medium text-center"
-          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
-        >
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 px-5 py-3.5 rounded-2xl max-w-sm text-sm text-red-600 font-medium text-center"
+          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
           {apiError}
         </motion.div>
       )}
 
       <AnimatePresence>
-        {isAnalyzing && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
+        {isCapturing && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             className="relative z-10 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
-            style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}
-          >
+            style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
             <div className="flex gap-1">
-              {[0,1,2].map((i) => (
-                <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0,-3,0] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
-                  className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              {[0, 1, 2].map((i) => (
+                <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
+                  className="w-1.5 h-1.5 rounded-full bg-pink-500" />
               ))}
             </div>
-            <span className="text-xs font-medium text-black/50">Skippy is analyzing your screen...</span>
+            <span className="text-xs font-medium text-black/50">Skippy is analyzing your entire screen...</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {analysis && !isAnalyzing && (
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="relative z-10 w-full max-w-sm space-y-3"
-          >
-            <div className="rounded-2xl px-4 py-4" style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff", border: "1px solid rgba(59,130,246,0.12)" }}>
+        {analysis && !isCapturing && (
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="relative z-10 w-full max-w-sm space-y-3">
+            <div className="rounded-2xl px-4 py-4"
+              style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff", border: "1px solid rgba(59,130,246,0.12)" }}>
               <div className="flex items-center gap-1.5 mb-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-[9px] font-bold text-blue-500 uppercase tracking-wider">Live Analysis</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
+                <span className="text-[9px] font-bold text-pink-500 uppercase tracking-wider">Live Screen Analysis</span>
                 {typeof analysis.focus_score === "number" && (
                   <span className="ml-auto text-[9px] font-semibold text-blue-400">{analysis.focus_score}% focus</span>
                 )}
@@ -507,56 +331,38 @@ export default function SkippyPage() {
               {Array.isArray(analysis.apps) && analysis.apps.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {analysis.apps.slice(0, 5).map((app: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 rounded-full text-[9px] font-medium" style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>{app}</span>
+                    <span key={i} className="px-2 py-0.5 rounded-full text-[9px] font-medium"
+                      style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>{app}</span>
                   ))}
                 </div>
               )}
               <div className="mt-3 pt-2 border-t border-blue-100">
-                <p className="text-[9px] text-blue-400 font-medium">✓ Context shared with Snooks & Meta</p>
+                <p className="text-[9px] text-pink-400 font-semibold">✓ Context live-shared with Snooks & Meta</p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              {CAPABILITIES.map((cap, i) => (
-                <motion.div key={cap.label} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.06 }}
-                  className="rounded-2xl p-3.5" style={{ background: "#f5f5f5", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
-                  <div className="text-base mb-1">{cap.icon}</div>
-                  <div className="text-[11px] font-semibold text-black/60 mb-0.5">{cap.label}</div>
-                  <div className="text-[9px] text-black/28">{cap.desc}</div>
-                </motion.div>
-              ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {!analysis && !isAnalyzing && (
-        <div className="relative z-10 flex flex-col items-center gap-2 w-full max-w-sm">
-          <div className="grid grid-cols-2 gap-2.5 w-full opacity-40">
-            {CAPABILITIES.map((cap) => (
-              <div key={cap.label} className="rounded-2xl p-3.5" style={{ background: "#f5f5f5", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
-                <div className="text-base mb-1">{cap.icon}</div>
-                <div className="text-[11px] font-semibold text-black/60 mb-0.5">{cap.label}</div>
-                <div className="text-[9px] text-black/28">{cap.desc}</div>
-              </div>
-            ))}
+      <div className="relative z-10 grid grid-cols-2 gap-2.5 w-full max-w-sm" style={{ opacity: analysis ? 1 : 0.45 }}>
+        {CAPABILITIES.map((cap) => (
+          <div key={cap.label} className="rounded-2xl p-3.5"
+            style={{ background: "#f5f5f5", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
+            <div className="text-base mb-1">{cap.icon}</div>
+            <div className="text-[11px] font-semibold text-black/60 mb-0.5">{cap.label}</div>
+            <div className="text-[9px] text-black/28">{cap.desc}</div>
           </div>
-        </div>
-      )}
-
-      <div
-        className="relative z-10 flex items-start gap-3 px-5 py-4 rounded-2xl max-w-sm"
-        style={{ background: "#f5f5f5", boxShadow: "5px 5px 12px #d8d8d8, -5px -5px 12px #ffffff" }}
-      >
-        <ShieldCheck size={13} className="text-black/18 mt-0.5 shrink-0" />
-        <p className="text-[10px] text-black/28 leading-relaxed">
-          Privacy-first. Single screenshot, analyzed locally. PII blocklist applied before any content leaves your device.
-        </p>
+        ))}
       </div>
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
+      <div className="relative z-10 flex items-start gap-3 px-5 py-4 rounded-2xl max-w-sm"
+        style={{ background: "#f5f5f5", boxShadow: "5px 5px 12px #d8d8d8, -5px -5px 12px #ffffff" }}>
+        <ShieldCheck size={13} className="text-black/18 mt-0.5 shrink-0" />
+        <p className="text-[10px] text-black/28 leading-relaxed">
+          Privacy-first. One screenshot, never video. PII blocked before leaving your device.
+          Skippy sees your full screen including all open apps and browser tabs.
+        </p>
+      </div>
     </div>
   );
 }
