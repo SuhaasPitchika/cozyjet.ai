@@ -5,11 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function Navbar() {
-  const logo = PlaceHolderImages.find(img => img.id === "cozyjetlogo");
-
   return (
     <div className="fixed top-8 left-0 right-0 z-50 flex justify-center px-4">
       <motion.nav
@@ -18,14 +15,13 @@ export function Navbar() {
         className="bg-sky-200/20 backdrop-blur-3xl border border-sky-100/50 max-w-4xl w-full h-20 flex items-center justify-between px-10 rounded-full shadow-[0_12px_48px_0_rgba(186,230,253,0.3)] ring-1 ring-white/60"
       >
         <Link href="/" className="flex items-center gap-4 group">
-          <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center bg-white/40 group-hover:scale-110 transition-transform duration-300">
-             <Image 
-              src={logo?.imageUrl || "https://picsum.photos/seed/cozyjet-cloud-plane/100/100"} 
-              alt="Logo" 
-              width={48} 
+          <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Image
+              src="/cozyjet-logo.png"
+              alt="CozyJet Logo"
+              width={48}
               height={48}
-              className="object-contain p-1"
-              data-ai-hint="plane cloud"
+              className="object-contain"
             />
           </div>
           <span className="font-pixel text-xl font-bold tracking-tighter text-black uppercase">

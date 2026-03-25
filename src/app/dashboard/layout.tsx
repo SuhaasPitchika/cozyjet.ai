@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Eye, BarChart2, Sparkles, SlidersHorizontal,
   LogOut, Bot, Send, X, Loader2,
@@ -15,10 +16,10 @@ import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { skippyChatClient } from "@/ai/client";
 
 const NAV_ITEMS = [
-  { label: "Observer", href: "/dashboard/skippy", icon: Eye, desc: "Skippy" },
-  { label: "Timeline", href: "/dashboard/flippo", icon: BarChart2, desc: "Flippo" },
-  { label: "Marketing", href: "/dashboard/snooks", icon: Sparkles, desc: "Snooks" },
-  { label: "Tuning", href: "/dashboard/tuning", icon: SlidersHorizontal, desc: "Studio" },
+  { label: "Observer", href: "/dashboard/skippy", icon: Eye, desc: "Skippy", color: "#3b82f6" },
+  { label: "Timeline", href: "/dashboard/flippo", icon: BarChart2, desc: "Flippo", color: "#8b5cf6" },
+  { label: "Marketing", href: "/dashboard/snooks", icon: Sparkles, desc: "Snooks", color: "#ec4899" },
+  { label: "Tuning", href: "/dashboard/tuning", icon: SlidersHorizontal, desc: "Studio", color: "#10b981" },
 ];
 
 interface ChatMsg {
@@ -76,84 +77,112 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const initials = (user.displayName || user.email || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#0d0d0d] text-white">
-      {/* Sidebar */}
-      <aside className="w-[56px] shrink-0 flex flex-col border-r border-white/[0.06] bg-[#111] z-40 items-center py-4 gap-1">
-        {/* Logo mark */}
-        <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center mb-4 shrink-0">
-          <span className="text-black font-bold text-[11px] tracking-tight">CJ</span>
-        </div>
+    <div className="flex h-screen w-full overflow-hidden bg-[#f0f4f8] text-gray-900">
+      <aside
+        className="w-[64px] shrink-0 flex flex-col z-40 items-center py-4 gap-1"
+        style={{
+          background: "rgba(255,255,255,0.72)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderRight: "1px solid rgba(0,0,0,0.07)",
+          boxShadow: "2px 0 16px rgba(0,0,0,0.04)",
+        }}
+      >
+        <Link href="/" className="mb-4 group">
+          <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center transition-transform group-hover:scale-110">
+            <Image src="/cozyjet-logo.png" alt="CozyJet" width={36} height={36} className="object-contain" />
+          </div>
+        </Link>
 
-        {/* Nav icons */}
-        <nav className="flex flex-col gap-1 flex-1">
+        <nav className="flex flex-col gap-1.5 flex-1 w-full px-2">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link key={item.href} href={item.href} title={item.label}>
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer",
-                    isActive
-                      ? "bg-white text-black"
-                      : "text-white/30 hover:text-white hover:bg-white/8"
+                    "w-full h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative group",
+                    isActive ? "shadow-sm" : "hover:bg-black/5"
                   )}
+                  style={isActive ? { background: `${item.color}15`, boxShadow: `0 0 0 1.5px ${item.color}40` } : {}}
                 >
-                  <item.icon size={16} />
+                  <item.icon
+                    size={17}
+                    style={{ color: isActive ? item.color : "rgba(0,0,0,0.35)" }}
+                  />
+                  <div className="absolute left-full ml-2.5 bg-gray-800 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">
+                    {item.label}
+                  </div>
                 </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* Bottom actions */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5 w-full px-2">
           <button
             onClick={() => setShowGlobalChat(!showGlobalChat)}
             title="Skippy Chat"
             className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-              showGlobalChat ? "bg-white/10 text-white" : "text-white/30 hover:text-white hover:bg-white/8"
+              "w-full h-10 rounded-xl flex items-center justify-center transition-all duration-200",
+              showGlobalChat ? "bg-blue-50 shadow-sm" : "hover:bg-black/5"
             )}
+            style={showGlobalChat ? { boxShadow: "0 0 0 1.5px rgba(59,130,246,0.4)" } : {}}
           >
-            <Bot size={16} />
+            <Bot size={17} style={{ color: showGlobalChat ? "#3b82f6" : "rgba(0,0,0,0.35)" }} />
           </button>
           <button
             onClick={handleSignOut}
             title="Sign out"
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-400/8 transition-all"
+            className="w-full h-10 rounded-xl flex items-center justify-center hover:bg-red-50 transition-all duration-200 group"
           >
-            <LogOut size={15} />
+            <LogOut size={16} className="text-black/25 group-hover:text-red-400 transition-colors" />
           </button>
 
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-xl bg-white/8 border border-white/6 flex items-center justify-center mt-1">
-            <span className="text-[10px] font-bold text-white/50">{initials}</span>
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mt-1"
+            style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", boxShadow: "0 2px 8px rgba(59,130,246,0.25)" }}
+          >
+            <span className="text-[10px] font-bold text-white">{initials}</span>
           </div>
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="h-11 shrink-0 flex items-center justify-between px-5 border-b border-white/[0.06] bg-[#111]">
-          <div className="flex items-center gap-2 text-xs text-white/30">
-            <span className="text-white/60 font-medium">{activeItem?.label ?? "Studio"}</span>
+        <header
+          className="h-12 shrink-0 flex items-center justify-between px-6"
+          style={{
+            background: "rgba(255,255,255,0.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            {activeItem && (
+              <div
+                className="w-6 h-6 rounded-lg flex items-center justify-center"
+                style={{ background: `${activeItem.color}15` }}
+              >
+                <activeItem.icon size={13} style={{ color: activeItem.color }} />
+              </div>
+            )}
+            <span className="text-sm font-semibold text-gray-700">{activeItem?.label ?? "Studio"}</span>
             {activeItem?.desc && (
               <>
-                <span className="text-white/15">·</span>
-                <span>{activeItem.desc}</span>
+                <span className="text-gray-300">·</span>
+                <span className="text-xs text-gray-400">{activeItem.desc}</span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[10px] text-white/25">Live</span>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.6)" }} />
+            <span className="text-[10px] text-gray-400 font-medium">Live</span>
           </div>
         </header>
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
 
-      {/* Skippy Chat Panel */}
       <AnimatePresence>
         {showGlobalChat && (
           <motion.div
@@ -161,21 +190,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 360, opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-[340px] bg-[#111] border-l border-white/[0.06] flex flex-col z-50 shadow-2xl"
+            className="fixed right-0 top-0 bottom-0 w-[340px] flex flex-col z-50"
+            style={{
+              background: "rgba(255,255,255,0.82)",
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              borderLeft: "1px solid rgba(0,0,0,0.07)",
+              boxShadow: "-8px 0 40px rgba(0,0,0,0.08)",
+            }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.05]">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-white/8 flex items-center justify-center">
-                  <Bot size={13} className="text-white/50" />
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #3b82f6, #60a5fa)", boxShadow: "0 2px 8px rgba(59,130,246,0.25)" }}
+                >
+                  <Bot size={14} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Skippy</div>
-                  <div className="text-[10px] text-white/25">Workspace AI</div>
+                  <div className="text-sm font-semibold text-gray-800">Skippy</div>
+                  <div className="text-[10px] text-gray-400">Workspace AI</div>
                 </div>
               </div>
               <button
                 onClick={() => setShowGlobalChat(false)}
-                className="w-7 h-7 rounded-lg hover:bg-white/8 text-white/25 hover:text-white transition-colors flex items-center justify-center"
+                className="w-7 h-7 rounded-lg hover:bg-black/5 text-gray-300 hover:text-gray-500 transition-colors flex items-center justify-center"
               >
                 <X size={13} />
               </button>
@@ -184,52 +223,69 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {messages.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                    <Bot size={17} className="text-white/15" />
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #eff6ff, #dbeafe)" }}
+                  >
+                    <Bot size={18} className="text-blue-400" />
                   </div>
-                  <p className="text-xs text-white/20 max-w-[180px] leading-relaxed">
+                  <p className="text-xs text-gray-400 max-w-[180px] leading-relaxed">
                     Ask Skippy anything about your workflow or studio.
                   </p>
                 </div>
               )}
               {messages.map((msg, i) => (
                 <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                  <div className={cn(
-                    "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed",
-                    msg.role === "user"
-                      ? "bg-white text-black rounded-br-sm"
-                      : "bg-white/[0.05] text-white/65 rounded-bl-sm border border-white/5"
-                  )}>
+                  <div
+                    className={cn(
+                      "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed",
+                      msg.role === "user"
+                        ? "text-white rounded-br-sm"
+                        : "text-gray-600 rounded-bl-sm"
+                    )}
+                    style={
+                      msg.role === "user"
+                        ? { background: "linear-gradient(135deg, #3b82f6, #2563eb)", boxShadow: "0 2px 8px rgba(59,130,246,0.25)" }
+                        : { background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)" }
+                    }
+                  >
                     {msg.content}
                   </div>
                 </div>
               ))}
               {isSending && (
                 <div className="flex justify-start">
-                  <div className="px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-white/5 border border-white/5">
-                    <Loader2 size={11} className="animate-spin text-white/25" />
+                  <div
+                    className="px-3.5 py-2.5 rounded-2xl rounded-bl-sm"
+                    style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)" }}
+                  >
+                    <Loader2 size={11} className="animate-spin text-gray-400" />
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-white/[0.06]">
-              <div className="flex items-center gap-2 bg-white/[0.05] rounded-xl px-4 py-2.5 focus-within:ring-1 focus-within:ring-white/10 transition-all border border-white/5">
+            <div className="p-4 border-t border-black/[0.05]">
+              <div
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 focus-within:ring-2 focus-within:ring-blue-300/50 transition-all"
+                style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)" }}
+              >
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSkippyChat()}
                   disabled={isSending}
-                  className="flex-1 bg-transparent text-xs text-white/75 placeholder:text-white/20 outline-none"
+                  className="flex-1 bg-transparent text-xs text-gray-700 placeholder:text-gray-400 outline-none"
                   placeholder="Ask for guidance..."
                 />
                 <button
                   onClick={handleSkippyChat}
                   disabled={isSending || !chatInput.trim()}
-                  className="p-1.5 rounded-lg bg-white text-black disabled:opacity-20 hover:bg-white/90 transition-colors"
+                  className="p-1.5 rounded-lg disabled:opacity-30 transition-all hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)", boxShadow: "0 2px 6px rgba(59,130,246,0.3)" }}
                 >
-                  <Send size={11} />
+                  <Send size={11} className="text-white" />
                 </button>
               </div>
             </div>
