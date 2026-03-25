@@ -16,17 +16,17 @@ export function Navbar() {
         className="bg-white/30 backdrop-blur-2xl border border-white/50 max-w-4xl w-full h-20 flex items-center justify-between px-8 rounded-full shadow-[0_12px_48px_0_rgba(186,230,253,0.25)] ring-1 ring-white/40"
       >
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+          <div className="relative w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
             <Image
               src="/cozyjet-logo.png"
               alt="CozyJet Logo"
-              width={64}
-              height={64}
+              width={80}
+              height={80}
               className="object-contain"
-              style={{ width: "64px", height: "64px" }}
+              style={{ width: "80px", height: "80px" }}
             />
           </div>
-          <span className="font-pixel text-xl font-bold tracking-tighter text-black uppercase">
+          <span className="font-pixel text-lg font-bold tracking-tighter text-black uppercase">
             CozyJet
           </span>
         </Link>

@@ -1,318 +1,323 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Send, Sparkles, User, Bot, Loader2, Copy, Check,
-  Linkedin, Twitter, Mail, TrendingUp, Lightbulb, RotateCcw,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Zap, Clock, TrendingUp, CheckCircle2, Circle } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
-interface ChatMsg {
+interface TimelineEvent {
   id: string;
-  role: "user" | "bot";
-  content: string;
-  generatedContent?: {
-    linkedin?: string;
-    twitter?: string;
-    email?: string;
-    growth?: string;
-    hooks?: string[];
-  };
+  time: string;
+  title: string;
+  desc: string;
+  type: "deep" | "research" | "commit" | "design" | "break" | "ai";
+  duration: string;
+  score: number;
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
+const TYPE_COLORS: Record<string, string> = {
+  deep: "#3b82f6",
+  research: "#8b5cf6",
+  commit: "#10b981",
+  design: "#ec4899",
+  break: "#6b7280",
+  ai: "#f59e0b",
+};
+
+const TYPE_ICONS: Record<string, string> = {
+  deep: "⌨️",
+  research: "🔍",
+  commit: "🔗",
+  design: "🎨",
+  break: "☕",
+  ai: "🤖",
+};
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 26;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
   return (
-    <button
-      onClick={async () => {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-      className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-white/30 hover:text-white/70"
-      title="Copy"
-    >
-      {copied ? <Check size={11} /> : <Copy size={11} />}
-    </button>
+    <svg width="64" height="64" viewBox="0 0 64 64" className="shrink-0">
+      <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="5" />
+      <motion.circle
+        cx="32" cy="32" r={r} fill="none"
+        stroke={score >= 75 ? "#10b981" : score >= 50 ? "#3b82f6" : "#ec4899"}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray={`${circ}`}
+        initial={{ strokeDashoffset: circ }}
+        animate={{ strokeDashoffset: circ - dash }}
+        transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
+        style={{ transformOrigin: "32px 32px", transform: "rotate(-90deg)" }}
+      />
+      <text x="32" y="37" textAnchor="middle" fontSize="13" fontWeight="800" fill="rgba(0,0,0,0.7)">{score}</text>
+    </svg>
   );
 }
 
-function ContentBlock({ type, content }: { type: string; content: string | string[] }) {
-  const icons: Record<string, React.ReactNode> = {
-    linkedin: <Linkedin size={11} />,
-    twitter: <Twitter size={11} />,
-    email: <Mail size={11} />,
-    growth: <TrendingUp size={11} />,
-    hooks: <Lightbulb size={11} />,
-  };
-  const labels: Record<string, string> = {
-    linkedin: "LinkedIn Post",
-    twitter: "X / Twitter Thread",
-    email: "Email",
-    growth: "Growth Hack",
-    hooks: "SEO Hooks",
-  };
-  const colors: Record<string, string> = {
-    linkedin: "rgba(10,102,194,0.15)",
-    twitter: "rgba(29,161,242,0.1)",
-    email: "rgba(255,255,255,0.04)",
-    growth: "rgba(52,211,153,0.08)",
-    hooks: "rgba(250,204,21,0.08)",
-  };
-  const text = Array.isArray(content) ? content.join("\n") : content;
-  if (!text) return null;
+function TimelineCard({ event, index }: { event: TimelineEvent; index: number }) {
+  const color = TYPE_COLORS[event.type];
   return (
-    <div
-      className="mt-3 rounded-2xl overflow-hidden"
-      style={{ background: colors[type] || "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+    <motion.div
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.08, duration: 0.4 }}
+      className="flex gap-4 group"
     >
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/40 font-semibold uppercase tracking-widest">
-          {icons[type]}
-          <span>{labels[type]}</span>
+      <div className="flex flex-col items-center">
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 shadow-sm"
+          style={{ background: `${color}14`, border: `1.5px solid ${color}30` }}
+        >
+          {TYPE_ICONS[event.type]}
         </div>
-        <CopyButton text={text} />
+        <div className="w-px flex-1 mt-2" style={{ background: `${color}18` }} />
       </div>
-      <div className="px-4 py-3 text-xs text-white/60 leading-relaxed whitespace-pre-wrap">
-        {text}
+      <div className="pb-6 flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div>
+            <p className="text-sm font-semibold text-gray-800 leading-tight">{event.title}</p>
+            <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{event.desc}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${color}12`, color }}>
+              {event.score}%
+            </div>
+            <p className="text-[9px] text-gray-300 mt-1">{event.duration}</p>
+          </div>
+        </div>
+        <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ background: "rgba(0,0,0,0.05)" }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${event.score}%` }}
+            transition={{ delay: 0.4 + index * 0.08, duration: 0.8, ease: "easeOut" }}
+            className="h-full rounded-full"
+            style={{ background: `linear-gradient(90deg, ${color}80, ${color})` }}
+          />
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-const STARTER_PROMPTS = [
-  { icon: "✍️", text: "Write a viral LinkedIn post about shipping my first SaaS feature" },
-  { icon: "🧵", text: "Twitter thread: how I built an AI agent studio solo in 2 weeks" },
-  { icon: "📈", text: "Fastest path from 0 to 1k followers for a solo developer" },
-  { icon: "📧", text: "Cold email sequence to land my first 10 SaaS customers" },
-  { icon: "🔍", text: "Give me 5 SEO hooks for a productivity AI app" },
+const SAMPLE_TIMELINE: TimelineEvent[] = [
+  { id: "1", time: "9:00 AM", title: "Deep work session — dashboard refactor", desc: "VSCode · /src/dashboard · 3 file saves · no context switches", type: "deep", duration: "47 min", score: 92 },
+  { id: "2", time: "9:52 AM", title: "API research & documentation reading", desc: "Browser · docs.openrouter.ai · API rate limits & vision endpoints", type: "research", duration: "28 min", score: 78 },
+  { id: "3", time: "10:25 AM", title: "Git commit pushed to main", desc: "feat: skippy toggle redesign with screen capture integration", type: "commit", duration: "5 min", score: 100 },
+  { id: "4", time: "10:30 AM", title: "Design system review — Figma", desc: "CozyJet design tokens, component library updates", type: "design", duration: "34 min", score: 85 },
+  { id: "5", time: "11:10 AM", title: "Short break", desc: "Away from screen · idle detected", type: "break", duration: "12 min", score: 30 },
+  { id: "6", time: "11:22 AM", title: "AI agent development — Snooks", desc: "Building productivity timeline generator · API integration", type: "ai", duration: "1h 8min", score: 96 },
 ];
 
 export default function SnooksPage() {
   const { assistanceMsg } = useDashboardStore();
-  const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<ChatMsg[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+  const [totalScore, setTotalScore] = useState(0);
+  const [generated, setGenerated] = useState(false);
+  const [dateLabel, setDateLabel] = useState("Today");
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages, isGenerating]);
+    const d = new Date();
+    setDateLabel(d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }));
+  }, []);
 
-  const handleSend = async (promptOverride?: string) => {
-    const userInput = promptOverride || input;
-    if (!userInput.trim() || isGenerating) return;
-    setInput("");
+  const stats = React.useMemo(() => {
+    if (!timeline.length) return null;
+    const deepWork = timeline.filter(e => e.type === "deep" || e.type === "ai" || e.type === "commit");
+    const commits = timeline.filter(e => e.type === "commit").length;
+    const avgScore = Math.round(timeline.reduce((s, e) => s + e.score, 0) / timeline.length);
+    return { sessions: deepWork.length, commits, avgScore };
+  }, [timeline]);
 
-    const userMsg: ChatMsg = { id: Date.now().toString(), role: "user", content: userInput };
-    setMessages((p) => [...p, userMsg]);
+  const generate = async () => {
     setIsGenerating(true);
+    setTimeline([]);
+    setGenerated(false);
+
+    const context = assistanceMsg
+      ? `Based on Skippy's live observation: "${assistanceMsg}". Generate a realistic productivity timeline for today.`
+      : "Generate a realistic productivity timeline for a developer/designer working on an AI SaaS product today.";
 
     try {
-      const response = await fetch("/api/ai/snooks", {
+      const res = await fetch("/api/ai/skippy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userPrompt: userInput,
-          skippyContext: assistanceMsg || "",
-          userContext: { tone: "Authoritative but Empathic", niche: "Solopreneur SaaS", platform: "Multi-channel" },
+          userMessage: `${context} Return exactly 6 timeline events as JSON array with fields: id(string), time(string "H:MM AM/PM"), title(string), desc(string), type(one of: deep|research|commit|design|break|ai), duration(string), score(number 0-100). Make times sequential starting around 9 AM. Focus on realistic developer/creative work patterns. Respond ONLY with a JSON array, no markdown.`,
+          currentView: "/dashboard/snooks",
+          observationContext: assistanceMsg || "generating productivity timeline",
         }),
       });
-
-      if (!response.ok) throw new Error("API error");
-      const data = await response.json();
-      const gc = data.generatedContent || {};
-
-      const botMsg: ChatMsg = {
-        id: (Date.now() + 1).toString(),
-        role: "bot",
-        content: data.responseText || "Here's what I generated for you:",
-        generatedContent: {
-          linkedin: gc.linkedinPost,
-          twitter: gc.xThread,
-          email: gc.emailContent,
-          growth: gc.growthHack,
-          hooks: gc.seoHooks,
-        },
-      };
-      setMessages((p) => [...p, botMsg]);
-    } catch (e) {
-      console.error("Snooks error:", e);
-      setMessages((p) => [...p, {
-        id: "err",
-        role: "bot",
-        content: "Failed to generate content. Check your API connection and try again.",
-      }]);
+      const data = await res.json();
+      const text = data.response || "";
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const events: TimelineEvent[] = JSON.parse(jsonMatch[0]);
+        setTimeline(events);
+        const avg = Math.round(events.reduce((s: number, e: TimelineEvent) => s + (e.score || 0), 0) / events.length);
+        setTotalScore(avg);
+        setGenerated(true);
+      } else {
+        setTimeline(SAMPLE_TIMELINE);
+        setTotalScore(81);
+        setGenerated(true);
+      }
+    } catch {
+      setTimeline(SAMPLE_TIMELINE);
+      setTotalScore(81);
+      setGenerated(true);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
-
-  const hasMessages = messages.length > 0;
-
   return (
-    <div className="h-full bg-[#0f0f0f] flex flex-col">
-      {/* Header */}
-      <div className="px-8 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
+    <div className="h-full flex flex-col" style={{ background: "#fafafa" }}>
+      <div className="px-8 py-5 border-b border-black/5 flex items-center justify-between shrink-0" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(12px)" }}>
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-            <span className="text-[11px] text-white/30 font-medium uppercase tracking-widest">Marketing Agent · Snooks</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+            <span className="text-[11px] text-black/30 font-medium uppercase tracking-widest">Productivity Agent · Snooks</span>
           </div>
-          <h1 className="text-lg font-semibold text-white tracking-tight">Marketing Intelligence</h1>
+          <h1 className="text-lg font-semibold text-gray-900 tracking-tight">Productivity Timeline</h1>
+          <p className="text-xs text-gray-400 mt-0.5">{dateLabel}</p>
         </div>
         <div className="flex items-center gap-3">
-          {isGenerating && (
-            <div className="flex items-center gap-2">
-              <Loader2 size={12} className="animate-spin text-white/30" />
-              <span className="text-[11px] text-white/40">Generating...</span>
-            </div>
-          )}
-          {hasMessages && (
-            <button
-              onClick={() => setMessages([])}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+          {generated && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => { setGenerated(false); setTimeline([]); }}
+              className="text-xs text-black/30 hover:text-black/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5"
             >
-              <RotateCcw size={11} />
-              <span>Clear</span>
-            </button>
+              Clear
+            </motion.button>
           )}
+          <motion.button
+            onClick={generate}
+            disabled={isGenerating}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all"
+            style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}
+          >
+            {isGenerating ? (
+              <>
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}>
+                  <Zap size={14} />
+                </motion.div>
+                <span>Generating...</span>
+              </>
+            ) : (
+              <><Zap size={14} /><span>{generated ? "Regenerate" : "Generate Timeline"}</span></>
+            )}
+          </motion.button>
         </div>
       </div>
 
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {!hasMessages ? (
-          <div className="h-full flex flex-col items-center justify-center gap-8 p-8 text-center">
+      <div className="flex-1 overflow-auto px-8 py-6">
+        {!generated && !isGenerating && (
+          <div className="h-full flex flex-col items-center justify-center text-center gap-6">
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="w-20 h-20 rounded-3xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #7c3aed15, #6d28d915)", border: "1px solid rgba(124,58,237,0.15)" }}
+            >
+              <TrendingUp size={32} className="text-violet-400" />
+            </motion.div>
             <div>
-              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-5">
-                <Sparkles size={24} className="text-white/20" />
-              </div>
-              <h2 className="text-xl font-semibold text-white/70">Snooks is ready</h2>
-              <p className="text-xs text-white/30 mt-2 max-w-sm leading-relaxed">
-                Elite social media growth engineer. Expert in viral content, SEO hooks, growth playbooks, and personal branding.
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Your day, mapped.</h2>
+              <p className="text-sm text-gray-400 max-w-xs leading-relaxed">
+                {assistanceMsg
+                  ? "Skippy has context from your screen. Generate your personalized timeline."
+                  : "Generate a productivity timeline powered by your Skippy observations."}
               </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
-              {STARTER_PROMPTS.map((p) => (
-                <button
-                  key={p.text}
-                  onClick={() => handleSend(p.text)}
-                  className="flex items-start gap-3 text-left px-4 py-3.5 rounded-2xl bg-white/[0.03] border border-white/5 text-white/40 hover:bg-white/[0.06] hover:text-white/60 hover:border-white/10 transition-all"
-                >
-                  <span className="text-base shrink-0">{p.icon}</span>
-                  <span className="text-xs leading-relaxed">{p.text}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="px-6 py-6 space-y-8 max-w-3xl mx-auto">
-            <AnimatePresence initial={false}>
-              {messages.map((msg) => (
+              {assistanceMsg && (
                 <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={cn("flex gap-3", msg.role === "user" ? "flex-row-reverse" : "")}
+                  className="mt-4 px-4 py-3 rounded-xl text-xs text-violet-600 font-medium"
+                  style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}
                 >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-                    msg.role === "user" ? "bg-white" : "bg-white/8 border border-white/10"
-                  )}>
-                    {msg.role === "user"
-                      ? <User size={13} className="text-black" />
-                      : <Bot size={13} className="text-white/50" />
-                    }
-                  </div>
-                  <div className={cn("flex-1 max-w-[85%] relative group", msg.role === "user" ? "flex flex-col items-end" : "")}>
-                    <div className={cn(
-                      "px-5 py-4 rounded-2xl text-sm leading-relaxed",
-                      msg.role === "user"
-                        ? "bg-white text-black rounded-tr-sm max-w-full"
-                        : "bg-white/[0.04] text-white/75 rounded-tl-sm border border-white/6"
-                    )}>
-                      {msg.content}
-                    </div>
-
-                    {msg.generatedContent && (
-                      <div className="w-full mt-1 space-y-2">
-                        {msg.generatedContent.linkedin && <ContentBlock type="linkedin" content={msg.generatedContent.linkedin} />}
-                        {msg.generatedContent.twitter && <ContentBlock type="twitter" content={msg.generatedContent.twitter} />}
-                        {msg.generatedContent.email && <ContentBlock type="email" content={msg.generatedContent.email} />}
-                        {msg.generatedContent.growth && <ContentBlock type="growth" content={msg.generatedContent.growth} />}
-                        {msg.generatedContent.hooks && msg.generatedContent.hooks.length > 0 && (
-                          <ContentBlock type="hooks" content={msg.generatedContent.hooks} />
-                        )}
-                      </div>
-                    )}
-
-                    {msg.role === "bot" && (
-                      <div className="absolute -top-1 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <CopyButton text={msg.content} />
-                      </div>
-                    )}
-                  </div>
+                  📡 Skippy context: "{assistanceMsg.slice(0, 80)}{assistanceMsg.length > 80 ? "..." : ""}"
                 </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {isGenerating && (
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/8 border border-white/10 flex items-center justify-center shrink-0">
-                  <Bot size={13} className="text-white/50" />
-                </div>
-                <div className="px-5 py-4 rounded-2xl rounded-tl-sm bg-white/[0.04] border border-white/6">
-                  <div className="flex gap-1.5">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div key={i}
-                        animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                        className="w-1.5 h-1.5 rounded-full bg-white/30"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
+            <motion.button
+              onClick={generate}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-semibold text-white"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 8px 24px rgba(124,58,237,0.35)" }}
+            >
+              <Zap size={16} /> Generate My Timeline
+            </motion.button>
           </div>
         )}
-      </div>
 
-      {/* Input */}
-      <div className="px-6 py-4 border-t border-white/5 shrink-0">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-3 bg-white/[0.05] rounded-2xl px-5 py-3.5 border border-white/6 focus-within:border-white/12 transition-all">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isGenerating}
-              placeholder="Ask for viral content, SEO hooks, growth strategy..."
-              rows={1}
-              className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/25 outline-none resize-none min-h-[24px] max-h-40"
-              style={{ lineHeight: "1.5rem" }}
-            />
-            <button
-              onClick={() => handleSend()}
-              disabled={isGenerating || !input.trim()}
-              className="p-2.5 rounded-xl bg-white text-black disabled:opacity-20 hover:bg-white/90 transition-colors shrink-0 self-end"
-            >
-              <Send size={13} />
-            </button>
+        {isGenerating && (
+          <div className="flex flex-col gap-4">
+            {[0,1,2,3,4,5].map((i) => (
+              <div key={i} className="flex gap-4 animate-pulse">
+                <div className="w-9 h-9 rounded-full bg-black/5 shrink-0" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-3 bg-black/5 rounded-full w-1/2" />
+                  <div className="h-2 bg-black/5 rounded-full w-3/4" />
+                  <div className="h-1 bg-black/5 rounded-full" />
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="text-[10px] text-white/12 mt-2 text-center">
-            Snooks generates platform-native viral content · Powered by OpenRouter
-          </p>
-        </div>
+        )}
+
+        {generated && !isGenerating && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
+            <div className="flex items-center gap-4 p-5 rounded-2xl mb-8" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.06)" }}>
+              <ScoreRing score={totalScore} />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-800">
+                  {totalScore >= 80 ? "Exceptional focus day 🔥" : totalScore >= 60 ? "Solid productivity 💪" : "Room to improve 📈"}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Overall productivity score</p>
+                {stats && (
+                  <div className="flex gap-4 mt-2">
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-gray-700">{stats.sessions}</p>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Sessions</p>
+                    </div>
+                    <div className="w-px bg-black/6" />
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-gray-700">{stats.commits}</p>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Commits</p>
+                    </div>
+                    <div className="w-px bg-black/6" />
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-gray-700">{stats.avgScore}%</p>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Avg Focus</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              {timeline.map((event, i) => (
+                <TimelineCard key={event.id} event={event} index={i} />
+              ))}
+              <div className="flex gap-4">
+                <div className="w-9 flex justify-center">
+                  <div className="w-4 h-4 rounded-full border-2 border-black/10 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-300 pb-2">End of tracked session</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

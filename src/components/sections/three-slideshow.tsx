@@ -21,11 +21,11 @@ const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
 
 const STEPS = [
-  { id: "#01", label: "MARKETING CONTENT" },
-  { id: "#02", label: "SOCIAL MEDIA GROWTH" },
-  { id: "#03", label: "PRODUCTIVITY" },
-  { id: "#04", label: "ON SCREEN SUPPORT" },
-  { id: "#05", label: "AGENTIC PERSONAL AI" },
+  "MARKETING CONTENT",
+  "SOCIAL MEDIA GROWTH",
+  "PRODUCTIVITY",
+  "ON SCREEN SUPPORT",
+  "AGENTIC PERSONAL AI",
 ];
 
 const ThreeSlideshowComponent = () => {
@@ -128,27 +128,20 @@ const ThreeSlideshowComponent = () => {
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-20">
-      <div className="relative z-20 text-center px-6 max-w-4xl mb-12">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          className="text-[#f97316] font-bold text-[13px] uppercase tracking-[0.4em] mb-4 font-pixel"
-        >
-          The Machine Behind The Mission
-        </motion.p>
+    <section className="relative w-full bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-12">
+      <div className="relative z-20 text-center px-6 mb-6">
         <motion.h2
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          className="text-[32px] md:text-[48px] font-extrabold text-black leading-tight tracking-tighter font-pixel drop-shadow-sm"
+          className="text-[28px] md:text-[38px] font-extrabold text-black leading-tight tracking-tighter font-pixel drop-shadow-sm"
         >
-          CozyJet Intelligence<br />At Full Throttle
+          Projects
         </motion.h2>
       </div>
 
       <div
         ref={containerRef}
-        className="relative w-full h-[65vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
+        className="relative w-full h-[42vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
         style={{ perspective: "2500px", transformStyle: "preserve-3d", clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
@@ -159,7 +152,7 @@ const ThreeSlideshowComponent = () => {
               key={img.id}
               ref={(el) => { cardsRef.current[i] = el; }}
               className="absolute bg-black will-change-transform overflow-hidden shadow-2xl rounded-xl"
-              style={{ width: `${CARD_WIDTH}px`, height: `580px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
+              style={{ width: `${CARD_WIDTH}px`, height: `380px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
             >
               <Image
                 src={img.src}
@@ -175,33 +168,24 @@ const ThreeSlideshowComponent = () => {
         </div>
       </div>
 
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-20 h-24 flex items-center justify-center">
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-8 h-20 flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div key={currentStepIndex} className="text-center">
-            <motion.span
-              className="text-[#f97316] font-bold text-[14px] font-pixel tracking-widest block mb-2"
-              initial={{ opacity: 0, filter: "blur(4px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(4px)" }}
-              transition={{ duration: 0.3 }}
-            >
-              {STEPS[currentStepIndex].id}
-            </motion.span>
             <div className="flex justify-center overflow-hidden flex-wrap">
-              {STEPS[currentStepIndex].label.split("").map((char, ci) => (
+              {STEPS[currentStepIndex].split("").map((char, ci) => (
                 <motion.span
                   key={`${currentStepIndex}-${ci}`}
                   initial={{ opacity: 0, x: -5, filter: "blur(8px)" }}
                   animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, x: 5, filter: "blur(8px)" }}
                   transition={{ delay: ci * 0.04, duration: 0.2, ease: "easeOut" }}
-                  className="text-black font-extrabold text-[18px] md:text-[24px] uppercase tracking-tighter font-pixel inline-block whitespace-pre"
+                  className="text-black font-extrabold text-[16px] md:text-[20px] uppercase tracking-tighter font-pixel inline-block whitespace-pre"
                 >
                   {char}
                 </motion.span>
               ))}
             </div>
-            <div className="w-full max-w-xs mx-auto h-1 bg-primary/10 mt-4 relative overflow-hidden">
+            <div className="w-full max-w-xs mx-auto h-0.5 bg-primary/10 mt-3 relative overflow-hidden">
               <motion.div
                 className="absolute inset-0 bg-primary"
                 initial={{ scaleX: 0 }}

@@ -2,9 +2,9 @@
 
 ## Overview
 CozyJet is an AI-powered SaaS platform for solopreneurs and startups. It provides three AI agents:
-- **Skippy** — Workspace observer & context intelligence
-- **Flippo** — Deep work & productivity timeline analysis
-- **Snooks** — Marketing intelligence & content generation
+- **Skippy** — Workspace observer, screen capture & context intelligence
+- **Snooks** — Productivity timeline generator (AI-powered, uses Skippy context)
+- **Meta** — Marketing intelligence & content chat (OpenRouter-powered)
 
 ## Architecture
 
@@ -14,39 +14,46 @@ CozyJet is an AI-powered SaaS platform for solopreneurs and startups. It provide
 - **Auth & Database**: Firebase (Auth + Firestore)
 - **UI**: Tailwind CSS, Framer Motion, Radix UI, shadcn/ui components
 - **3D**: Three.js + React Three Fiber
+- **Email**: Nodemailer (requires SMTP_HOST, SMTP_USER, SMTP_PASS env vars; dev mode shows code in toast)
 
 ### Key Directories
 ```
 src/
   app/
-    api/ai/           # Server-side API routes (OpenRouter)
-      skippy/         # Chat interaction endpoint
-      flippo/         # Productivity analysis endpoint
-      snooks/         # Marketing intelligence endpoint
-      timeline/       # Flippo timeline generation (rich emotional context)
-      workspace/      # Workspace event processing endpoint
-    dashboard/        # Protected dashboard pages
-      skippy/         # Observer agent page (neumorphic toggle, dot cursor)
-      flippo/         # Timeline/productivity page (dark theme, score ring)
-      snooks/         # Marketing chat page with content blocks
-      tuning/         # Model configuration page
-    auth/             # Auth pages
-  ai/
-    client.ts         # Client-side API callers (fetch to /api/ai/*)
-  firebase/           # Firebase client setup, Auth, Firestore hooks
+    api/
+      ai/
+        skippy/         # Skippy chat + workspace intelligence endpoint
+        snooks/         # Marketing content generation endpoint
+        screen-analyze/ # Screen capture vision analysis (NEW)
+      auth/
+        send-verification/ # Email OTP generation & sending (NEW)
+    dashboard/
+      layout.tsx        # Glassmorphic sidebar: Skippy / Snooks / Meta nav
+      skippy/           # Observer: dot cursor canvas, glowing toggle, screen share
+      snooks/           # Productivity timeline generator with score rings
+      meta/             # Chat system with OpenRouter, conversation history (NEW)
+    auth/               # Email + code verification flow (6-digit OTP)
   components/
     layout/
-      navbar.tsx      # Glassmorphism nav, 64px logo, Launch Studio CTA
+      navbar.tsx        # 80px logo (bigger than text), glassmorphic pill
     sections/
-      hero.tsx        # Anime bg, arch SVG timeline, glassmorphism text card
-  hooks/              # Zustand stores (useDashboardStore)
+      hero.tsx          # 100vh, social logos (Reddit/Slack/TikTok/Pinterest/Discord), hyperrealistic sticky notes
+      three-slideshow.tsx # Smaller (42vh), "Projects" heading, animated text below
+  hooks/                # Zustand stores (useDashboardStore)
 ```
 
 ### API Routes (Server-side)
-All AI calls go through Next.js API routes in `src/app/api/ai/` which securely access the `OPEN_ROUTER` environment variable server-side. The client in `src/ai/client.ts` calls these routes via fetch.
+- `/api/ai/skippy` — Chat & workspace intelligence (OpenRouter)
+- `/api/ai/snooks` — Marketing content generation (OpenRouter)
+- `/api/ai/screen-analyze` — Vision analysis of screen captures (OpenRouter)
+- `/api/auth/send-verification` — Generate & send 6-digit OTP codes
 
 ## Environment Variables / Secrets
 - `OPEN_ROUTER` — OpenRouter API key (required for all AI features)
+- `SMTP_HOST` — SMTP server hostname (optional; enables real email OTPs)
+- `SMTP_USER` — SMTP username/email (optional)
+- `SMTP_PASS` — SMTP password (optional)
+- `SMTP_PORT` — SMTP port, default 587 (optional)
 
 ## Running
 - Dev: `npm run dev` → `next dev -p 5000 -H 0.0.0.0`
@@ -54,20 +61,21 @@ All AI calls go through Next.js API routes in `src/app/api/ai/` which securely a
 
 ## Firebase Config
 Firebase config is in `src/firebase/config.ts`. The app uses Firebase Auth and Firestore.
-Project: `studio-9941557236-b9262`
 
 ## Design System
-- **Landing page**: Anime landscape background (hero-bg.webp), no white overlay, glassmorphism cards for text contrast
-- **Navbar**: Frosted glass pill, 64px CozyJet logo, pixel font
-- **Hero**: Quadratic bezier arch SVG with fill + spoke lines to hub, 6 platform nodes with sticky notes, staggered spring animations
-- **Auth**: Cloud sky gradient background (SVG clouds), glassmorphism card, Sign In / Create Account tabs, email verification flow, password strength meter
-- **Dashboard**: Light `#f0f4f8` background, frosted glass sidebar (64px wide), global Skippy chat panel slides in from right
-- **Dashboard pages**: Dark `#0f0f0f` theme with white/opacity text
-- **Font**: `font-pixel` (pixel font) for headings/labels throughout
+- **Landing page**: Anime landscape background (hero-bg.webp), 100vh hero
+- **Navbar**: Frosted glass pill, 80px CozyJet logo (larger than text), pixel font
+- **Hero**: 100vh, bezier arch SVG, 6 platform nodes, hyperrealistic yellow sticky notes, extra social logos (Reddit, Slack, TikTok, Pinterest, Discord)
+- **Slideshow**: Compact (42vh), "Projects" heading, animated subtitle strip
+- **Auth**: Dark #050814 background, mesh canvas, 6-digit OTP code input, auto-verify on paste
+- **Dashboard sidebar**: 72px wide, glassmorphic, Skippy/Snooks/Meta with icon+label
+- **Skippy page**: White bg, dot cursor canvas, glowing pink toggle (reference image style), screen share button with browser permission modal
+- **Snooks page**: Light #fafafa bg, AI timeline generator with arc progress bars + score rings
+- **Meta page**: Dark #0f0f0f, pink-accented chat UI, conversation history, Skippy context integration
 
 ## Key Design Decisions
-- Hero background: `backgroundPosition: "center 15%"` to show sky/jet, crop bottom greenery slightly
-- No white overlay on hero background — text uses glassmorphism card backdrop
-- Skippy API returns `{ response: string }` — dashboard reads `result.response`
-- Flippo uses `/api/ai/timeline` (richer than `/api/ai/flippo`) for emotional context
-- All AI responses via OpenRouter with `google/gemini-2.0-flash-001`
+- Sidebar nav uses Skippy/Snooks/Meta labels (not abstract icon names)
+- Screen sharing uses browser's native `getDisplayMedia()` API for privacy
+- Email OTP codes stored in-memory with 10-min expiry (no DB dependency)
+- All AI responses via OpenRouter with google/gemini-2.0-flash-001
+- Hydration-safe: date formatting moved to useEffect
