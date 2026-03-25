@@ -13,6 +13,14 @@ export interface SkippyContext {
   focus_score?: number;
 }
 
+export interface IntegrationActivity {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: Date;
+  platform?: string;
+}
+
 interface DashboardState {
   skippyActive: boolean;
   setSkippyActive: (active: boolean) => void;
@@ -35,6 +43,10 @@ interface DashboardState {
 
   agentParams: { creativity: number; focus: number; identity: number };
   setAgentParams: (params: { creativity: number; focus: number; identity: number }) => void;
+
+  integrationActivities: IntegrationActivity[];
+  addIntegrationActivity: (activity: IntegrationActivity) => void;
+  clearIntegrationActivities: () => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -59,4 +71,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
   agentParams: { creativity: 0.7, focus: 0.9, identity: 0.85 },
   setAgentParams: (params) => set({ agentParams: params }),
+
+  integrationActivities: [],
+  addIntegrationActivity: (activity) =>
+    set((state) => ({
+      integrationActivities: [activity, ...state.integrationActivities].slice(0, 50),
+    })),
+  clearIntegrationActivities: () => set({ integrationActivities: [] }),
 }));

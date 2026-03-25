@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Clock, TrendingUp, CheckCircle2, Circle } from "lucide-react";
+import { Zap, TrendingUp, CheckCircle2 } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
 interface TimelineEvent {
@@ -111,12 +111,14 @@ const SAMPLE_TIMELINE: TimelineEvent[] = [
 ];
 
 export default function SnooksPage() {
-  const { assistanceMsg } = useDashboardStore();
+  const { assistanceMsg, skippyContext } = useDashboardStore();
   const [isGenerating, setIsGenerating] = useState(false);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+  const [streamingEvents, setStreamingEvents] = useState<TimelineEvent[]>([]);
   const [totalScore, setTotalScore] = useState(0);
   const [generated, setGenerated] = useState(false);
   const [dateLabel, setDateLabel] = useState("Today");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const d = new Date();
@@ -131,32 +133,75 @@ export default function SnooksPage() {
     return { sessions: deepWork.length, commits, avgScore };
   }, [timeline]);
 
+  const buildSkippyCtx = () => {
+    if (skippyContext) {
+      const parts = [];
+      if (skippyContext.signal) parts.push(skippyContext.signal);
+      if (skippyContext.activity) parts.push(skippyContext.activity);
+      if (skippyContext.insights) parts.push(skippyContext.insights);
+      return parts.join(". ");
+    }
+    return assistanceMsg || "";
+  };
+
   const generate = async () => {
     setIsGenerating(true);
     setTimeline([]);
+    setStreamingEvents([]);
     setGenerated(false);
+    setErrorMsg(null);
 
-    const context = assistanceMsg
-      ? `Based on Skippy's live observation: "${assistanceMsg}". Generate a realistic productivity timeline for today.`
-      : "Generate a realistic productivity timeline for a developer/designer working on an AI SaaS product today.";
+    const skippyCtx = buildSkippyCtx();
+
+    const userPrompt = skippyCtx
+      ? `Based on Skippy's live observation of my workspace: "${skippyCtx}". Generate a realistic productivity timeline for today with exactly 6 events. Return ONLY a valid JSON array with no markdown, no explanation. Each event: { "id": "string", "time": "H:MM AM/PM", "title": "string", "desc": "string", "type": "deep|research|commit|design|break|ai", "duration": "string", "score": 0-100 }`
+      : `Generate a realistic productivity timeline for a developer working on an AI SaaS product today. Exactly 6 events, sequential times starting around 9 AM. Return ONLY a valid JSON array with no markdown. Each event: { "id": "string", "time": "H:MM AM/PM", "title": "string", "desc": "string", "type": "deep|research|commit|design|break|ai", "duration": "string", "score": 0-100 }`;
+
+    const userContext = skippyCtx
+      ? { workspace: skippyCtx, date: dateLabel }
+      : { role: "developer", project: "AI SaaS", date: dateLabel };
 
     try {
-      const res = await fetch("/api/ai/skippy", {
+      const res = await fetch("/api/ai/snooks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userMessage: `${context} Return exactly 6 timeline events as JSON array with fields: id(string), time(string "H:MM AM/PM"), title(string), desc(string), type(one of: deep|research|commit|design|break|ai), duration(string), score(number 0-100). Make times sequential starting around 9 AM. Focus on realistic developer/creative work patterns. Respond ONLY with a JSON array, no markdown.`,
-          currentView: "/dashboard/snooks",
-          observationContext: assistanceMsg || "generating productivity timeline",
+          userPrompt,
+          userContext,
+          skippyContext: skippyCtx,
         }),
       });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "API error");
+      }
+
       const data = await res.json();
-      const text = data.response || "";
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const events: TimelineEvent[] = JSON.parse(jsonMatch[0]);
+
+      let events: TimelineEvent[] | null = null;
+
+      if (data.responseText) {
+        const jsonMatch = data.responseText.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          try { events = JSON.parse(jsonMatch[0]); } catch {}
+        }
+      }
+
+      if (!events && data.raw) {
+        const jsonMatch = data.raw.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          try { events = JSON.parse(jsonMatch[0]); } catch {}
+        }
+      }
+
+      if (events && Array.isArray(events) && events.length > 0) {
+        for (let i = 0; i < events.length; i++) {
+          await new Promise(r => setTimeout(r, 180));
+          setStreamingEvents(prev => [...prev, events![i]]);
+        }
         setTimeline(events);
-        const avg = Math.round(events.reduce((s: number, e: TimelineEvent) => s + (e.score || 0), 0) / events.length);
+        const avg = Math.round(events.reduce((s, e) => s + (e.score || 0), 0) / events.length);
         setTotalScore(avg);
         setGenerated(true);
       } else {
@@ -164,14 +209,20 @@ export default function SnooksPage() {
         setTotalScore(81);
         setGenerated(true);
       }
-    } catch {
-      setTimeline(SAMPLE_TIMELINE);
-      setTotalScore(81);
-      setGenerated(true);
+    } catch (err: any) {
+      if (err.message?.includes("API key")) {
+        setErrorMsg("OPEN_ROUTER API key not configured. Add it in environment variables.");
+      } else {
+        setTimeline(SAMPLE_TIMELINE);
+        setTotalScore(81);
+        setGenerated(true);
+      }
     } finally {
       setIsGenerating(false);
     }
   };
+
+  const displayEvents = isGenerating ? streamingEvents : timeline;
 
   return (
     <div className="h-full flex flex-col" style={{ background: "#fafafa" }}>
@@ -189,7 +240,7 @@ export default function SnooksPage() {
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              onClick={() => { setGenerated(false); setTimeline([]); }}
+              onClick={() => { setGenerated(false); setTimeline([]); setStreamingEvents([]); setErrorMsg(null); }}
               className="text-xs text-black/30 hover:text-black/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5"
             >
               Clear
@@ -218,7 +269,18 @@ export default function SnooksPage() {
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6">
-        {!generated && !isGenerating && (
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 px-4 py-3 rounded-xl text-sm text-red-600 font-medium"
+            style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+          >
+            {errorMsg}
+          </motion.div>
+        )}
+
+        {!generated && !isGenerating && !errorMsg && (
           <div className="h-full flex flex-col items-center justify-center text-center gap-6">
             <motion.div
               animate={{ y: [0, -8, 0] }}
@@ -231,18 +293,18 @@ export default function SnooksPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">Your day, mapped.</h2>
               <p className="text-sm text-gray-400 max-w-xs leading-relaxed">
-                {assistanceMsg
+                {buildSkippyCtx()
                   ? "Skippy has context from your screen. Generate your personalized timeline."
                   : "Generate a productivity timeline powered by your Skippy observations."}
               </p>
-              {assistanceMsg && (
+              {buildSkippyCtx() && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 px-4 py-3 rounded-xl text-xs text-violet-600 font-medium"
                   style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}
                 >
-                  📡 Skippy context: "{assistanceMsg.slice(0, 80)}{assistanceMsg.length > 80 ? "..." : ""}"
+                  📡 Skippy context: "{buildSkippyCtx().slice(0, 80)}{buildSkippyCtx().length > 80 ? "..." : ""}"
                 </motion.div>
               )}
             </div>
@@ -258,63 +320,85 @@ export default function SnooksPage() {
           </div>
         )}
 
-        {isGenerating && (
-          <div className="flex flex-col gap-4">
-            {[0,1,2,3,4,5].map((i) => (
-              <div key={i} className="flex gap-4 animate-pulse">
-                <div className="w-9 h-9 rounded-full bg-black/5 shrink-0" />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 bg-black/5 rounded-full w-1/2" />
-                  <div className="h-2 bg-black/5 rounded-full w-3/4" />
-                  <div className="h-1 bg-black/5 rounded-full" />
+        {(isGenerating || generated) && !errorMsg && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
+            {(generated && !isGenerating) && (
+              <div className="flex items-center gap-4 p-5 rounded-2xl mb-8" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                <ScoreRing score={totalScore} />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-800">
+                    {totalScore >= 80 ? "Exceptional focus day 🔥" : totalScore >= 60 ? "Solid productivity 💪" : "Room to improve 📈"}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">Overall productivity score</p>
+                  {stats && (
+                    <div className="flex gap-4 mt-2">
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-gray-700">{stats.sessions}</p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Sessions</p>
+                      </div>
+                      <div className="w-px bg-black/6" />
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-gray-700">{stats.commits}</p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Commits</p>
+                      </div>
+                      <div className="w-px bg-black/6" />
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-gray-700">{stats.avgScore}%</p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Avg Focus</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {generated && !isGenerating && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
-            <div className="flex items-center gap-4 p-5 rounded-2xl mb-8" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.06)" }}>
-              <ScoreRing score={totalScore} />
-              <div className="flex-1">
-                <p className="text-sm font-bold text-gray-800">
-                  {totalScore >= 80 ? "Exceptional focus day 🔥" : totalScore >= 60 ? "Solid productivity 💪" : "Room to improve 📈"}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">Overall productivity score</p>
-                {stats && (
-                  <div className="flex gap-4 mt-2">
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-gray-700">{stats.sessions}</p>
-                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Sessions</p>
-                    </div>
-                    <div className="w-px bg-black/6" />
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-gray-700">{stats.commits}</p>
-                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Commits</p>
-                    </div>
-                    <div className="w-px bg-black/6" />
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-gray-700">{stats.avgScore}%</p>
-                      <p className="text-[9px] text-gray-400 uppercase tracking-wide">Avg Focus</p>
+            {isGenerating && streamingEvents.length === 0 && (
+              <div className="flex flex-col gap-4">
+                {[0,1,2,3,4,5].map((i) => (
+                  <div key={i} className="flex gap-4 animate-pulse">
+                    <div className="w-9 h-9 rounded-full bg-black/5 shrink-0" />
+                    <div className="flex-1 space-y-2 pt-1">
+                      <div className="h-3 bg-black/5 rounded-full w-1/2" />
+                      <div className="h-2 bg-black/5 rounded-full w-3/4" />
+                      <div className="h-1 bg-black/5 rounded-full" />
                     </div>
                   </div>
-                )}
+                ))}
               </div>
-            </div>
+            )}
 
             <div className="relative">
-              {timeline.map((event, i) => (
-                <TimelineCard key={event.id} event={event} index={i} />
-              ))}
-              <div className="flex gap-4">
-                <div className="w-9 flex justify-center">
-                  <div className="w-4 h-4 rounded-full border-2 border-black/10 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+              <AnimatePresence>
+                {displayEvents.map((event, i) => (
+                  <TimelineCard key={event.id} event={event} index={i} />
+                ))}
+              </AnimatePresence>
+
+              {isGenerating && streamingEvents.length > 0 && (
+                <motion.div
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="flex gap-4 items-center py-2"
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                      <Zap size={16} className="text-violet-400" />
+                    </motion.div>
                   </div>
+                  <span className="text-xs text-gray-400 font-medium">Generating next event...</span>
+                </motion.div>
+              )}
+
+              {generated && !isGenerating && (
+                <div className="flex gap-4">
+                  <div className="w-9 flex justify-center">
+                    <div className="w-4 h-4 rounded-full border-2 border-black/10 flex items-center justify-center">
+                      <CheckCircle2 size={12} className="text-emerald-400" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-300 pb-2">End of tracked session</p>
                 </div>
-                <p className="text-xs text-gray-300 pb-2">End of tracked session</p>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

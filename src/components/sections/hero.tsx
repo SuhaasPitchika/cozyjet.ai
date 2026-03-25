@@ -42,17 +42,28 @@ const DiscordIcon = ({ className, style }: { className?: string; style?: React.C
 );
 
 const ALL_NODES = [
-  { icon: Youtube,       label: "YouTube",   func: "Viral Video Drafting",    color: "#FF0000", note: "SCRIPTS"  },
-  { icon: Twitter,       label: "Twitter",   func: "Viral Hook Engine",       color: "#1DA1F2", note: "TWEETS"   },
-  { icon: RedditIcon,    label: "Reddit",    func: "Community Engagement",    color: "#FF4500", note: "REDDIT"   },
-  { icon: TiktokIcon,    label: "TikTok",    func: "Short-Form Content",      color: "#010101", note: "TIKTOK"   },
-  { icon: ThreadsIcon,   label: "Threads",   func: "Knowledge Stacking",      color: "#111111", note: "THREADS"  },
-  { icon: Mail,          label: "Email",     func: "High-CR Outreach",        color: "#EA4335", note: "MAILS"    },
-  { icon: Instagram,     label: "Instagram", func: "Visual Storytelling",     color: "#E4405F", note: "POSTS"    },
-  { icon: PinterestIcon, label: "Pinterest", func: "Visual Discovery",        color: "#BD081C", note: "PINS"     },
-  { icon: SlackIcon,     label: "Slack",     func: "Team Announcements",      color: "#4A154B", note: "SLACK"    },
-  { icon: DiscordIcon,   label: "Discord",   func: "Community Drops",         color: "#5865F2", note: "DISCORD"  },
-  { icon: Linkedin,      label: "LinkedIn",  func: "Professional Authority",  color: "#0A66C2", note: "BLOGS"    },
+  { icon: Youtube,       label: "YouTube",   func: "Viral Video Drafting",    color: "#FF0000",
+    noteTitle: "VIDEO SCRIPTS",  noteLines: ["Hook + Script", "Title & SEO", "Retention loops"] },
+  { icon: Twitter,       label: "Twitter",   func: "Viral Hook Engine",       color: "#1DA1F2",
+    noteTitle: "TWEET THREADS",  noteLines: ["Viral hooks", "8–12 tweet threads", "Engagement bait"] },
+  { icon: RedditIcon,    label: "Reddit",    func: "Community Engagement",    color: "#FF4500",
+    noteTitle: "REDDIT POSTS",   noteLines: ["Community-native", "Upvote psychology", "No-promo tone"] },
+  { icon: TiktokIcon,    label: "TikTok",    func: "Short-Form Content",      color: "#010101",
+    noteTitle: "TIKTOK SCRIPTS", noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"] },
+  { icon: ThreadsIcon,   label: "Threads",   func: "Knowledge Stacking",      color: "#111111",
+    noteTitle: "THREAD CHAINS",  noteLines: ["Micro-stories", "Knowledge drops", "Reply bait"] },
+  { icon: Mail,          label: "Email",     func: "High-CR Outreach",        color: "#EA4335",
+    noteTitle: "EMAIL FLOWS",    noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"] },
+  { icon: Instagram,     label: "Instagram", func: "Visual Storytelling",     color: "#E4405F",
+    noteTitle: "IG CAPTIONS",    noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"] },
+  { icon: PinterestIcon, label: "Pinterest", func: "Visual Discovery",        color: "#BD081C",
+    noteTitle: "PIN COPY",       noteLines: ["SEO descriptions", "Board strategy", "Rich pins"] },
+  { icon: SlackIcon,     label: "Slack",     func: "Team Announcements",      color: "#4A154B",
+    noteTitle: "SLACK UPDATES",  noteLines: ["Team digests", "Launch announcements", "Newsletter"] },
+  { icon: DiscordIcon,   label: "Discord",   func: "Community Drops",         color: "#5865F2",
+    noteTitle: "DISCORD DROPS",  noteLines: ["Drop strategy", "Community posts", "Hype builds"] },
+  { icon: Linkedin,      label: "LinkedIn",  func: "Professional Authority",  color: "#0A66C2",
+    noteTitle: "LINKEDIN POSTS", noteLines: ["Thought leadership", "Data stories", "Professional hooks"] },
 ];
 
 const SUBTITLES = [
@@ -91,10 +102,10 @@ function AnimatedSubtitle() {
 }
 
 const VW = 1000;
-const VH = 300;
-const P0 = [30,  260] as const;
+const VH = 320;
+const P0 = [30,  280] as const;
 const P1 = [500, 30]  as const;
-const P2 = [970, 260] as const;
+const P2 = [970, 280] as const;
 
 function bzAt(t: number) {
   const x = (1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * P1[0] + t * t * P2[0];
@@ -134,6 +145,9 @@ function ArchSVG() {
           <stop offset="0%"   stopColor="rgba(59,130,246,0.6)" />
           <stop offset="100%" stopColor="rgba(59,130,246,0)" />
         </radialGradient>
+        <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3" floodColor="rgba(0,0,0,0.35)" />
+        </filter>
       </defs>
 
       <path d={fillD} fill="url(#hArchFill)" />
@@ -146,59 +160,87 @@ function ArchSVG() {
             key={i}
             x1={HUB_PT.x} y1={HUB_PT.y}
             x2={pt.x}     y2={pt.y}
-            stroke="rgba(255,255,255,0.12)"
+            stroke="rgba(255,255,255,0.15)"
             strokeWidth="1"
-            strokeDasharray="4 4"
+            strokeDasharray="5 5"
           />
         );
       })}
 
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="30" fill="url(#hubGlow)" />
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="14" fill="rgba(59,130,246,0.22)" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
+      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="36" fill="url(#hubGlow)" />
+      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="18" fill="rgba(59,130,246,0.22)" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
     </svg>
   );
 }
 
-function WavyThread({ height, isTop }: { height: number; isTop: boolean }) {
+function ComicNoteThread({ height, isTop }: { height: number; isTop: boolean }) {
   const path = isTop
-    ? `M 10 0 Q 20 ${height / 4} 10 ${height / 2} Q 0 ${height * 0.75} 10 ${height}`
-    : `M 10 ${height} Q 20 ${height * 0.75} 10 ${height / 2} Q 0 ${height / 4} 10 0`;
+    ? `M 10 0 C 14 ${height * 0.3} 6 ${height * 0.6} 10 ${height}`
+    : `M 10 ${height} C 14 ${height * 0.7} 6 ${height * 0.4} 10 0`;
   return (
     <svg
       width="20" height={height}
-      className="absolute left-1/2 -translate-x-1/2 pointer-events-none opacity-40"
-      style={{ [isTop ? "top" : "bottom"]: "100%", marginTop: "-2px", marginBottom: "-2px" }}
+      className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+      style={{ [isTop ? "top" : "bottom"]: "100%", marginTop: "-1px", marginBottom: "-1px", opacity: 0.6 }}
     >
-      <path d={path} fill="none" stroke="black" strokeWidth="1.5" strokeDasharray="4 4" />
+      <path d={path} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" strokeDasharray="3 3" />
     </svg>
   );
 }
 
-function HyperrealisticNote({ text, isTop }: { text: string; isTop: boolean }) {
+function ComicStickyNote({ node, isTop }: { node: typeof ALL_NODES[0]; isTop: boolean }) {
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20"
-      style={{ [isTop ? "bottom" : "top"]: "148%" }}
+      style={{ [isTop ? "bottom" : "top"]: "140%" }}
     >
-      <div
-        className="w-20 h-12 flex flex-col items-start justify-start px-2 pt-1.5 pb-1 border border-black/10 rounded-sm relative overflow-hidden"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, rotate: isTop ? -3 : 2 }}
+        animate={{ opacity: 1, scale: 1, rotate: isTop ? -2 : 1.5 }}
+        transition={{ duration: 0.4, type: "spring" }}
+        className="relative"
         style={{
-          background: "linear-gradient(160deg, #fefce8 0%, #fef08a 60%, #fde047 100%)",
-          boxShadow: "2px 3px 8px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6)",
-          transform: `rotate(${isTop ? "-1.5deg" : "1.2deg"})`,
-          filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))",
+          width: 96,
+          transform: `rotate(${isTop ? -2 : 1.5}deg)`,
         }}
       >
-        <div className="absolute top-0 left-0 w-full h-[3px] rounded-sm" style={{ background: "rgba(0,0,0,0.07)" }} />
-        <span className="font-pixel text-[6px] leading-tight text-black/70 tracking-wide uppercase relative z-10" style={{ textShadow: "0 0.5px 0 rgba(0,0,0,0.1)" }}>
-          {text}
-        </span>
-        <span className="font-pixel text-[5px] leading-tight text-black/40 relative z-10 mt-0.5">
-          AI-powered
-        </span>
-        <div className="absolute bottom-0 right-0 w-4 h-4" style={{ background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.06) 50%)" }} />
-      </div>
-      <WavyThread height={60} isTop={isTop} />
+        <div
+          className="w-full rounded-sm border-2 border-black/80 overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)",
+            boxShadow: "3px 3px 0px 0px rgba(0,0,0,0.9), 0 6px 16px rgba(0,0,0,0.3)",
+          }}
+        >
+          <div
+            className="px-1.5 py-1 border-b-2 border-black/80"
+            style={{ background: "linear-gradient(90deg, #fbbf24, #f59e0b)" }}
+          >
+            <span
+              className="font-bold text-black uppercase tracking-wider"
+              style={{ fontSize: 6, fontFamily: "'Courier New', monospace", letterSpacing: "0.12em" }}
+            >
+              {node.noteTitle}
+            </span>
+          </div>
+          <div className="px-1.5 py-1.5 space-y-0.5">
+            {node.noteLines.map((line, i) => (
+              <div key={i} className="flex items-start gap-1">
+                <span style={{ fontSize: 5, color: "#92400e", fontFamily: "monospace", lineHeight: 1.5, marginTop: 1 }}>▸</span>
+                <span style={{ fontSize: 5.5, color: "#1c1917", fontFamily: "'Courier New', monospace", lineHeight: 1.5 }}>
+                  {line}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="absolute bottom-0 right-0 w-5 h-5"
+            style={{
+              background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%)",
+            }}
+          />
+        </div>
+      </motion.div>
+      <ComicNoteThread height={52} isTop={isTop} />
     </div>
   );
 }
@@ -216,16 +258,18 @@ function showNote(i: number, total: number): boolean {
 export function Hero() {
   return (
     <section
-      className="relative flex flex-col items-center pt-28 pb-10 overflow-visible"
+      className="relative flex flex-col items-center overflow-visible"
       style={{
         minHeight: "100vh",
+        paddingTop: "7rem",
+        paddingBottom: "2.5rem",
         backgroundImage: "url('/hero-bg.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center 18%",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="text-center max-w-4xl mx-auto z-10 px-4">
+      <div className="text-center max-w-4xl mx-auto z-10 px-4 mt-6">
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
@@ -233,7 +277,8 @@ export function Hero() {
           className="font-pixel text-3xl md:text-5xl font-bold mb-5 tracking-tight uppercase"
           style={{
             color: "#ffffff",
-            textShadow: "0 2px 0 rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.45), 0 0 60px rgba(0,0,0,0.2)",
+            textShadow:
+              "0 2px 0 rgba(0,0,0,0.8), 0 4px 32px rgba(0,0,0,0.7), 0 8px 48px rgba(0,0,0,0.5), 0 0 80px rgba(0,0,0,0.35)",
           }}
         >
           AI AGENTIC MARKETING STUDIO
@@ -253,7 +298,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-6"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-10"
         style={{ height: `${VH}px` }}
       >
         <ArchSVG />
@@ -284,23 +329,23 @@ export function Hero() {
                 zIndex: isHub ? 20 : 10,
               }}
             >
-              {hasNote && <HyperrealisticNote text={node.note} isTop={isTop} />}
+              {hasNote && <ComicStickyNote node={node} isTop={isTop} />}
 
               <div
                 className="rounded-xl border-2 border-black transition-all duration-150 hover:scale-110 cursor-pointer relative z-30 flex items-center justify-center"
                 style={{
-                  width: isHub ? "60px" : "48px",
-                  height: isHub ? "60px" : "48px",
+                  width: isHub ? "72px" : "58px",
+                  height: isHub ? "72px" : "58px",
                   background: isHub
                     ? "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"
                     : "#ffffff",
                   boxShadow: isHub
-                    ? "5px 5px 0px 0px rgba(0,0,0,1), 0 0 20px rgba(59,130,246,0.4)"
+                    ? "5px 5px 0px 0px rgba(0,0,0,1), 0 0 28px rgba(59,130,246,0.5)"
                     : "4px 4px 0px 0px rgba(0,0,0,1)",
                 }}
               >
                 <node.icon
-                  className={isHub ? "w-7 h-7" : "w-5 h-5"}
+                  className={isHub ? "w-9 h-9" : "w-7 h-7"}
                   style={{ color: node.color }}
                 />
               </div>

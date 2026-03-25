@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Monitor, Cpu, Zap, X } from "lucide-react";
+import { ShieldCheck, Monitor, Cpu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
@@ -66,8 +66,20 @@ function GlowCursorCanvas() {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }} />;
 }
 
+function PowerSymbol({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ color: active ? "#ffffff" : "rgba(0,0,0,0.4)", filter: active ? "drop-shadow(0 0 6px rgba(255,255,255,0.8))" : "none", transition: "all 0.35s ease" }}
+    >
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  );
+}
+
 function GlowingToggleButton({ active, onToggle }: { active: boolean; onToggle: () => void }) {
   const [pressed, setPressed] = useState(false);
+
   return (
     <div className="flex flex-col items-center gap-5 select-none">
       <motion.button
@@ -89,88 +101,107 @@ function GlowingToggleButton({ active, onToggle }: { active: boolean; onToggle: 
             width: 80,
             height: 160,
             borderRadius: 40,
-            background: pressed
+            background: active
+              ? "linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%)"
+              : pressed
               ? "linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%)"
               : "linear-gradient(180deg, #f5f5f5 0%, #ececec 100%)",
             boxShadow: pressed
               ? "inset 4px 4px 14px #c0c0c0, inset -4px -4px 14px #ffffff, 0 0 0 1px rgba(0,0,0,0.06)"
               : active
-              ? `6px 6px 20px #c0c0c0, -6px -6px 20px #ffffff, 0 0 0 1px rgba(0,0,0,0.05), 0 0 60px 20px rgba(236,72,153,0.35), 0 20px 40px 0px rgba(236,72,153,0.25)`
+              ? `6px 6px 20px rgba(0,0,0,0.3), -2px -2px 10px rgba(255,255,255,0.05), 0 0 0 1px rgba(0,0,0,0.2), 0 0 60px 20px rgba(236,72,153,0.45), 0 20px 40px 0px rgba(236,72,153,0.3)`
               : "6px 6px 20px #c0c0c0, -6px -6px 20px #ffffff, 0 0 0 1px rgba(0,0,0,0.05)",
             position: "relative",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "space-between",
-            paddingTop: 20,
-            paddingBottom: 20,
+            paddingTop: 18,
+            paddingBottom: 18,
           }}
         >
-          <span
-            className="text-black/40 font-bold select-none"
-            style={{ fontSize: 18, fontFamily: "system-ui", lineHeight: 1 }}
-          >
-            |
-          </span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <PowerSymbol active={active} />
+          </div>
 
           <motion.div
+            animate={{
+              background: active
+                ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
+                : "linear-gradient(135deg, #d4d4d4 0%, #b8b8b8 100%)",
+            }}
             style={{
               width: 52,
               height: 52,
               borderRadius: "50%",
-              background: active
-                ? "linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
-                : "linear-gradient(135deg, #d4d4d4 0%, #b8b8b8 100%)",
               boxShadow: active
-                ? "3px 3px 10px rgba(219,39,119,0.5), -2px -2px 6px rgba(255,255,255,0.2), 0 0 20px rgba(236,72,153,0.6)"
+                ? "3px 3px 10px rgba(219,39,119,0.6), -2px -2px 6px rgba(255,255,255,0.05), 0 0 24px rgba(236,72,153,0.7)"
                 : "3px 3px 10px #b0b0b0, -3px -3px 8px #ffffff, inset 1px 1px 4px #f0f0f0",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               position: "relative",
+              transition: "all 0.35s ease",
             }}
           >
             {active && (
               <motion.div
                 className="absolute inset-0 rounded-full"
-                animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-                style={{ background: "rgba(236,72,153,0.4)", borderRadius: "50%" }}
+                style={{ background: "rgba(236,72,153,0.5)", borderRadius: "50%" }}
               />
+            )}
+            {active ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                style={{ width: 18, height: 18, borderRadius: "50%", background: "conic-gradient(from 0deg, #ffffff, #fce7f3, #ffffff)", boxShadow: "0 0 10px rgba(255,255,255,0.6)" }}
+              />
+            ) : (
+              <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(0,0,0,0.15)" }} />
             )}
           </motion.div>
 
-          <span
-            className="text-black/30 font-bold select-none"
-            style={{ fontSize: 16, fontFamily: "system-ui", lineHeight: 1 }}
+          <motion.div
+            animate={{ opacity: active ? 1 : 0 }}
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              fontFamily: "system-ui",
+              letterSpacing: "0.08em",
+              color: "#ec4899",
+              textShadow: "0 0 8px rgba(236,72,153,0.8)",
+            }}
           >
-            O
-          </span>
-        </motion.div>
+            ON
+          </motion.div>
 
-        {active && (
-          <>
-            <motion.div
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2"
-              style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              <div style={{ width: 18, height: 18, borderRadius: "50%", background: "conic-gradient(from 0deg, #ec4899, #a855f7, #3b82f6, #ec4899)", boxShadow: "0 0 8px rgba(236,72,153,0.5)" }} />
-            </motion.div>
-            <motion.div
-              className="absolute inset-0 rounded-[40px] pointer-events-none"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              style={{ boxShadow: "0 0 0 3px rgba(236,72,153,0.25), 0 0 40px rgba(236,72,153,0.15)" }}
-            />
-          </>
-        )}
+          {active && (
+            <>
+              <motion.div
+                className="absolute inset-0 rounded-[40px] pointer-events-none"
+                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                style={{ boxShadow: "0 0 0 3px rgba(236,72,153,0.3), 0 0 40px rgba(236,72,153,0.2)" }}
+              />
+              <motion.div
+                className="absolute -bottom-8 left-1/2 -translate-x-1/2"
+                style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <div style={{ width: 22, height: 22, borderRadius: "50%", background: "conic-gradient(from 0deg, #ec4899, #a855f7, #3b82f6, #ec4899)", boxShadow: "0 0 10px rgba(236,72,153,0.6)", animation: "spin 2s linear infinite" }} />
+              </motion.div>
+            </>
+          )}
+        </motion.div>
       </motion.button>
 
-      <div className="flex items-center gap-2 mt-8">
+      <div className="flex items-center gap-2 mt-10">
         <motion.div
-          animate={{ scale: active ? [1, 1.6, 1] : 1, opacity: active ? 1 : 0.2, backgroundColor: active ? "#ec4899" : "#000" }}
+          animate={{ scale: active ? [1, 1.6, 1] : 1, opacity: active ? 1 : 0.2 }}
           transition={{ duration: 1.4, repeat: active ? Infinity : 0 }}
           className="w-2 h-2 rounded-full"
+          style={{ background: active ? "#ec4899" : "#999", boxShadow: active ? "0 0 8px rgba(236,72,153,0.8)" : "none" }}
         />
         <span className={cn("text-[11px] font-semibold tracking-[0.22em] uppercase transition-colors duration-400", active ? "text-black/55" : "text-black/18")}>
           {active ? "Observer Active" : "Observer Off"}
@@ -319,14 +350,16 @@ const CAPABILITIES = [
 ];
 
 export default function SkippyPage() {
-  const { skippyActive, setSkippyActive, setAssistanceMsg } = useDashboardStore();
+  const { skippyActive, setSkippyActive, setAssistanceMsg, setSkippyContext } = useDashboardStore();
   const [isSharing, setIsSharing] = useState(false);
   const [analysis, setAnalysis] = useState<Record<string, any> | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleCapture = useCallback(async (base64: string, mimeType: string) => {
     setIsAnalyzing(true);
     setIsSharing(true);
+    setApiError(null);
     try {
       const res = await fetch("/api/ai/screen-analyze", {
         method: "POST",
@@ -334,27 +367,62 @@ export default function SkippyPage() {
         body: JSON.stringify({ imageBase64: base64, mimeType }),
       });
       const data = await res.json();
-      if (data.analysis) {
+      if (data.error) {
+        if (data.error.includes("API key")) {
+          setApiError("OPEN_ROUTER API key not configured. Screen analysis requires the API key.");
+        } else {
+          setApiError("Analysis failed. Please try again.");
+        }
+        setIsSharing(false);
+      } else if (data.analysis) {
         setAnalysis(data.analysis);
-        setAssistanceMsg(data.analysis.signal || data.analysis.activity || "Screen analyzed");
+        const msg = data.analysis.signal || data.analysis.activity || "Screen analyzed";
+        setAssistanceMsg(msg);
+        setSkippyContext({
+          signal: data.analysis.signal,
+          activity: data.analysis.activity,
+          context: data.analysis.context,
+          apps: data.analysis.apps,
+          insights: data.analysis.insights,
+          focus_score: data.analysis.focus_score,
+        });
         setSkippyActive(true);
       }
     } catch (err) {
       console.error("Screen analysis error:", err);
+      setApiError("Connection error during analysis.");
+      setIsSharing(false);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [setAssistanceMsg, setSkippyActive]);
+  }, [setAssistanceMsg, setSkippyActive, setSkippyContext]);
 
   const stopSharing = () => {
     setIsSharing(false);
     setAnalysis(null);
-    setSkippyActive(false);
+    setApiError(null);
   };
 
   return (
     <div className="relative min-h-full bg-white flex flex-col items-center justify-center gap-8 p-8 overflow-hidden">
       <GlowCursorCanvas />
+
+      {skippyActive && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-xl"
+          style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.12), rgba(168,85,247,0.08))", border: "1px solid rgba(236,72,153,0.25)", backdropFilter: "blur(8px)" }}
+        >
+          <motion.div
+            animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#ec4899", boxShadow: "0 0 6px rgba(236,72,153,0.8)" }}
+          />
+          <span className="text-xs font-bold text-pink-500 uppercase tracking-widest">Skippy Active</span>
+        </motion.div>
+      )}
 
       <div className="relative z-10 text-center space-y-1.5">
         <div className="flex items-center justify-center gap-2 mb-3">
@@ -368,7 +436,13 @@ export default function SkippyPage() {
       </div>
 
       <div className="relative z-10">
-        <GlowingToggleButton active={skippyActive} onToggle={() => setSkippyActive(!skippyActive)} />
+        <GlowingToggleButton active={skippyActive} onToggle={() => {
+          setSkippyActive(!skippyActive);
+          if (skippyActive) {
+            setIsSharing(false);
+            setAnalysis(null);
+          }
+        }} />
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-3">
@@ -379,6 +453,17 @@ export default function SkippyPage() {
           </button>
         )}
       </div>
+
+      {apiError && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 px-4 py-3 rounded-2xl max-w-sm text-sm text-red-600 font-medium text-center"
+          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+        >
+          {apiError}
+        </motion.div>
+      )}
 
       <AnimatePresence>
         {isAnalyzing && (
@@ -426,6 +511,9 @@ export default function SkippyPage() {
                   ))}
                 </div>
               )}
+              <div className="mt-3 pt-2 border-t border-blue-100">
+                <p className="text-[9px] text-blue-400 font-medium">✓ Context shared with Snooks & Meta</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
@@ -465,6 +553,10 @@ export default function SkippyPage() {
           Privacy-first. Single screenshot, analyzed locally. PII blocklist applied before any content leaves your device.
         </p>
       </div>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

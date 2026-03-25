@@ -25,65 +25,48 @@ function GoogleIcon() {
   );
 }
 
-function MeshCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const raf = useRef<number>(0);
-  const nodes = useRef<{ x: number; y: number; vx: number; vy: number }[]>([]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const NODE_COUNT = 55;
-    const MAX_DIST = 160;
-
-    nodes.current = Array.from({ length: NODE_COUNT }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-    }));
-
-    const draw = () => {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      for (const n of nodes.current) {
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > w) n.vx *= -1;
-        if (n.y < 0 || n.y > h) n.vy *= -1;
-      }
-      for (let i = 0; i < nodes.current.length; i++) {
-        for (let j = i + 1; j < nodes.current.length; j++) {
-          const a = nodes.current[i]; const b = nodes.current[j];
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < MAX_DIST) {
-            const alpha = (1 - dist / MAX_DIST) * 0.35;
-            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(99,102,241,${alpha})`; ctx.lineWidth = 0.7; ctx.stroke();
-          }
-        }
-      }
-      for (const n of nodes.current) {
-        ctx.beginPath(); ctx.arc(n.x, n.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(139,92,246,0.55)"; ctx.fill();
-      }
-      raf.current = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(raf.current); };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
+function AnimatedGradientBg() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <motion.div
+        className="absolute inset-0"
+        animate={{
+          background: [
+            "radial-gradient(ellipse 80% 60% at 20% 30%, rgba(59,130,246,0.45) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 80% 70%, rgba(236,72,153,0.40) 0%, transparent 60%), radial-gradient(ellipse 100% 100% at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 70%), #050814",
+            "radial-gradient(ellipse 70% 80% at 70% 20%, rgba(99,102,241,0.50) 0%, transparent 60%), radial-gradient(ellipse 80% 60% at 20% 80%, rgba(236,72,153,0.35) 0%, transparent 60%), radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 70%), #050814",
+            "radial-gradient(ellipse 90% 50% at 50% 80%, rgba(59,130,246,0.40) 0%, transparent 60%), radial-gradient(ellipse 50% 90% at 10% 30%, rgba(168,85,247,0.40) 0%, transparent 60%), radial-gradient(ellipse 70% 70% at 80% 20%, rgba(236,72,153,0.30) 0%, transparent 60%), #050814",
+            "radial-gradient(ellipse 80% 60% at 20% 30%, rgba(59,130,246,0.45) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 80% 70%, rgba(236,72,153,0.40) 0%, transparent 60%), radial-gradient(ellipse 100% 100% at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 70%), #050814",
+          ],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        style={{ background: "#050814" }}
+      />
+      <motion.div
+        className="absolute w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "rgba(59,130,246,0.22)", top: "-10%", left: "-10%" }}
+        animate={{ x: [0, 60, -20, 0], y: [0, 40, 80, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none"
+        style={{ background: "rgba(236,72,153,0.20)", bottom: "-10%", right: "-10%" }}
+        animate={{ x: [0, -50, 20, 0], y: [0, -30, -70, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      />
+      <motion.div
+        className="absolute w-[400px] h-[400px] rounded-full blur-[80px] pointer-events-none"
+        style={{ background: "rgba(168,85,247,0.18)", top: "40%", left: "40%" }}
+        animate={{ x: [0, 40, -30, 0], y: [0, -40, 30, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+      <motion.div
+        className="absolute w-[300px] h-[300px] rounded-full blur-[60px] pointer-events-none"
+        style={{ background: "rgba(255,255,255,0.06)", top: "20%", right: "25%" }}
+        animate={{ x: [0, -30, 50, 0], y: [0, 60, -20, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+    </div>
+  );
 }
 
 function PasswordStrength({ password }: { password: string }) {
@@ -179,11 +162,11 @@ function isStrongPassword(password: string) {
 }
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(10,10,20,0.72)",
-  backdropFilter: "blur(28px)",
-  WebkitBackdropFilter: "blur(28px)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
+  background: "rgba(8,8,22,0.65)",
+  backdropFilter: "blur(40px) saturate(180%)",
+  WebkitBackdropFilter: "blur(40px) saturate(180%)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  boxShadow: "0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset, 0 0 80px rgba(59,130,246,0.08)",
 };
 
 export default function AuthPage() {
@@ -334,15 +317,16 @@ export default function AuthPage() {
     if (code.length === 6) handleVerifyCode();
   }, [code]);
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 bg-white/8 placeholder-white/25 border text-white/90 font-medium";
-  const inputFocused = "border-violet-400/60 shadow-[0_0_0_2px_rgba(139,92,246,0.18)] bg-white/12";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/25 border text-white/90 font-medium";
+  const inputFocused = "border-violet-400/60 shadow-[0_0_0_2px_rgba(139,92,246,0.18)]";
   const inputIdle = "border-white/12 hover:border-white/22";
-  const inputClass = (f: string) => [inputBase, focused === f ? inputFocused : inputIdle].join(" ");
+  const inputBg = "bg-white/[0.07]";
+  const inputClass = (f: string) => [inputBase, inputBg, focused === f ? inputFocused : inputIdle].join(" ");
 
   if (step === "verify") {
     return (
-      <div className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ background: "#050814" }}>
-        <MeshCanvas />
+      <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
+        <AnimatedGradientBg />
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -350,13 +334,13 @@ export default function AuthPage() {
           className="relative z-20 w-full max-w-[420px] mx-4"
         >
           <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
-            <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(99,102,241,0.6), transparent)" }} />
+            <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.7), rgba(99,102,241,0.7), transparent)" }} />
 
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.4)" }}
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset" }}
             >
               <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="8" width="18" height="13" rx="2" />
@@ -390,7 +374,7 @@ export default function AuthPage() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5 disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 4px 24px rgba(124,58,237,0.4)" }}
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 4px 24px rgba(124,58,237,0.5)" }}
             >
               {isVerifying
                 ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
@@ -414,8 +398,8 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ background: "#050814" }}>
-      <MeshCanvas />
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
+      <AnimatedGradientBg />
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -424,14 +408,17 @@ export default function AuthPage() {
         className="relative z-20 w-full max-w-[420px] mx-4"
       >
         <div className="relative rounded-3xl overflow-hidden" style={glassCard}>
-          <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(99,102,241,0.6), transparent)" }} />
+          <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.7), rgba(236,72,153,0.5), transparent)" }} />
 
           <div className="px-8 pt-8 pb-5 text-center">
             <motion.div
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)" }}
+              style={{
+                background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #ec4899 100%)",
+                boxShadow: "0 8px 32px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.18)",
+              }}
             >
               <ArrowRight className="w-6 h-6 text-white" />
             </motion.div>
@@ -451,7 +438,7 @@ export default function AuthPage() {
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
                 style={
                   mode === tab.val
-                    ? { background: "rgba(124,58,237,0.85)", color: "white", boxShadow: "0 2px 12px rgba(124,58,237,0.35)" }
+                    ? { background: "linear-gradient(135deg, rgba(124,58,237,0.9), rgba(236,72,153,0.6))", color: "white", boxShadow: "0 2px 12px rgba(124,58,237,0.35)" }
                     : { color: "rgba(255,255,255,0.3)" }
                 }
               >{tab.label}</button>
@@ -506,42 +493,42 @@ export default function AuthPage() {
             <div className="pt-1">
               <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                 className="w-full h-12 rounded-xl text-white text-sm font-semibold disabled:opacity-50 transition-all flex items-center justify-center gap-2.5 relative overflow-hidden group"
-                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 4px 24px rgba(124,58,237,0.4), 0 1px 0 rgba(255,255,255,0.1) inset" }}
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #ec4899 100%)", boxShadow: "0 4px 24px rgba(124,58,237,0.4), 0 1px 0 rgba(255,255,255,0.1) inset" }}
               >
                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/8 transition-colors duration-200" />
                 {isLoading
-                  ? <><Loader2 size={15} className="animate-spin" /><span>Processing...</span></>
-                  : <><span>{mode === "login" ? "Sign In" : "Create Account"}</span><ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" /></>}
+                  ? <><Loader2 size={15} className="animate-spin" /><span>Please wait...</span></>
+                  : <><span>{mode === "login" ? "Sign In" : "Create Account"}</span><ArrowRight size={14} /></>}
               </motion.button>
             </div>
           </form>
 
-          <div className="flex items-center gap-3 px-8 my-5">
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span className="text-[10px] text-white/25 font-medium">or continue with</span>
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-          </div>
+          <div className="px-8 py-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+              <span className="text-[10px] text-white/20 font-medium uppercase tracking-widest">or</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+            </div>
 
-          <div className="px-8 pb-8">
-            <motion.button onClick={handleGoogle} disabled={isLoading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="w-full h-11 rounded-xl text-sm font-semibold text-white/75 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group"
-              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+            <motion.button
+              onClick={handleGoogle}
+              disabled={isLoading}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium text-white/75 disabled:opacity-50 transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
             >
-              <div className="group-hover:scale-110 transition-transform"><GoogleIcon /></div>
+              <GoogleIcon />
               <span>Continue with Google</span>
             </motion.button>
-            <p className="text-center text-[10px] text-white/20 mt-5 leading-relaxed">
-              By continuing you agree to our{" "}
-              <span className="text-violet-400/60 underline cursor-pointer hover:text-violet-400 transition-colors">Terms</span>{" & "}
-              <span className="text-violet-400/60 underline cursor-pointer hover:text-violet-400 transition-colors">Privacy Policy</span>
-            </p>
           </div>
+
+          <div className="absolute bottom-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }} />
         </div>
 
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="text-center text-[11px] text-white/20 mt-4 tracking-wide">
-          CozyJet.AI · Autonomous Marketing & Productivity Studio
-        </motion.p>
+        <p className="text-center text-[10px] text-white/20 mt-5 leading-relaxed">
+          By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
       </motion.div>
     </div>
   );
