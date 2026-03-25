@@ -41,21 +41,18 @@ const DiscordIcon = ({ className, style }: { className?: string; style?: React.C
   </svg>
 );
 
-const TIMELINE_NODES = [
-  { icon: Youtube,      label: "Scripts",  func: "Viral Video Drafting",     color: "#FF0000", note: "SCRIPTS"  },
-  { icon: Twitter,      label: "Tweets",   func: "Viral Hook Engine",         color: "#1DA1F2", note: "TWEETS"   },
-  { icon: ThreadsIcon,  label: "Threads",  func: "Knowledge Stacking",        color: "#111111", note: "THREADS"  },
-  { icon: Mail,         label: "Mails",    func: "High-CR Outreach",          color: "#EA4335", note: "MAILS"    },
-  { icon: Instagram,    label: "Posts",    func: "Visual Storytelling",       color: "#E4405F", note: "POSTS"    },
-  { icon: Linkedin,     label: "Blogs",    func: "Professional Authority",    color: "#0A66C2", note: "BLOGS"    },
-];
-
-const EXTRA_LOGOS = [
-  { icon: RedditIcon,    color: "#FF4500", label: "Reddit" },
-  { icon: SlackIcon,     color: "#4A154B", label: "Slack" },
-  { icon: TiktokIcon,    color: "#000000", label: "TikTok" },
-  { icon: PinterestIcon, color: "#BD081C", label: "Pinterest" },
-  { icon: DiscordIcon,   color: "#5865F2", label: "Discord" },
+const ALL_NODES = [
+  { icon: Youtube,       label: "YouTube",   func: "Viral Video Drafting",    color: "#FF0000", note: "SCRIPTS"  },
+  { icon: Twitter,       label: "Twitter",   func: "Viral Hook Engine",       color: "#1DA1F2", note: "TWEETS"   },
+  { icon: RedditIcon,    label: "Reddit",    func: "Community Engagement",    color: "#FF4500", note: "REDDIT"   },
+  { icon: TiktokIcon,    label: "TikTok",    func: "Short-Form Content",      color: "#010101", note: "TIKTOK"   },
+  { icon: ThreadsIcon,   label: "Threads",   func: "Knowledge Stacking",      color: "#111111", note: "THREADS"  },
+  { icon: Mail,          label: "Email",     func: "High-CR Outreach",        color: "#EA4335", note: "MAILS"    },
+  { icon: Instagram,     label: "Instagram", func: "Visual Storytelling",     color: "#E4405F", note: "POSTS"    },
+  { icon: PinterestIcon, label: "Pinterest", func: "Visual Discovery",        color: "#BD081C", note: "PINS"     },
+  { icon: SlackIcon,     label: "Slack",     func: "Team Announcements",      color: "#4A154B", note: "SLACK"    },
+  { icon: DiscordIcon,   label: "Discord",   func: "Community Drops",         color: "#5865F2", note: "DISCORD"  },
+  { icon: Linkedin,      label: "LinkedIn",  func: "Professional Authority",  color: "#0A66C2", note: "BLOGS"    },
 ];
 
 const SUBTITLES = [
@@ -94,10 +91,10 @@ function AnimatedSubtitle() {
 }
 
 const VW = 1000;
-const VH = 280;
-const P0 = [50, 220] as const;
-const P1 = [500, 40] as const;
-const P2 = [950, 220] as const;
+const VH = 300;
+const P0 = [30,  260] as const;
+const P1 = [500, 30]  as const;
+const P2 = [970, 260] as const;
 
 function bzAt(t: number) {
   const x = (1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * P1[0] + t * t * P2[0];
@@ -105,9 +102,11 @@ function bzAt(t: number) {
   return { x, y, xPct: (x / VW) * 100, yPct: (y / VH) * 100 };
 }
 
-const NODE_T   = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
+const N = ALL_NODES.length;
+const NODE_T   = ALL_NODES.map((_, i) => i / (N - 1));
 const NODE_PTS = NODE_T.map(bzAt);
-const HUB_PT   = bzAt(0.5);
+const HUB_IDX  = Math.floor(N / 2);
+const HUB_PT   = NODE_PTS[HUB_IDX];
 
 function ArchSVG() {
   const pathD = `M ${P0[0]} ${P0[1]} Q ${P1[0]} ${P1[1]} ${P2[0]} ${P2[1]}`;
@@ -122,33 +121,40 @@ function ArchSVG() {
     >
       <defs>
         <linearGradient id="hArchFill" x1="0.5" y1="0" x2="0.5" y2="1">
-          <stop offset="0%" stopColor="rgba(59,130,246,0.38)" />
-          <stop offset="60%" stopColor="rgba(147,197,253,0.16)" />
-          <stop offset="100%" stopColor="rgba(219,234,254,0.03)" />
+          <stop offset="0%" stopColor="rgba(59,130,246,0.32)" />
+          <stop offset="60%" stopColor="rgba(147,197,253,0.12)" />
+          <stop offset="100%" stopColor="rgba(219,234,254,0.02)" />
         </linearGradient>
         <linearGradient id="hArchLine" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="rgba(255,255,255,0.3)" />
-          <stop offset="50%"  stopColor="rgba(255,255,255,0.85)" />
+          <stop offset="50%"  stopColor="rgba(255,255,255,0.9)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0.3)" />
         </linearGradient>
+        <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="rgba(59,130,246,0.6)" />
+          <stop offset="100%" stopColor="rgba(59,130,246,0)" />
+        </radialGradient>
       </defs>
 
       <path d={fillD} fill="url(#hArchFill)" />
-      <path d={pathD} fill="none" stroke="url(#hArchLine)" strokeWidth="2" />
+      <path d={pathD} fill="none" stroke="url(#hArchLine)" strokeWidth="2.5" />
 
-      {NODE_PTS.map((pt, i) => (
-        <line
-          key={i}
-          x1={HUB_PT.x} y1={HUB_PT.y}
-          x2={pt.x}     y2={pt.y}
-          stroke="rgba(255,255,255,0.15)"
-          strokeWidth="1.2"
-          strokeDasharray="5 5"
-        />
-      ))}
+      {NODE_PTS.map((pt, i) => {
+        if (i === HUB_IDX) return null;
+        return (
+          <line
+            key={i}
+            x1={HUB_PT.x} y1={HUB_PT.y}
+            x2={pt.x}     y2={pt.y}
+            stroke="rgba(255,255,255,0.12)"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        );
+      })}
 
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="8"  fill="rgba(59,130,246,1)"    />
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="16" fill="rgba(59,130,246,0.18)" />
+      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="30" fill="url(#hubGlow)" />
+      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="14" fill="rgba(59,130,246,0.22)" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -175,78 +181,36 @@ function HyperrealisticNote({ text, isTop }: { text: string; isTop: boolean }) {
       style={{ [isTop ? "bottom" : "top"]: "148%" }}
     >
       <div
-        className="w-24 h-14 flex flex-col items-start justify-start px-2 pt-2 pb-1 border border-black/10 rounded-sm relative overflow-hidden"
+        className="w-20 h-12 flex flex-col items-start justify-start px-2 pt-1.5 pb-1 border border-black/10 rounded-sm relative overflow-hidden"
         style={{
           background: "linear-gradient(160deg, #fefce8 0%, #fef08a 60%, #fde047 100%)",
-          boxShadow: "2px 3px 8px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6), inset -1px 0 0 rgba(253,224,71,0.5)",
+          boxShadow: "2px 3px 8px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6)",
           transform: `rotate(${isTop ? "-1.5deg" : "1.2deg"})`,
           filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))",
         }}
       >
-        <div
-          className="absolute top-0 left-0 right-0 h-5"
-          style={{
-            background: "linear-gradient(180deg, rgba(253,224,71,0.8) 0%, rgba(253,224,71,0.0) 100%)",
-          }}
-        />
-        <div
-          className="absolute top-0 left-0 w-full h-[3px] rounded-sm"
-          style={{ background: "rgba(0,0,0,0.07)" }}
-        />
-        <span
-          className="font-pixel text-[6.5px] leading-tight text-black/70 tracking-wide uppercase relative z-10"
-          style={{ textShadow: "0 0.5px 0 rgba(0,0,0,0.1)" }}
-        >
+        <div className="absolute top-0 left-0 w-full h-[3px] rounded-sm" style={{ background: "rgba(0,0,0,0.07)" }} />
+        <span className="font-pixel text-[6px] leading-tight text-black/70 tracking-wide uppercase relative z-10" style={{ textShadow: "0 0.5px 0 rgba(0,0,0,0.1)" }}>
           {text}
         </span>
-        <span
-          className="font-pixel text-[5px] leading-tight text-black/40 relative z-10 mt-0.5"
-        >
+        <span className="font-pixel text-[5px] leading-tight text-black/40 relative z-10 mt-0.5">
           AI-powered
         </span>
-        <div
-          className="absolute bottom-0 right-0 w-5 h-5"
-          style={{
-            background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.06) 50%)",
-          }}
-        />
+        <div className="absolute bottom-0 right-0 w-4 h-4" style={{ background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.06) 50%)" }} />
       </div>
-      <WavyThread height={68} isTop={isTop} />
+      <WavyThread height={60} isTop={isTop} />
     </div>
   );
 }
 
-function ExtraLogosBar() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.1, duration: 0.6 }}
-      className="flex items-center justify-center gap-4 flex-wrap px-4"
-    >
-      <span className="font-pixel text-[8px] uppercase tracking-[0.22em] text-white/40">Also on</span>
-      {EXTRA_LOGOS.map((logo) => (
-        <motion.div
-          key={logo.label}
-          whileHover={{ scale: 1.18, rotate: [-1, 1, 0] }}
-          transition={{ type: "spring", stiffness: 400, damping: 18 }}
-          className="relative group"
-          title={logo.label}
-        >
-          <div
-            className="w-8 h-8 rounded-lg bg-white/90 border border-black/10 shadow-[2px_2px_0_0_rgba(0,0,0,0.8)] flex items-center justify-center cursor-pointer hover:shadow-[3px_3px_0_0_rgba(0,0,0,0.9)] transition-all"
-          >
-            <logo.icon className="w-4 h-4" style={{ color: logo.color }} />
-          </div>
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            <div className="bg-black/90 text-white px-1.5 py-0.5 rounded text-[7px] font-pixel uppercase whitespace-nowrap">
-              {logo.label}
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </motion.div>
-  );
+function getNotePosition(i: number, total: number): boolean {
+  const t = i / (total - 1);
+  return t < 0.25 || t > 0.75;
+}
+
+function showNote(i: number, total: number): boolean {
+  const t = i / (total - 1);
+  return t <= 0.25 || t >= 0.75;
 }
 
 export function Hero() {
@@ -289,58 +253,70 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-5xl mx-auto px-8 mt-6"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-6"
         style={{ height: `${VH}px` }}
       >
         <ArchSVG />
 
-        {TIMELINE_NODES.map((node, i) => {
+        {ALL_NODES.map((node, i) => {
           const pt    = NODE_PTS[i];
-          const isTop = i === 0 || i === 1 || i === 4 || i === 5;
+          const isHub = i === HUB_IDX;
+          const isTop = getNotePosition(i, N);
+          const hasNote = showNote(i, N);
+
           return (
             <motion.div
               key={node.label}
-              initial={{ opacity: 0, scale: 0.5 }}
+              initial={{ opacity: 0, scale: 0.4 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{
-                delay: 0.55 + Math.abs(i - 2.5) * 0.07,
-                duration: 0.5,
+                delay: 0.5 + Math.abs(i - HUB_IDX) * 0.06,
+                duration: 0.45,
                 type: "spring",
-                stiffness: 280,
-                damping: 20,
+                stiffness: 300,
+                damping: 22,
               }}
               className="absolute flex flex-col items-center group"
               style={{
                 left: `${pt.xPct}%`,
                 top: `${pt.yPct}%`,
                 transform: "translate(-50%, -50%)",
-                zIndex: 10,
+                zIndex: isHub ? 20 : 10,
               }}
             >
-              <HyperrealisticNote text={node.note} isTop={isTop} />
+              {hasNote && <HyperrealisticNote text={node.note} isTop={isTop} />}
+
               <div
-                className="bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 hover:scale-110 hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative z-30 flex items-center justify-center"
-                style={{ width: "52px", height: "52px" }}
+                className="rounded-xl border-2 border-black transition-all duration-150 hover:scale-110 cursor-pointer relative z-30 flex items-center justify-center"
+                style={{
+                  width: isHub ? "60px" : "48px",
+                  height: isHub ? "60px" : "48px",
+                  background: isHub
+                    ? "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"
+                    : "#ffffff",
+                  boxShadow: isHub
+                    ? "5px 5px 0px 0px rgba(0,0,0,1), 0 0 20px rgba(59,130,246,0.4)"
+                    : "4px 4px 0px 0px rgba(0,0,0,1)",
+                }}
               >
-                <node.icon className="w-6 h-6" style={{ color: node.color }} />
+                <node.icon
+                  className={isHub ? "w-7 h-7" : "w-5 h-5"}
+                  style={{ color: node.color }}
+                />
               </div>
+
               <div
-                className={`absolute ${isTop ? "top-[-48px]" : "bottom-[-48px]"} opacity-0 group-hover:opacity-100 transition-opacity z-40 pointer-events-none`}
+                className={`absolute ${isTop ? "top-[-52px]" : "bottom-[-52px]"} opacity-0 group-hover:opacity-100 transition-opacity z-40 pointer-events-none`}
               >
                 <div className="bg-black/90 text-white px-2 py-1 rounded-md shadow-xl">
-                  <p className="font-pixel text-[6px] whitespace-nowrap uppercase tracking-wider">
-                    {node.func}
-                  </p>
+                  <p className="font-pixel text-[6px] whitespace-nowrap uppercase tracking-wider">{node.func}</p>
+                  <p className="font-pixel text-[5px] whitespace-nowrap text-white/60 mt-0.5">{node.label}</p>
                 </div>
               </div>
             </motion.div>
           );
         })}
       </motion.div>
-
-      <div className="mt-8 z-10 space-y-4">
-        <ExtraLogosBar />
-      </div>
     </section>
   );
 }

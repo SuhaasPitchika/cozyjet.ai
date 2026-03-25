@@ -43,10 +43,13 @@ src/
 ```
 
 ### API Routes (Server-side)
-- `/api/ai/skippy` — Chat & workspace intelligence (OpenRouter)
-- `/api/ai/snooks` — Marketing content generation (OpenRouter)
-- `/api/ai/screen-analyze` — Vision analysis of screen captures (OpenRouter)
-- `/api/auth/send-verification` — Generate & send 6-digit OTP codes
+- `/api/ai/skippy` — Chat & workspace intelligence (OpenRouter, multi-turn)
+- `/api/ai/snooks` — Productivity timeline generation (OpenRouter, JSON output)
+- `/api/ai/meta` — Meta marketing chat (OpenRouter, full conversation history, 2000 tokens)
+- `/api/ai/screen-analyze` — Vision analysis of screen captures (OpenRouter, multimodal)
+- `/api/ai/generate` — Multi-platform batch content generation (returns JSON per platform)
+- `/api/ai/workspace` — Workspace event stream analysis with content opportunity detection
+- `/api/auth/send-verification` — Generate & send 6-digit OTP codes (nodemailer)
 
 ## Environment Variables / Secrets
 - `OPEN_ROUTER` — OpenRouter API key (required for all AI features)
@@ -65,7 +68,7 @@ Firebase config is in `src/firebase/config.ts`. The app uses Firebase Auth and F
 ## Design System
 - **Landing page**: Anime landscape background (hero-bg.webp), 100vh hero
 - **Navbar**: Frosted glass pill, 80px CozyJet logo (larger than text), pixel font
-- **Hero**: 100vh, bezier arch SVG, 6 platform nodes, hyperrealistic yellow sticky notes, extra social logos (Reddit, Slack, TikTok, Pinterest, Discord)
+- **Hero**: 100vh, bezier arch SVG, 11 platform nodes all on timeline (YouTube, Twitter, Reddit, TikTok, Threads, Email, Instagram, Pinterest, Slack, Discord, LinkedIn), neumorphic icon boxes, hyperrealistic yellow sticky notes on outer nodes, hub glow at center node (Email)
 - **Slideshow**: Compact (42vh), "Projects" heading, animated subtitle strip
 - **Auth**: Dark #050814 background, mesh canvas, 6-digit OTP code input, auto-verify on paste
 - **Dashboard sidebar**: 72px wide, glassmorphic, Skippy/Snooks/Meta with icon+label
