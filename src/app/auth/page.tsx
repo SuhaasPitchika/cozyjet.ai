@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import {
@@ -27,83 +27,99 @@ function GoogleIcon() {
   );
 }
 
-function CloudBackground() {
+function MeshCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const raf = useRef<number>(0);
+  const nodes = useRef<{ x: number; y: number; vx: number; vy: number }[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const NODE_COUNT = 55;
+    const MAX_DIST = 160;
+
+    nodes.current = Array.from({ length: NODE_COUNT }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+    }));
+
+    const draw = () => {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      for (const n of nodes.current) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
+      }
+
+      for (let i = 0; i < nodes.current.length; i++) {
+        for (let j = i + 1; j < nodes.current.length; j++) {
+          const a = nodes.current[i];
+          const b = nodes.current[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < MAX_DIST) {
+            const alpha = (1 - dist / MAX_DIST) * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(99,102,241,${alpha})`;
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (const n of nodes.current) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(139,92,246,0.55)";
+        ctx.fill();
+      }
+
+      raf.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(raf.current);
+    };
+  }, []);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, #bfdbfe 0%, #dbeafe 30%, #eff6ff 60%, #f0f9ff 80%, #e0f2fe 100%)",
-        }}
-      />
-      <svg className="absolute bottom-0 left-0 right-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{ height: "45%" }}>
-        <path
-          d="M0,200 C120,160 240,180 360,170 C480,160 520,150 600,160 C680,170 720,155 800,160 C880,165 940,155 1000,160 C1060,165 1120,155 1200,165 C1280,175 1360,165 1440,160 L1440,320 L0,320 Z"
-          fill="rgba(255,255,255,0.85)"
-        />
-        <path
-          d="M0,240 C160,210 280,230 400,220 C520,210 600,200 720,210 C840,220 920,205 1040,215 C1160,225 1300,210 1440,215 L1440,320 L0,320 Z"
-          fill="rgba(255,255,255,0.95)"
-        />
-        <path
-          d="M0,270 C200,250 400,260 600,255 C800,250 1000,260 1200,255 C1300,252 1380,258 1440,255 L1440,320 L0,320 Z"
-          fill="white"
-        />
-      </svg>
-      <motion.div
-        animate={{ x: [0, 20, 0], y: [0, -8, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[12%] left-[8%] w-48 h-28"
-      >
-        <svg viewBox="0 0 200 120" className="w-full h-full opacity-70">
-          <ellipse cx="100" cy="80" rx="80" ry="35" fill="white" />
-          <ellipse cx="70" cy="65" rx="45" ry="38" fill="white" />
-          <ellipse cx="120" cy="62" rx="55" ry="42" fill="white" />
-          <ellipse cx="155" cy="75" rx="35" ry="28" fill="white" />
-          <ellipse cx="45" cy="78" rx="30" ry="22" fill="white" />
-        </svg>
-      </motion.div>
-      <motion.div
-        animate={{ x: [0, -15, 0], y: [0, -6, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-        className="absolute top-[8%] right-[6%] w-64 h-36"
-      >
-        <svg viewBox="0 0 260 140" className="w-full h-full opacity-60">
-          <ellipse cx="130" cy="100" rx="100" ry="40" fill="white" />
-          <ellipse cx="90" cy="80" rx="60" ry="50" fill="white" />
-          <ellipse cx="155" cy="75" rx="70" ry="55" fill="white" />
-          <ellipse cx="200" cy="95" rx="45" ry="35" fill="white" />
-          <ellipse cx="55" cy="98" rx="38" ry="28" fill="white" />
-        </svg>
-      </motion.div>
-      <motion.div
-        animate={{ x: [0, 10, 0], y: [0, 5, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 8 }}
-        className="absolute top-[28%] left-[20%] w-32 h-20"
-      >
-        <svg viewBox="0 0 130 80" className="w-full h-full opacity-50">
-          <ellipse cx="65" cy="55" rx="55" ry="25" fill="white" />
-          <ellipse cx="45" cy="42" rx="35" ry="30" fill="white" />
-          <ellipse cx="85" cy="40" rx="40" ry="32" fill="white" />
-        </svg>
-      </motion.div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+    />
   );
 }
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
-    { label: "8+ characters", ok: password.length >= 8 },
-    { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
-    { label: "Number", ok: /[0-9]/.test(password) },
-    { label: "Special character", ok: /[^A-Za-z0-9]/.test(password) },
+    { label: "8+ characters",      ok: password.length >= 8 },
+    { label: "Uppercase",          ok: /[A-Z]/.test(password) },
+    { label: "Number",             ok: /[0-9]/.test(password) },
+    { label: "Special character",  ok: /[^A-Za-z0-9]/.test(password) },
   ];
   const score = checks.filter((c) => c.ok).length;
   const colors = ["", "#ef4444", "#f97316", "#eab308", "#22c55e"];
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
-
   if (!password) return null;
-
   return (
     <div className="mt-2 space-y-1.5">
       <div className="flex gap-1">
@@ -111,7 +127,7 @@ function PasswordStrength({ password }: { password: string }) {
           <div
             key={i}
             className="h-1 flex-1 rounded-full transition-all duration-300"
-            style={{ background: i <= score ? colors[score] : "rgba(0,0,0,0.08)" }}
+            style={{ background: i <= score ? colors[score] : "rgba(255,255,255,0.1)" }}
           />
         ))}
       </div>
@@ -121,7 +137,7 @@ function PasswordStrength({ password }: { password: string }) {
             <span
               key={c.label}
               className="text-[9px] font-medium transition-colors duration-200"
-              style={{ color: c.ok ? "#16a34a" : "rgba(0,0,0,0.3)" }}
+              style={{ color: c.ok ? "#86efac" : "rgba(255,255,255,0.25)" }}
             >
               {c.ok ? "✓" : "·"} {c.label}
             </span>
@@ -140,14 +156,8 @@ function PasswordStrength({ password }: { password: string }) {
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
-
 function isStrongPassword(password: string) {
-  return (
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
+  return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
 }
 
 export default function AuthPage() {
@@ -160,7 +170,7 @@ export default function AuthPage() {
   const [step, setStep] = useState<"form" | "verify">("form");
   const [isResending, setIsResending] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
 
   const auth = useAuth();
   const db = useFirestore();
@@ -228,21 +238,14 @@ export default function AuthPage() {
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
-
     if (!isValidEmail(email)) {
       toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
       return;
     }
-
     if (mode === "signup" && !isStrongPassword(password)) {
-      toast({
-        title: "Weak Password",
-        description: "Password must be 8+ characters with uppercase, number, and special character.",
-        variant: "destructive",
-      });
+      toast({ title: "Weak Password", description: "Password needs 8+ chars, uppercase, number, and special character.", variant: "destructive" });
       return;
     }
-
     setIsLoading(true);
     try {
       if (mode === "login") {
@@ -263,7 +266,6 @@ export default function AuthPage() {
       let msg = "Authentication failed.";
       if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") msg = "Incorrect email or password.";
       else if (err.code === "auth/email-already-in-use") msg = "An account with this email already exists.";
-      else if (err.code === "auth/weak-password") msg = "Password must be at least 6 characters.";
       else if (err.code === "auth/user-not-found") msg = "No account found with this email.";
       else if (err.code === "auth/invalid-email") msg = "Please enter a valid email address.";
       else if (err.code === "auth/too-many-requests") msg = "Too many attempts. Please wait a moment.";
@@ -273,20 +275,20 @@ export default function AuthPage() {
     }
   };
 
-  const handleResendVerification = async () => {
+  const handleResend = async () => {
     if (isResending || !auth.currentUser) return;
     setIsResending(true);
     try {
       await sendEmailVerification(auth.currentUser);
-      toast({ title: "Email Sent", description: "Verification email resent successfully." });
+      toast({ title: "Email Sent", description: "Verification email resent." });
     } catch {
-      toast({ title: "Error", description: "Could not resend email. Please wait a moment.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not resend. Please wait a moment.", variant: "destructive" });
     } finally {
       setIsResending(false);
     }
   };
 
-  const handleCheckVerification = async () => {
+  const handleCheckVerified = async () => {
     if (isChecking || !auth.currentUser) return;
     setIsChecking(true);
     try {
@@ -303,98 +305,76 @@ export default function AuthPage() {
     }
   };
 
-  const inputBase =
-    "w-full h-12 px-4 rounded-xl text-sm text-gray-800 outline-none transition-all duration-200 bg-white/60 placeholder-gray-400 border";
-  const inputFocused = "border-blue-400 shadow-[0_0_0_3px_rgba(59,130,246,0.12)] bg-white/80";
-  const inputIdle = "border-white/70 hover:border-blue-200/80 bg-white/50";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 bg-white/8 placeholder-white/25 border text-white/90 font-medium";
+  const inputFocused = "border-violet-400/60 shadow-[0_0_0_2px_rgba(139,92,246,0.18)] bg-white/12";
+  const inputIdle = "border-white/12 hover:border-white/22";
+  const inputClass = (f: string) => [inputBase, focused === f ? inputFocused : inputIdle].join(" ");
 
-  const inputClass = (field: string) =>
-    [inputBase, focusedField === field ? inputFocused : inputIdle].join(" ");
+  const glassCard = {
+    background: "rgba(10,10,20,0.72)",
+    backdropFilter: "blur(28px)",
+    WebkitBackdropFilter: "blur(28px)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
+  } as React.CSSProperties;
 
   if (step === "verify") {
     return (
-      <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-        <CloudBackground />
+      <div className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ background: "#050814" }}>
+        <MeshCanvas />
         <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          initial={{ opacity: 0, y: 20, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-20 w-full max-w-[420px] mx-4"
         >
-          <div
-            className="relative rounded-3xl p-8 text-center"
-            style={{
-              background: "rgba(255,255,255,0.55)",
-              backdropFilter: "blur(32px)",
-              WebkitBackdropFilter: "blur(32px)",
-              border: "1px solid rgba(255,255,255,0.8)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.6) inset",
-            }}
-          >
+          <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
+            <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(99,102,241,0.6), transparent)" }} />
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-                boxShadow: "0 8px 32px rgba(59,130,246,0.35)",
-              }}
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.4)" }}
             >
               <Mail className="w-7 h-7 text-white" />
             </motion.div>
-
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Check your email</h2>
-            <p className="text-sm text-gray-500 mb-1">We sent a verification link to</p>
-            <p className="text-sm font-semibold text-blue-600 mb-6">{email}</p>
-
-            <div
-              className="rounded-2xl p-4 mb-6 text-left"
-              style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.12)" }}
-            >
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Click the verification link in your email to activate your account. Once verified, return here and press <strong className="text-gray-700">Continue to Dashboard</strong>.
+            <h2 className="text-xl font-bold text-white mb-2">Check your inbox</h2>
+            <p className="text-sm text-white/40 mb-1">Verification link sent to</p>
+            <p className="text-sm font-semibold text-violet-400 mb-6">{email}</p>
+            <div className="rounded-2xl p-4 mb-6 text-left" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.18)" }}>
+              <p className="text-xs text-white/40 leading-relaxed">
+                Click the link in your email, then press <strong className="text-white/70">Continue to Dashboard</strong>.
               </p>
             </div>
-
             <motion.button
-              onClick={handleCheckVerification}
+              onClick={handleCheckVerified}
               disabled={isChecking}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-3 flex items-center justify-center gap-2.5 disabled:opacity-60"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                boxShadow: "0 4px 20px rgba(59,130,246,0.35)",
-              }}
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 4px 24px rgba(124,58,237,0.4)" }}
             >
-              {isChecking ? (
-                <><Loader2 size={15} className="animate-spin" /><span>Checking...</span></>
-              ) : (
-                <><CheckCircle2 size={15} /><span>Continue to Dashboard</span></>
-              )}
+              {isChecking
+                ? <><Loader2 size={15} className="animate-spin" /><span>Checking...</span></>
+                : <><CheckCircle2 size={15} /><span>Continue to Dashboard</span></>}
             </motion.button>
-
             <button
-              onClick={handleResendVerification}
+              onClick={handleResend}
               disabled={isResending}
-              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-40"
+              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-white/25 hover:text-violet-400 transition-colors disabled:opacity-40"
             >
               <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
               {isResending ? "Resending..." : "Resend verification email"}
             </button>
           </div>
-
-          <p className="text-center text-[11px] text-gray-400 mt-4">
-            CozyJet.AI · Autonomous Marketing & Productivity Studio
-          </p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-      <CloudBackground />
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ background: "#050814" }}>
+      <MeshCanvas />
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -402,43 +382,27 @@ export default function AuthPage() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-20 w-full max-w-[420px] mx-4"
       >
-        <div
-          className="relative rounded-3xl overflow-hidden"
-          style={{
-            background: "rgba(255,255,255,0.52)",
-            backdropFilter: "blur(36px)",
-            WebkitBackdropFilter: "blur(36px)",
-            border: "1px solid rgba(255,255,255,0.82)",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.09), 0 0 0 1px rgba(255,255,255,0.65) inset",
-          }}
-        >
-          <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), rgba(147,197,253,0.5), transparent)" }} />
+        <div className="relative rounded-3xl overflow-hidden" style={glassCard}>
+          <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(99,102,241,0.6), transparent)" }} />
 
           <div className="px-8 pt-8 pb-5 text-center">
             <motion.div
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="w-14 h-14 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-                boxShadow: "0 8px 32px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.3)",
-              }}
+              style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", boxShadow: "0 8px 32px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)" }}
             >
               <ArrowRight className="w-6 h-6 text-white" />
             </motion.div>
-
-            <h1 className="text-xl font-bold text-gray-800 tracking-tight">
+            <h1 className="text-xl font-bold text-white tracking-tight">
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-white/35 mt-1.5 leading-relaxed">
               {mode === "login" ? "Sign in to your AI agentic studio" : "Your AI-powered marketing & productivity studio"}
             </p>
           </div>
 
-          <div
-            className="flex mx-8 mb-6 rounded-xl p-1 gap-1"
-            style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)" }}
-          >
+          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}>
             {[{ label: "Sign In", val: "login" as const }, { label: "Create Account", val: "signup" as const }].map((tab) => (
               <button
                 key={tab.val}
@@ -446,12 +410,8 @@ export default function AuthPage() {
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
                 style={
                   mode === tab.val
-                    ? {
-                      background: "white",
-                      color: "#1e40af",
-                      boxShadow: "0 1px 6px rgba(0,0,0,0.10)",
-                    }
-                    : { color: "rgba(0,0,0,0.35)" }
+                    ? { background: "rgba(124,58,237,0.85)", color: "white", boxShadow: "0 2px 12px rgba(124,58,237,0.35)" }
+                    : { color: "rgba(255,255,255,0.3)" }
                 }
               >
                 {tab.label}
@@ -466,25 +426,25 @@ export default function AuthPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.22 }}
                   className="space-y-1.5 overflow-hidden"
                 >
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                  <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
                     className={inputClass("name")}
-                    onFocus={() => setFocusedField("name")}
-                    onBlur={() => setFocusedField(null)}
+                    onFocus={() => setFocused("name")}
+                    onBlur={() => setFocused(null)}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email</label>
+              <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Email</label>
               <input
                 type="email"
                 required
@@ -492,13 +452,13 @@ export default function AuthPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 className={inputClass("email")}
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => setFocused("email")}
+                onBlur={() => setFocused(null)}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Password</label>
+              <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -506,14 +466,15 @@ export default function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
                   className={`${inputClass("password")} pr-11`}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
+                  onFocus={() => setFocused("password")}
+                  onBlur={() => setFocused(null)}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/55 transition-colors"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -521,7 +482,7 @@ export default function AuthPage() {
               {mode === "signup" && <PasswordStrength password={password} />}
               {mode === "login" && (
                 <div className="text-right">
-                  <span className="text-[10px] text-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
+                  <span className="text-[10px] text-violet-400/70 hover:text-violet-400 cursor-pointer transition-colors">
                     Forgot password?
                   </span>
                 </div>
@@ -536,24 +497,22 @@ export default function AuthPage() {
                 whileTap={{ scale: 0.99 }}
                 className="w-full h-12 rounded-xl text-white text-sm font-semibold disabled:opacity-50 transition-all flex items-center justify-center gap-2.5 relative overflow-hidden group"
                 style={{
-                  background: "linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%)",
-                  boxShadow: "0 4px 20px rgba(37,99,235,0.35), 0 1px 0 rgba(255,255,255,0.15) inset",
+                  background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
+                  boxShadow: "0 4px 24px rgba(124,58,237,0.4), 0 1px 0 rgba(255,255,255,0.1) inset",
                 }}
               >
-                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
-                {isLoading ? (
-                  <><Loader2 size={15} className="animate-spin" /><span>Processing...</span></>
-                ) : (
-                  <><span>{mode === "login" ? "Get Started" : "Create Account"}</span><ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" /></>
-                )}
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/8 transition-colors duration-200" />
+                {isLoading
+                  ? <><Loader2 size={15} className="animate-spin" /><span>Processing...</span></>
+                  : <><span>{mode === "login" ? "Sign In" : "Create Account"}</span><ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" /></>}
               </motion.button>
             </div>
           </form>
 
           <div className="flex items-center gap-3 px-8 my-5">
-            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
-            <span className="text-[10px] text-gray-400 font-medium">Or sign in with</span>
-            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+            <span className="text-[10px] text-white/25 font-medium">or continue with</span>
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
           </div>
 
           <div className="px-8 pb-8">
@@ -562,24 +521,17 @@ export default function AuthPage() {
               disabled={isLoading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="w-full h-12 rounded-xl text-sm font-semibold text-gray-600 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group"
-              style={{
-                background: "rgba(255,255,255,0.8)",
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-              }}
+              className="w-full h-11 rounded-xl text-sm font-semibold text-white/75 disabled:opacity-50 transition-all flex items-center justify-center gap-3 group"
+              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
             >
-              <div className="group-hover:scale-110 transition-transform">
-                <GoogleIcon />
-              </div>
+              <div className="group-hover:scale-110 transition-transform"><GoogleIcon /></div>
               <span>Continue with Google</span>
             </motion.button>
 
-            <p className="text-center text-[10px] text-gray-400 mt-5 leading-relaxed">
+            <p className="text-center text-[10px] text-white/20 mt-5 leading-relaxed">
               By continuing you agree to our{" "}
-              <span className="text-blue-400 underline cursor-pointer hover:text-blue-600 transition-colors">Terms</span>
-              {" & "}
-              <span className="text-blue-400 underline cursor-pointer hover:text-blue-600 transition-colors">Privacy Policy</span>
+              <span className="text-violet-400/60 underline cursor-pointer hover:text-violet-400 transition-colors">Terms</span>{" & "}
+              <span className="text-violet-400/60 underline cursor-pointer hover:text-violet-400 transition-colors">Privacy Policy</span>
             </p>
           </div>
         </div>
@@ -587,8 +539,8 @@ export default function AuthPage() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center text-[11px] text-gray-400/70 mt-4 tracking-wide"
+          transition={{ delay: 0.5 }}
+          className="text-center text-[11px] text-white/20 mt-4 tracking-wide"
         >
           CozyJet.AI · Autonomous Marketing & Productivity Studio
         </motion.p>
