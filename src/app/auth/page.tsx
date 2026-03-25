@@ -28,62 +28,23 @@ function GoogleIcon() {
   );
 }
 
-function Cloud({ style }: { style: React.CSSProperties }) {
-  return (
-    <div className="absolute" style={style}>
-      <div className="relative" style={{ width: "100%", height: "100%" }}>
-        <div className="absolute bottom-0 left-0 right-0 rounded-full"
-          style={{ height: "55%", background: "rgba(255,255,255,0.92)", borderRadius: "9999px 9999px 0 0" }} />
-        <div className="absolute" style={{
-          width: "40%", height: "65%", bottom: "30%", left: "18%",
-          background: "rgba(255,255,255,0.88)", borderRadius: "9999px",
-        }} />
-        <div className="absolute" style={{
-          width: "35%", height: "80%", bottom: "30%", left: "42%",
-          background: "rgba(255,255,255,0.92)", borderRadius: "9999px",
-        }} />
-        <div className="absolute" style={{
-          width: "28%", height: "55%", bottom: "30%", left: "65%",
-          background: "rgba(255,255,255,0.85)", borderRadius: "9999px",
-        }} />
-      </div>
-    </div>
-  );
-}
-
 function SkyBg() {
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{
-      background: "linear-gradient(180deg, #a8d8f0 0%, #c2e4f5 25%, #d9eef8 55%, #eaf5fb 78%, #f4f9fd 100%)"
-    }}>
-      <motion.div
-        animate={{ x: [0, 30, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-0 left-0 right-0"
-        style={{ height: "42%" }}
-      >
-        <Cloud style={{ width: "28%", height: "75%", bottom: 0, left: "-2%" }} />
-        <Cloud style={{ width: "22%", height: "60%", bottom: 0, left: "20%" }} />
-        <Cloud style={{ width: "32%", height: "85%", bottom: 0, left: "36%" }} />
-        <Cloud style={{ width: "20%", height: "55%", bottom: 0, left: "63%" }} />
-        <Cloud style={{ width: "30%", height: "80%", bottom: 0, left: "76%" }} />
-      </motion.div>
-
-      <motion.div
-        animate={{ x: [0, -20, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-        className="absolute bottom-0 left-0 right-0"
-        style={{ height: "28%", opacity: 0.65 }}
-      >
-        <Cloud style={{ width: "18%", height: "70%", bottom: 0, left: "8%" }} />
-        <Cloud style={{ width: "24%", height: "90%", bottom: 0, left: "30%" }} />
-        <Cloud style={{ width: "16%", height: "60%", bottom: 0, left: "58%" }} />
-        <Cloud style={{ width: "26%", height: "80%", bottom: 0, left: "78%" }} />
-      </motion.div>
-
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 60% 40% at 50% 35%, rgba(255,255,255,0.18) 0%, transparent 100%)"
-      }} />
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{
+        backgroundImage: "url('/auth-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 100%)",
+        }}
+      />
     </div>
   );
 }

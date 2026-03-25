@@ -28,16 +28,63 @@ const TiktokIcon = ({ className, style }: { className?: string; style?: React.CS
   </svg>
 );
 
+const PIXEL = "'Press Start 2P', 'Courier New', monospace";
+
 const ALL_NODES = [
-  { icon: Youtube,     label: "YouTube",   color: "#FF0000", tag: "Scripts" },
-  { icon: Twitter,     label: "Twitter",   color: "#1DA1F2", tag: "Tweets" },
-  { icon: RedditIcon,  label: "Reddit",    color: "#FF4500", tag: "Audience" },
-  { icon: TiktokIcon,  label: "TikTok",    color: "#010101", tag: "ShortForm" },
-  { icon: ThreadsIcon, label: "Threads",   color: "#111111", tag: "Micro Stories" },
-  { icon: Mail,        label: "Email",     color: "#EA4335", tag: "Gmails" },
-  { icon: Instagram,   label: "Instagram", color: "#E4405F", tag: "Posts" },
-  { icon: SlackIcon,   label: "Slack",     color: "#4A154B", tag: "Pro Messages" },
-  { icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2", tag: "Blogs" },
+  {
+    icon: Youtube,     label: "YouTube",   color: "#FF0000",
+    tag: "SCRIPTS",
+    noteTitle: "VIDEO SCRIPTS",
+    noteLines: ["Hook + full script", "Title & SEO", "Retention loops"],
+  },
+  {
+    icon: Twitter,     label: "Twitter",   color: "#1DA1F2",
+    tag: "TWEETS",
+    noteTitle: "VIRAL HOOKS",
+    noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"],
+  },
+  {
+    icon: RedditIcon,  label: "Reddit",    color: "#FF4500",
+    tag: "AUDIENCE",
+    noteTitle: "AUDIENCE MKT",
+    noteLines: ["Community-native", "Upvote psychology", "No-promo tone"],
+  },
+  {
+    icon: TiktokIcon,  label: "TikTok",    color: "#000000",
+    tag: "SHORTFORM",
+    noteTitle: "SHORT FORM",
+    noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"],
+  },
+  {
+    icon: ThreadsIcon, label: "Threads",   color: "#111111",
+    tag: "STORIES",
+    noteTitle: "MICRO STORIES",
+    noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"],
+  },
+  {
+    icon: Mail,        label: "Email",     color: "#EA4335",
+    tag: "GMAILS",
+    noteTitle: "HIGH-CR EMAIL",
+    noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"],
+  },
+  {
+    icon: Instagram,   label: "Instagram", color: "#E4405F",
+    tag: "POSTS",
+    noteTitle: "VISUAL POSTS",
+    noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"],
+  },
+  {
+    icon: SlackIcon,   label: "Slack",     color: "#4A154B",
+    tag: "PRO MSG",
+    noteTitle: "PRO MESSAGES",
+    noteLines: ["Team digests", "Launch announcements", "Newsletter"],
+  },
+  {
+    icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2",
+    tag: "BLOGS",
+    noteTitle: "AUTHORITY BLOGS",
+    noteLines: ["Thought leadership", "Data stories", "Pro hooks"],
+  },
 ];
 
 const SUBTITLES = [
@@ -62,8 +109,17 @@ function AnimatedSubtitle() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.45, ease: "easeInOut" }}
-        className="font-pixel text-[10px] md:text-[12px] uppercase tracking-[0.2em] text-center"
-        style={{ color: "rgba(255,255,255,0.78)", textShadow: "0 1px 12px rgba(0,0,0,0.5)", minHeight: "1.4em" }}
+        style={{
+          fontFamily: PIXEL,
+          fontSize: 8,
+          textTransform: "uppercase",
+          letterSpacing: "0.12em",
+          textAlign: "center",
+          color: "rgba(255,255,255,0.92)",
+          minHeight: "1.6em",
+          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 1px 3px rgba(0,0,0,0.8)",
+          lineHeight: 2,
+        }}
       >
         {SUBTITLES[idx]}
       </motion.p>
@@ -96,17 +152,17 @@ function ArchSVG() {
     <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
       <defs>
         <linearGradient id="hArchFill" x1="0.5" y1="0" x2="0.5" y2="1">
-          <stop offset="0%" stopColor="rgba(59,130,246,0.32)" />
-          <stop offset="60%" stopColor="rgba(147,197,253,0.12)" />
+          <stop offset="0%" stopColor="rgba(59,130,246,0.28)" />
+          <stop offset="60%" stopColor="rgba(147,197,253,0.10)" />
           <stop offset="100%" stopColor="rgba(219,234,254,0.02)" />
         </linearGradient>
         <linearGradient id="hArchLine" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="rgba(255,255,255,0.3)" />
-          <stop offset="50%"  stopColor="rgba(255,255,255,0.9)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0.3)" />
+          <stop offset="0%"   stopColor="rgba(255,255,255,0.2)" />
+          <stop offset="50%"  stopColor="rgba(255,255,255,0.85)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0.2)" />
         </linearGradient>
         <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="rgba(59,130,246,0.6)" />
+          <stop offset="0%"   stopColor="rgba(59,130,246,0.7)" />
           <stop offset="100%" stopColor="rgba(59,130,246,0)" />
         </radialGradient>
       </defs>
@@ -116,123 +172,198 @@ function ArchSVG() {
         if (i === HUB_IDX) return null;
         return (
           <line key={i} x1={HUB_PT.x} y1={HUB_PT.y} x2={pt.x} y2={pt.y}
-            stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="5 5" />
+            stroke="rgba(255,255,255,0.14)" strokeWidth="1" strokeDasharray="5 5" />
         );
       })}
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="36" fill="url(#hubGlow)" />
-      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="18" fill="rgba(59,130,246,0.22)" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+      <circle cx={HUB_PT.x} cy={HUB_PT.y} r="38" fill="url(#hubGlow)" />
     </svg>
   );
 }
 
-function TagLabel({ tag, isAbove }: { tag: string; isAbove: boolean }) {
+function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: boolean }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 6, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 4, scale: 0.92 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="absolute z-50 pointer-events-none"
+          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 140 }}
+        >
+          <div style={{
+            background: "#000",
+            border: "2px solid rgba(255,255,255,0.18)",
+            borderRadius: 2,
+            padding: "10px 12px",
+            boxShadow: "4px 4px 0px rgba(255,255,255,0.08), 0 0 20px rgba(0,0,0,0.8)",
+          }}>
+            <div style={{
+              fontFamily: PIXEL,
+              fontSize: 7,
+              color: node.color,
+              letterSpacing: "0.1em",
+              marginBottom: 8,
+              textTransform: "uppercase",
+            }}>
+              {node.noteTitle}
+            </div>
+            {node.noteLines.map((line, i) => (
+              <div key={i} style={{
+                fontFamily: PIXEL,
+                fontSize: 6,
+                color: "rgba(255,255,255,0.75)",
+                letterSpacing: "0.06em",
+                lineHeight: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}>
+                <span style={{ color: node.color, fontSize: 8 }}>›</span> {line}
+              </div>
+            ))}
+          </div>
+          <div style={{
+            position: "absolute",
+            bottom: -8,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft: "8px solid transparent",
+            borderRight: "8px solid transparent",
+            borderTop: "8px solid #000",
+          }} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none"
-      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 6px)" }}
+      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 8px)" }}
     >
-      {!isAbove && (
-        <div className="w-px h-5 border-l-2 border-dashed border-white/40" />
-      )}
-      <div
-        className="px-2 py-1 font-bold uppercase whitespace-nowrap"
+      {!isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
+      <motion.div
+        animate={{
+          rotate: isAbove ? [-1.5, 1, -1.5] : [1.5, -1, 1.5],
+          y: [0, -2, 0],
+        }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background: "#fffbeb",
-          border: "2px solid rgba(0,0,0,0.85)",
-          boxShadow: "2px 2px 0px rgba(0,0,0,0.9)",
-          fontSize: 8,
-          fontFamily: "'Courier New', monospace",
+          background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff176 100%)",
+          border: "2px solid rgba(0,0,0,0.8)",
+          boxShadow: "3px 3px 0px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.3)",
+          padding: "5px 8px",
+          fontFamily: PIXEL,
+          fontSize: 6,
           color: "#111",
-          letterSpacing: "0.08em",
-          imageRendering: "pixelated",
+          letterSpacing: "0.05em",
+          textTransform: "uppercase" as const,
+          whiteSpace: "nowrap" as const,
+          imageRendering: "pixelated" as const,
         }}
       >
         {tag}
-      </div>
-      {isAbove && (
-        <div className="w-px h-5 border-l-2 border-dashed border-white/40" />
-      )}
+      </motion.div>
+      {isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
     </div>
   );
 }
 
-function ComicCloudBubble() {
+function OrganicMarketingCloud() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 1.2, duration: 0.5, type: "spring" }}
+      initial={{ opacity: 0, scale: 0.75, rotate: -6 }}
+      animate={{ opacity: 1, scale: 1, rotate: -4 }}
+      transition={{ delay: 0.9, duration: 0.6, type: "spring", stiffness: 200, damping: 18 }}
       className="absolute z-30"
-      style={{ left: "2%", top: "-15%" }}
+      style={{ left: "-2%", top: "-55%", rotate: "-4deg" }}
     >
-      <div className="relative">
+      <motion.div
+        animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      >
         <div
-          className="px-4 py-3 font-bold uppercase text-center"
           style={{
-            background: "#ffffff",
+            background: "#fff",
             border: "3px solid #000",
-            boxShadow: "4px 4px 0px #000",
-            fontSize: 11,
-            fontFamily: "'Courier New', monospace",
-            letterSpacing: "0.1em",
-            color: "#000",
-            imageRendering: "pixelated",
-            minWidth: 100,
+            boxShadow: "5px 5px 0px #000",
+            padding: "14px 20px",
+            borderRadius: 4,
+            position: "relative",
+            maxWidth: 220,
           }}
         >
-          USE IT<br />FOR ↓
+          <div style={{
+            fontFamily: PIXEL,
+            fontSize: 7,
+            color: "#000",
+            letterSpacing: "0.08em",
+            lineHeight: 2.2,
+            textTransform: "uppercase",
+          }}>
+            ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
+          </div>
+          <div style={{
+            marginTop: 10,
+            fontFamily: PIXEL,
+            fontSize: 6,
+            color: "#0a66c2",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            borderTop: "2px solid #000",
+            paddingTop: 8,
+          }}>
+            ↓ USE IT FOR ↓
+          </div>
+
+          <div style={{
+            position: "absolute",
+            bottom: -16,
+            right: "25%",
+            width: 0, height: 0,
+            borderLeft: "12px solid transparent",
+            borderRight: "12px solid transparent",
+            borderTop: "16px solid #000",
+          }} />
+          <div style={{
+            position: "absolute",
+            bottom: -11,
+            right: "calc(25% + 3px)",
+            width: 0, height: 0,
+            borderLeft: "9px solid transparent",
+            borderRight: "9px solid transparent",
+            borderTop: "12px solid #fff",
+          }} />
         </div>
-        <div
-          className="absolute"
-          style={{
-            bottom: -18,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 0,
-            height: 0,
-            borderLeft: "10px solid transparent",
-            borderRight: "10px solid transparent",
-            borderTop: "18px solid #000",
-          }}
-        />
-        <div
-          className="absolute"
-          style={{
-            bottom: -13,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 0,
-            height: 0,
-            borderLeft: "7px solid transparent",
-            borderRight: "7px solid transparent",
-            borderTop: "14px solid #fff",
-          }}
-        />
+
         {[
-          { size: 14, bottom: -28, left: "44%" },
-          { size: 10, bottom: -38, left: "38%" },
-          { size: 7, bottom: -46, left: "33%" },
-        ].map((dot, i) => (
-          <div
-            key={i}
-            className="absolute rounded-none"
-            style={{
-              width: dot.size,
-              height: dot.size,
-              bottom: dot.bottom,
-              left: dot.left,
-              background: "#fff",
-              border: "2px solid #000",
-              imageRendering: "pixelated",
-            }}
-          />
+          { size: 18, bottom: -28, right: "18%", rotate: "8deg" },
+          { size: 13, bottom: -40, right: "12%", rotate: "12deg" },
+          { size: 9,  bottom: -50, right: "7%",  rotate: "15deg" },
+        ].map((d, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            width: d.size, height: d.size,
+            bottom: d.bottom, right: d.right,
+            background: "#fff",
+            border: "2px solid #000",
+            borderRadius: 1,
+            transform: `rotate(${d.rotate})`,
+          }} />
         ))}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
 
 export function Hero() {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
   return (
     <section
       className="relative flex flex-col items-center overflow-visible"
@@ -251,19 +382,25 @@ export function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          className="font-pixel text-3xl md:text-5xl font-bold mb-5 tracking-tight uppercase"
           style={{
+            fontFamily: PIXEL,
+            fontSize: "clamp(14px, 2.4vw, 28px)",
+            fontWeight: 700,
+            marginBottom: "1.2rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            lineHeight: 1.7,
             color: "#ffffff",
-            textShadow: "0 2px 0 rgba(0,0,0,0.8), 0 4px 32px rgba(0,0,0,0.7), 0 8px 48px rgba(0,0,0,0.5), 0 0 80px rgba(0,0,0,0.35)",
+            textShadow: "0 2px 0 rgba(0,0,0,0.9), 0 4px 32px rgba(0,0,0,0.8), 0 8px 48px rgba(0,0,0,0.5)",
           }}
         >
-          AI AGENTIC MARKETING STUDIO
+          AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35, duration: 0.5 }}
-          className="h-8 flex items-center justify-center"
+          style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           <AnimatedSubtitle />
         </motion.div>
@@ -273,16 +410,17 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-28"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-20"
         style={{ height: `${VH}px` }}
       >
-        <ComicCloudBubble />
+        <OrganicMarketingCloud />
         <ArchSVG />
 
         {ALL_NODES.map((node, i) => {
           const pt    = NODE_PTS[i];
           const isHub = i === HUB_IDX;
           const isAbove = i % 2 === 0;
+          const isHovered = hoveredIdx === i;
 
           return (
             <motion.div
@@ -301,27 +439,39 @@ export function Hero() {
                 left: `${pt.xPct}%`,
                 top: `${pt.yPct}%`,
                 transform: "translate(-50%, -50%)",
-                zIndex: isHub ? 20 : 10,
+                zIndex: isHovered ? 50 : (isHub ? 20 : 10),
               }}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
             >
-              <TagLabel tag={node.tag} isAbove={isAbove} />
+              <HoverTooltip node={node} visible={isHovered} />
+              <StickyNoteTag tag={node.tag} isAbove={isAbove} />
 
-              <div
-                className="rounded-xl border-2 border-black transition-all duration-150 hover:scale-110 cursor-pointer relative z-30 flex items-center justify-center"
+              <motion.div
+                whileHover={{ scale: 1.18, y: -4 }}
+                transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                className="cursor-pointer relative z-30 flex items-center justify-center"
                 style={{
                   width: isHub ? "88px" : "72px",
                   height: isHub ? "88px" : "72px",
-                  background: isHub ? "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)" : "#ffffff",
-                  boxShadow: isHub
-                    ? "5px 5px 0px 0px rgba(0,0,0,1), 0 0 28px rgba(59,130,246,0.5)"
-                    : "4px 4px 0px 0px rgba(0,0,0,1)",
+                  background: isHub
+                    ? "linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)"
+                    : "#ffffff",
+                  border: "2.5px solid #000",
+                  boxShadow: isHovered
+                    ? `5px 5px 0px #000, 0 0 24px ${node.color}99`
+                    : isHub
+                      ? "5px 5px 0px #000, 0 0 22px rgba(59,130,246,0.45)"
+                      : "4px 4px 0px #000",
+                  borderRadius: "4px",
+                  transition: "box-shadow 0.15s",
                 }}
               >
                 <node.icon
                   className={isHub ? "w-11 h-11" : "w-9 h-9"}
                   style={{ color: node.color }}
                 />
-              </div>
+              </motion.div>
             </motion.div>
           );
         })}
