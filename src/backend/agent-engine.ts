@@ -89,19 +89,28 @@ export class TaskExecutor {
       let responseFormat: 'text' | 'json_object' = 'text';
 
       if (agent.id === 'skippy') {
-        systemPrompt = `You are Skippy, the intelligent workspace observer for CozyJet Studio. Current workspace context: ${JSON.stringify(task.parameters || {})}. Keep responses concise (2-4 sentences).`;
+        systemPrompt = `You are Skippy, CozyJet's workspace intelligence agent. You analyze screenshots and workspace context.
+Identify: 1. Current task/activity 2. Tools in use 3. Focus state 4. Strategic insights.
+Return JSON: {"activity": string, "context": string, "apps": string[], "signal": string, "insights": string, "focus_score": 0-100}`;
+        responseFormat = 'json_object';
       } else if (agent.id === 'flippo') {
-        systemPrompt = `You are Flippo, an AI productivity brain. Return ONLY valid JSON: {"timeline":[], "deepWorkScore":0, "productivityInsights": ""}`;
+        systemPrompt = `You are Flippo, the productivity brain. Transform raw activities into a human timeline with emotional context.
+CRITICAL: No generic logs. Describe specific tools, file changes, and breakthroughs.
+Return JSON: {"sessions": [{"startTime": "H:MM", "endTime": "H:MM", "durationMinutes": number, "type": "deep|shallow|break|distraction", "title": string, "accomplishment": string, "tool": string, "tags": string[]}], "deepWorkScore": 85, "momentumInsight": string, "tomorrowSuggestion": string}`;
         responseFormat = 'json_object';
       } else if (agent.id === 'snooks') {
-        systemPrompt = `You are Snooks, elite social media strategist. Return ONLY valid JSON with keys: responseText, generatedContent (linkedinPost, xThread, emailContent, growthHack, seoHooks).`;
+        systemPrompt = `You are Snooks, the elite marketing intelligence. Strategy lead for viral growth & personal branding.
+Handle chat and content generation. Be direct, high-signal, and actionable.
+Return JSON: {"responseText": "Direct response to user", "generatedContent": {"linkedin": "", "x": "", "email": ""}, "insights": []}`;
         responseFormat = 'json_object';
       }
 
       const responseText = await getLLMResponse(systemPrompt, input, {
-        maxTokens: agent.maxSteps ? agent.maxSteps * 100 : 1000,
+        maxTokens: agent.maxTokens || 1000,
         temperature: agent.temperature || 0.7,
-        responseFormat
+        responseFormat,
+        image: task.parameters?.image,
+        chatHistory: task.parameters?.chatHistory,
       });
 
       let parsedOutput: any = responseText;

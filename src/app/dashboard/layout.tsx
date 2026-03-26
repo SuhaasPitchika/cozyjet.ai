@@ -12,8 +12,8 @@ import { signOut } from "firebase/auth";
 
 const NAV_ITEMS = [
   { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
-  { label: "Snooks", href: "/dashboard/snooks", icon: Zap, color: "#8b5cf6", desc: "Timeline & Productivity" },
-  { label: "Meta", href: "/dashboard/meta", icon: Sparkles, color: "#ec4899", desc: "Marketing Chat" },
+  { label: "Flippo", href: "/dashboard/flippo", icon: Zap, color: "#8b5cf6", desc: "Timeline & Productivity" },
+  { label: "Snooks", href: "/dashboard/meta", icon: Sparkles, color: "#ec4899", desc: "Marketing Intelligence" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -44,15 +44,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#f5f5f7" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "radial-gradient(ellipse at top left, #12121a 0%, #030303 100%)" }}>
       <aside
         className="w-[72px] shrink-0 flex flex-col z-40 items-center py-5 gap-2 relative"
         style={{
-          background: "rgba(255,255,255,0.55)",
-          backdropFilter: "blur(32px) saturate(180%)",
-          WebkitBackdropFilter: "blur(32px) saturate(180%)",
-          borderRight: "1px solid rgba(255,255,255,0.7)",
-          boxShadow: "1px 0 24px rgba(0,0,0,0.06), inset -1px 0 0 rgba(255,255,255,0.8)",
+          background: "rgba(18,18,24,0.45)",
+          backdropFilter: "blur(40px) saturate(200%)",
+          WebkitBackdropFilter: "blur(40px) saturate(200%)",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+          boxShadow: "1px 0 32px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.02)",
         }}
       >
         <Link href="/" className="mb-5 group block">
@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </motion.div>
         </Link>
 
-        <div className="w-6 h-px mb-2" style={{ background: "rgba(0,0,0,0.08)" }} />
+        <div className="w-6 h-px mb-2" style={{ background: "rgba(255,255,255,0.08)" }} />
 
         <nav className="flex flex-col gap-2 flex-1 w-full px-2.5">
           {NAV_ITEMS.map((item) => {
@@ -90,12 +90,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <item.icon
                     size={18}
-                    style={{ color: isActive ? item.color : "rgba(0,0,0,0.28)" }}
+                    style={{ color: isActive ? item.color : "rgba(255,255,255,0.4)" }}
                     strokeWidth={isActive ? 2.2 : 1.8}
                   />
                   <span
                     className="text-[8px] font-bold uppercase tracking-wide"
-                    style={{ color: isActive ? item.color : "rgba(0,0,0,0.22)" }}
+                    style={{ color: isActive ? item.color : "rgba(255,255,255,0.3)" }}
                   >
                     {item.label}
                   </span>
@@ -112,10 +112,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <div
                           className="px-3 py-2 rounded-xl whitespace-nowrap"
                           style={{
-                            background: "rgba(10,10,10,0.88)",
-                            backdropFilter: "blur(12px)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                            background: "rgba(18,18,24,0.85)",
+                            backdropFilter: "blur(16px)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                           }}
                         >
                           <p className="text-white text-[11px] font-semibold">{item.label}</p>
@@ -147,10 +147,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all group"
-            style={{ background: "rgba(0,0,0,0.04)" }}
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.04)" }}
             title="Sign out"
           >
-            <LogOut size={14} className="text-black/25 group-hover:text-red-400 transition-colors" />
+            <LogOut size={14} className="text-white/40 group-hover:text-red-400 transition-colors" />
           </motion.button>
         </div>
       </aside>
@@ -159,10 +159,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header
           className="h-11 shrink-0 flex items-center justify-between px-6 border-b"
           style={{
-            background: "rgba(255,255,255,0.6)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            borderColor: "rgba(0,0,0,0.06)",
+            background: "rgba(10,10,14,0.45)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            borderColor: "rgba(255,255,255,0.05)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -171,9 +171,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="w-5 h-5 rounded-lg flex items-center justify-center" style={{ background: `${activeItem.color}15` }}>
                   <activeItem.icon size={11} style={{ color: activeItem.color }} />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">{activeItem.label}</span>
-                <span className="text-gray-300 text-xs">·</span>
-                <span className="text-xs text-gray-400">{activeItem.desc}</span>
+                <span className="text-sm font-semibold text-white/90">{activeItem.label}</span>
+                <span className="text-white/20 text-xs">·</span>
+                <span className="text-xs text-white/40">{activeItem.desc}</span>
               </>
             )}
           </div>

@@ -14,6 +14,8 @@ export const getLLMResponse = async (
     maxTokens?: number;
     temperature?: number;
     responseFormat?: 'text' | 'json_object';
+    image?: { base64: string; mimeType: string };
+    chatHistory?: { role: 'user' | 'assistant' | 'system'; content: string }[];
   } = {}
 ) => {
   const apiKey = process.env.OPEN_ROUTER;
@@ -22,9 +24,26 @@ export const getLLMResponse = async (
     throw new Error('OPEN_ROUTER API key is missing. Please configure your .env file.');
   }
 
-  const { maxTokens = 800, temperature = 0.7, responseFormat = 'text' } = options;
+  const { maxTokens = 1000, temperature = 0.7, responseFormat = 'text', image, chatHistory = [] } = options;
 
   try {
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory,
+    ];
+
+    if (image) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: userMessage },
+          { type: 'image_url', image_url: { url: `data:${image.mimeType};base64,${image.base64}` } },
+        ],
+      });
+    } else {
+      messages.push({ role: 'user', content: userMessage });
+    }
+
     const response = await fetch(OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
@@ -35,10 +54,7 @@ export const getLLMResponse = async (
       },
       body: JSON.stringify({
         model: MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        messages,
         max_tokens: maxTokens,
         temperature: temperature,
         ...(responseFormat === 'json_object' && { response_format: { type: 'json_object' } }),
@@ -58,3 +74,4 @@ export const getLLMResponse = async (
     throw error;
   }
 };
+

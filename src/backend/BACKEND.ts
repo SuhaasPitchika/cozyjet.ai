@@ -7,6 +7,7 @@ export interface AgentConfig {
   model?: string;
   temperature?: number;
   maxSteps?: number;
+  maxTokens?: number;
   maxRetries?: number;
   capabilities: string[];
 }

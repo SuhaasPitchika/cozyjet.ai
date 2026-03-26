@@ -156,7 +156,7 @@ export default function MetaPage() {
   const skippyCtx = buildSkippyContext();
 
   return (
-    <div className="h-full flex flex-col" style={{ background: "#0f0f0f" }}>
+    <div className="h-full flex flex-col" style={{ background: "radial-gradient(ellipse at top left, #12121a 0%, #030303 100%)" }}>
       <div className="px-8 py-4 border-b border-white/5 flex items-center justify-between shrink-0" style={{ background: "rgba(15,15,15,0.9)", backdropFilter: "blur(12px)" }}>
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #ec4899, #db2777)", boxShadow: "0 4px 12px rgba(236,72,153,0.4)" }}>
@@ -164,10 +164,10 @@ export default function MetaPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-white">Meta</h1>
-              <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+              <h1 className="text-sm font-semibold text-white">Snooks</h1>
+              <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
             </div>
-            <p className="text-[10px] text-white/30">Marketing & Content Intelligence</p>
+            <p className="text-[10px] text-white/30 uppercase tracking-[0.1em]">Marketing Intelligence</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -197,9 +197,9 @@ export default function MetaPage() {
               >
                 <Sparkles size={32} className="text-pink-400" />
               </motion.div>
-              <h2 className="text-xl font-semibold text-white/80 mb-2">Meta is ready</h2>
+              <h2 className="text-xl font-semibold text-white/80 mb-2">Snooks is ready</h2>
               <p className="text-xs text-white/30 max-w-sm mx-auto leading-relaxed">
-                Elite content strategist & marketing intelligence. Viral content, growth playbooks, SEO hooks, and personal branding for builders.
+                Elite social media strategist & content engineer. Viral growth playbooks, personal brand hooks, and conversion-first marketing.
               </p>
               {skippyCtx && (
                 <motion.div
@@ -285,7 +285,7 @@ export default function MetaPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isGenerating}
-              placeholder="Ask Meta about viral content, growth, marketing strategy..."
+              placeholder="Ask Snooks about viral threads, LinkedIn strategy, SEO hooks..."
               rows={1}
               className="flex-1 bg-transparent text-sm text-white/80 placeholder:text-white/20 outline-none resize-none min-h-[24px] max-h-40"
               style={{ lineHeight: "1.5rem" }}
