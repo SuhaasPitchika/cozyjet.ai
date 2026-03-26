@@ -35,8 +35,8 @@ def skippy_sync_integration(integration_id: str):
             await db.flush()
 
             try:
-                # 2. Decrypt token
-                token = token_encryption_service.decrypt(integration.access_token_encrypted)
+                # 2. Get Valid Token (handles refresh)
+                token = await IntegrationService.get_valid_token(integration, db)
                 
                 # 3. Call Platform-Specific Sync
                 seeds_found = 0
@@ -46,6 +46,10 @@ def skippy_sync_integration(integration_id: str):
                     seeds_found = await sync_notion(integration, token, db)
                 elif integration.platform == IntegrationPlatform.figma:
                     seeds_found = await sync_figma(integration, token, db)
+                elif integration.platform == IntegrationPlatform.google_drive:
+                    seeds_found = await sync_google_drive(integration, token, db)
+                elif integration.platform == IntegrationPlatform.google_calendar:
+                    seeds_found = await sync_google_calendar(integration, token, db)
                 
                 # 4. Update logs on success
                 log.status = "success"
@@ -176,5 +180,76 @@ async def sync_notion(integration, token, db):
     return seeds_count
 
 async def sync_figma(integration, token, db):
-    # Placeholder for figma logic following similar pattern
+    # Placeholder for figma logic 
     return 0
+
+async def sync_google_drive(integration, token, db):
+    """
+    Google Drive Sync: Recently modified files.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    skippy = SkippyAgent()
+    seeds_count = 0
+    
+    async with httpx.AsyncClient() as client:
+        # Fetch files modified in last 24h
+        q = "modifiedTime > '" + (integration.last_synced_at or datetime.utcnow()).isoformat() + "Z' and trashed = false"
+        res = await client.get(f"https://www.googleapis.com/drive/v3/files?q={q}&fields=files(id,name,mimeType,webViewLink)", headers=headers)
+        files = res.json().get("files", [])
+        
+        for file in files[:5]: # Limit
+            # Generate seed only for relevant types (docs, slides, sheets)
+            if any(t in file["mimeType"] for t in ["document", "presentation", "spreadsheet"]):
+                summary = await skippy.summarize_activity({
+                    "platform": "google_drive",
+                    "title": f"Drive Update: {file['name']}",
+                    "description": f"Working on a {file['mimeType'].split('.')[-1]} titled {file['name']}.",
+                    "url": file.get("webViewLink")
+                })
+                
+                seed = ContentSeed(
+                    user_id=integration.user_id,
+                    title=summary["title"],
+                    description=summary["description"],
+                    source_platform="google_drive",
+                    source_url=file.get("webViewLink")
+                )
+                db.add(seed)
+                seeds_count += 1
+    return seeds_count
+
+async def sync_google_calendar(integration, token, db):
+    """
+    Google Calendar Sync: Events from the last 24h.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    skippy = SkippyAgent()
+    seeds_count = 0
+    
+    async with httpx.AsyncClient() as client:
+        time_min = (integration.last_synced_at or datetime.utcnow()).isoformat() + "Z"
+        res = await client.get(f"https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin={time_min}", headers=headers)
+        events = res.json().get("items", [])
+        
+        for event in events:
+            # Only sync meaningful events (longer than 30 mins)
+            start = datetime.fromisoformat(event["start"].get("dateTime", event["start"].get("date")).replace("Z", ""))
+            end = datetime.fromisoformat(event["end"].get("dateTime", event["end"].get("date")).replace("Z", ""))
+            duration_mins = (end - start).total_seconds() / 60
+            
+            if duration_mins >= 30:
+                summary = await skippy.summarize_activity({
+                    "platform": "google_calendar",
+                    "title": f"Calendar Event: {event['summary']}",
+                    "description": f"Finished a {int(duration_mins)} minute session: {event['summary']}.",
+                })
+                
+                seed = ContentSeed(
+                    user_id=integration.user_id,
+                    title=summary["title"],
+                    description=summary["description"],
+                    source_platform="google_calendar"
+                )
+                db.add(seed)
+                seeds_count += 1
+    return seeds_count

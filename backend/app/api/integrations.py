@@ -47,7 +47,17 @@ PLATFORM_CONFIG = {
         "scopes": "file_read",
         "profile_api": "https://api.figma.com/v1/me"
     },
-    # Add Google, LinkedIn, etc. here following same pattern
+    "google": {
+        "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+        "token_url": "https://oauth2.googleapis.com/token",
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "scopes": "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/calendar.readonly openid email profile",
+        "profile_api": "https://www.googleapis.com/oauth2/v3/userinfo",
+        "access_type": "offline",
+        "prompt": "consent"
+    },
 }
 
 @router.get("/connect/{platform}")
@@ -70,6 +80,10 @@ async def connect_platform(
         f"&redirect_uri={config['redirect_uri']}&state={state}"
         f"&response_type=code&scope={config['scopes']}"
     )
+    
+    # Google specific parameters for Refresh Token (offline access)
+    if platform == "google":
+        auth_url += "&access_type=offline&prompt=consent"
     
     return {"url": auth_url}
 
