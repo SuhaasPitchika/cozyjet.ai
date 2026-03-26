@@ -30,20 +30,19 @@ function GoogleIcon() {
 
 function SkyBg() {
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{
+        backgroundImage: "url('/auth-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: "url('/auth-bg2.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(to bottom, rgba(30,60,120,0.18) 0%, rgba(10,30,80,0.08) 50%, rgba(20,50,100,0.22) 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 100%)",
         }}
       />
     </div>
@@ -84,15 +83,48 @@ function PasswordStrength({ password }: { password: string }) {
   );
 }
 
-
+function CodeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+  const digits = value.padEnd(6, "").split("").slice(0, 6);
+  const handleChange = (i: number, v: string) => {
+    const d = v.replace(/\D/g, "").slice(-1);
+    const next = digits.map((x, idx) => (idx === i ? d : x)).join("").slice(0, 6);
+    onChange(next);
+    if (d && i < 5) inputs.current[i + 1]?.focus();
+  };
+  const handleKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !digits[i] && i > 0) inputs.current[i - 1]?.focus();
+  };
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    onChange(pasted);
+    if (pasted.length > 0) inputs.current[Math.min(pasted.length, 5)]?.focus();
+    e.preventDefault();
+  };
+  return (
+    <div className="flex gap-2 justify-center">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <input key={i} ref={(el) => { inputs.current[i] = el; }} type="text" inputMode="numeric"
+          maxLength={1} value={digits[i] || ""} onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)} onPaste={handlePaste}
+          className="w-11 h-14 text-center text-xl font-bold rounded-xl outline-none transition-all duration-200"
+          style={{
+            background: "rgba(0,0,0,0.04)",
+            caretColor: "#3b82f6",
+            border: digits[i] ? "1.5px solid rgba(59,130,246,0.7)" : "1.5px solid rgba(0,0,0,0.12)",
+            color: "#111",
+          }} />
+      ))}
+    </div>
+  );
+}
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(255,255,255,0.14)",
-  backdropFilter: "blur(40px) saturate(180%)",
-  WebkitBackdropFilter: "blur(40px) saturate(180%)",
-  border: "1px solid rgba(255,255,255,0.28)",
-  boxShadow: "0 24px 64px rgba(0,30,100,0.35), 0 4px 24px rgba(80,140,255,0.12), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(255,255,255,0.06)",
-  borderRadius: "16px",
+  background: "rgba(255,255,255,0.88)",
+  backdropFilter: "blur(32px) saturate(200%)",
+  WebkitBackdropFilter: "blur(32px) saturate(200%)",
+  border: "1px solid rgba(255,255,255,0.85)",
+  boxShadow: "0 24px 64px rgba(80,140,190,0.18), 0 4px 24px rgba(80,140,190,0.12), 0 0 0 1px rgba(255,255,255,0.9) inset",
 };
 
 export default function AuthPage() {
@@ -103,7 +135,11 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  // step, code, isVerifying, isResending, devCode removed
+  const [step, setStep] = useState<"form" | "verify">("form");
+  const [code, setCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
@@ -213,6 +249,20 @@ export default function AuthPage() {
     }
   };
 
+  const sendVerificationCode = async (emailAddr: string, displayName: string) => {
+    const res = await fetch("/api/auth/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailAddr, name: displayName }),
+    });
+    const data = await res.json();
+    if (data.devCode) {
+      setDevCode(data.devCode);
+    } else {
+      setDevCode(null);
+    }
+    return data.success;
+  };
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,7 +280,8 @@ export default function AuthPage() {
         const result = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
         if (result.user) {
           await syncUserProfile(result.user);
-          router.push("/dashboard/skippy");
+          await sendVerificationCode(trimmedEmail, name);
+          setStep("verify");
         }
       }
     } catch (err: any) {
@@ -248,12 +299,99 @@ export default function AuthPage() {
     }
   };
 
+  const handleVerifyCode = async () => {
+    if (isVerifying || code.length !== 6) return;
+    setIsVerifying(true);
+    try {
+      const res = await fetch(`/api/auth/send-verification?email=${encodeURIComponent(email.trim())}&code=${code}`);
+      const data = await res.json();
+      if (data.valid) {
+        toast({ title: "Verified!", description: "Welcome to CozyJet Studio." });
+        router.push("/dashboard/skippy");
+      } else {
+        const reason = data.reason === "Code expired" ? "Code expired. Request a new one." : "Incorrect code. Try again.";
+        toast({ title: "Invalid Code", description: reason, variant: "destructive" });
+        setCode("");
+      }
+    } catch {
+      toast({ title: "Error", description: "Verification failed. Please try again.", variant: "destructive" });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/30 border text-white/90 font-medium";
+  const handleResend = async () => {
+    if (isResending) return;
+    setIsResending(true);
+    setCode("");
+    try {
+      await sendVerificationCode(email.trim(), name);
+      toast({ title: "Code Sent", description: "A new verification code has been sent." });
+    } catch {
+      toast({ title: "Error", description: "Could not resend. Please wait a moment.", variant: "destructive" });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (code.length === 6) handleVerifyCode();
+  }, [code]);
+
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-black/25 border text-black/90 font-medium";
   const getInputClass = (f: string) =>
-    `${inputBase} bg-white/[0.08] ${focused === f ? "border-blue-300/70" : "border-white/20 hover:border-white/35"}`;
+    `${inputBase} bg-black/[0.03] ${focused === f ? "border-blue-400/60" : "border-black/10 hover:border-black/20"}`;
 
-  // Verify step UI removed
+  if (step === "verify") {
+    return (
+      <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
+        <SkyBg />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          className="relative z-20 w-full max-w-[420px] mx-4">
+          <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
+            <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
+            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity }}
+              className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <rect x="3" y="8" width="18" height="13" rx="2" />
+                <path d="M16 8V5a4 4 0 0 0-8 0v3" />
+                <circle cx="12" cy="14" r="1.5" fill="currentColor" />
+              </svg>
+            </motion.div>
+            <h2 className="text-xl font-bold text-black/90 mb-2">Verify your email</h2>
+            <p className="text-sm text-black/40 mb-1">Code sent to</p>
+            <p className="text-sm font-semibold text-blue-600 mb-6">{email}</p>
+            {devCode && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="rounded-xl p-3 mb-4 text-xs text-amber-700 font-mono"
+                style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)" }}>
+                Dev mode · No SMTP configured · Code: <strong className="text-amber-800 text-sm tracking-widest">{devCode}</strong>
+              </motion.div>
+            )}
+            <div className="mb-6">
+              <CodeInput value={code} onChange={setCode} />
+            </div>
+            <motion.button onClick={handleVerifyCode} disabled={isVerifying || code.length !== 6}
+              whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+              className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5 disabled:opacity-40"
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+              {isVerifying ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
+                : <span>Enter Studio</span>}
+            </motion.button>
+            <button onClick={handleResend} disabled={isResending}
+              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-black/30 hover:text-blue-600 transition-colors disabled:opacity-40">
+              <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
+              {isResending ? "Sending..." : "Resend code"}
+            </button>
+            <p className="text-[10px] text-black/25 mt-4">Expires in 10 minutes</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (mode === "forgot") {
     return (
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">

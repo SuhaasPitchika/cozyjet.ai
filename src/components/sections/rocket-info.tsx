@@ -39,8 +39,25 @@ export function RocketInfo() {
     offset: ["start start", "end end"],
   });
 
+  const bgColor = useTransform(
+    scrollYProgress,
+    [0, 0.33, 0.66, 1],
+    ["#ffffff", "#e8f4fd", "#bde3f8", "#93cfef"]
+  );
+
   const cloudY = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
   const cloudScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
+
+  const orb1Color = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ["rgba(255,255,255,0.7)", "rgba(186,230,255,0.6)", "rgba(125,206,255,0.5)"]
+  );
+  const orb2Color = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ["rgba(240,248,255,0.5)", "rgba(147,214,255,0.45)", "rgba(100,190,255,0.4)"]
+  );
 
   const clipPath = useTransform(
     scrollYProgress,
@@ -65,17 +82,32 @@ export function RocketInfo() {
 
   return (
     <section ref={containerRef} className="relative h-[500vh] font-pixel">
-      <div
+      <motion.div
+        style={{ backgroundColor: bgColor }}
         className="sticky top-0 h-screen w-full pointer-events-none z-0 overflow-hidden"
-        style={{ backgroundColor: "#ffffff" }}
       >
         <motion.div style={{ y: cloudY, scale: cloudScale }} className="absolute inset-0">
+          <motion.div style={{ backgroundColor: orb1Color }}
+            className="absolute top-[8%] left-[12%] w-[55vw] h-[55vw] blur-[130px] rounded-full" />
+          <motion.div style={{ backgroundColor: orb2Color }}
+            className="absolute top-[38%] right-[8%] w-[48vw] h-[48vw] blur-[150px] rounded-full" />
+          <motion.div
+            style={{ opacity: useTransform(scrollYProgress, [0, 0.4, 1], [0, 0.35, 0.6]) }}
+            className="absolute top-[20%] left-[35%] w-[40vw] h-[40vw] bg-[#7dd3fc] blur-[180px] rounded-full"
+          />
           <div
-            className="absolute inset-0 opacity-[0.018]"
-            style={{ backgroundImage: "radial-gradient(circle, #94a3b8 1px, transparent 0)", backgroundSize: "28px 28px" }}
+            className="absolute inset-0 opacity-[0.025]"
+            style={{ backgroundImage: "radial-gradient(circle, #1d4ed8 1px, transparent 0)", backgroundSize: "28px 28px" }}
           />
         </motion.div>
-      </div>
+        <motion.div
+          style={{
+            opacity: useTransform(scrollYProgress, [0, 1], [0, 0.35]),
+            background: "linear-gradient(to top, rgba(56,189,248,0.5), transparent)",
+          }}
+          className="absolute bottom-0 inset-x-0 h-48 pointer-events-none"
+        />
+      </motion.div>
 
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="sticky top-0 h-screen w-full flex flex-col lg:flex-row items-center justify-between px-6 lg:px-24 overflow-hidden z-10">
@@ -152,10 +184,10 @@ export function RocketInfo() {
               <div className="absolute inset-0 z-20 pointer-events-none"
                 style={{ background: "radial-gradient(ellipse at center, transparent 35%, rgba(255,255,255,0.55) 65%, rgba(255,255,255,0.95) 85%, white 100%)" }} />
               <div className="absolute inset-0 z-0">
-                <Image src="/assets/jet-blueprint-top.png" alt="Jet Blueprint Top View" fill className="object-contain opacity-40" priority sizes="(max-width: 768px) 100vw, 40vw" />
+                <Image src="/jet-sketch.png" alt="Jet Blueprint Sketch" fill className="object-contain opacity-45 grayscale" priority sizes="(max-width: 768px) 100vw, 40vw" />
               </div>
               <motion.div className="absolute inset-0 z-10" style={{ clipPath }}>
-                <Image src="/assets/jet-fighter-top.png" alt="Jet Fighter Top View" fill className="object-contain drop-shadow-[0_20px_60px_rgba(0,100,200,0.2)]" priority sizes="(max-width: 768px) 100vw, 40vw" />
+                <Image src="/jet-color.jpg" alt="Jet Fighter" fill className="object-contain drop-shadow-[0_20px_60px_rgba(0,100,200,0.15)]" priority sizes="(max-width: 768px) 100vw, 40vw" />
               </motion.div>
             </div>
           </div>

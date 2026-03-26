@@ -193,8 +193,7 @@ export default function FlippoPage() {
   const score = activeData?.deepWorkScore ?? null;
 
   return (
-    <div className="h-full flex flex-col" style={{ background: "radial-gradient(ellipse at top left, #12121a 0%, #030303 100%)" }}>
-
+    <div className="h-full bg-[#0f0f0f] flex flex-col">
       {/* Header */}
       <div className="px-8 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
         <div>

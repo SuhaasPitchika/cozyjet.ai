@@ -230,7 +230,7 @@ export default function SkippyPage() {
 
       if (data.error) {
         setApiError(data.error.includes("API key")
-          ? "OpenRouter API key not configured. Add OPEN_ROUTER in .env.local."
+          ? "OpenRouter API key not configured. Add OPEN_ROUTER in Secrets."
           : data.error);
         setSkippyActive(false);
       } else if (data.analysis) {
@@ -270,29 +270,28 @@ export default function SkippyPage() {
   };
 
   return (
-    <div className="relative min-h-full flex flex-col items-center justify-center gap-8 p-8 overflow-hidden" 
-      style={{ background: "radial-gradient(ellipse at top left, #12121a 0%, #030303 100%)" }}>
+    <div className="relative min-h-full bg-white flex flex-col items-center justify-center gap-8 p-8 overflow-hidden">
       <GlowCursorCanvas />
 
       <div className="relative z-10 text-center space-y-2">
         <div className="flex items-center justify-center gap-2 mb-3">
-          <Cpu size={12} className="text-white/20" />
-          <span className="text-[10px] text-white/40 font-semibold uppercase tracking-[0.4em]">Observer Agent · Skippy</span>
+          <Cpu size={11} className="text-black/20" />
+          <span className="text-[10px] text-black/25 font-semibold uppercase tracking-[0.3em]">Observer Agent · Skippy</span>
         </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">Workspace Intelligence</h1>
-        <p className="text-sm text-white/40 max-w-sm mx-auto leading-relaxed">
-          Toggle Skippy to capture your workspace context and feed live intelligence to all agents.
+        <h1 className="text-3xl font-bold text-black tracking-tight">Workspace Intelligence</h1>
+        <p className="text-sm text-black/38 max-w-xs mx-auto leading-relaxed">
+          Toggle Skippy to capture your full screen and feed live context to all AI agents.
         </p>
       </div>
 
-      <div className="relative z-10 scale-110 mb-4">
+      <div className="relative z-10">
         <HyperrealisticSwitch active={skippyActive} onToggle={handleToggle} isCapturing={isCapturing} />
       </div>
 
       {apiError && (
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 px-6 py-4 rounded-2xl max-w-sm text-xs text-red-400 font-medium text-center"
-          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)", backdropFilter: "blur(12px)" }}>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 px-5 py-3.5 rounded-2xl max-w-sm text-sm text-red-600 font-medium text-center"
+          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
           {apiError}
         </motion.div>
       )}
@@ -300,78 +299,70 @@ export default function SkippyPage() {
       <AnimatePresence>
         {isCapturing && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="relative z-10 flex items-center gap-3 px-5 py-4 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(20px)" }}>
-            <div className="flex gap-1.5">
+            className="relative z-10 flex items-center gap-3 px-5 py-3.5 rounded-2xl"
+            style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
+            <div className="flex gap-1">
               {[0, 1, 2].map((i) => (
-                <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
+                <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
                   className="w-1.5 h-1.5 rounded-full bg-pink-500" />
               ))}
             </div>
-            <span className="text-xs font-medium text-white/50">Skippy is analyzing your workspace...</span>
+            <span className="text-xs font-medium text-black/50">Skippy is analyzing your entire screen...</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {analysis && !isCapturing && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="relative z-10 w-full max-w-sm">
-            <div className="rounded-2xl px-5 py-5"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(24px)", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.8)] animate-pulse" />
-                <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest">Active Analysis</span>
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="relative z-10 w-full max-w-sm space-y-3">
+            <div className="rounded-2xl px-4 py-4"
+              style={{ background: "#f0f4ff", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff", border: "1px solid rgba(59,130,246,0.12)" }}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
+                <span className="text-[9px] font-bold text-pink-500 uppercase tracking-wider">Live Screen Analysis</span>
                 {typeof analysis.focus_score === "number" && (
-                  <div className="ml-auto px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-                    <span className="text-[9px] font-bold text-blue-400">{analysis.focus_score}% Flow</span>
-                  </div>
+                  <span className="ml-auto text-[9px] font-semibold text-blue-400">{analysis.focus_score}% focus</span>
                 )}
               </div>
-              {analysis.signal && <p className="text-xs font-semibold text-white/90 mb-1.5">{analysis.signal}</p>}
-              {analysis.activity && <p className="text-xs text-white/50 leading-relaxed mb-3">{analysis.activity}</p>}
-              
+              {analysis.signal && <p className="text-xs font-semibold text-black/70 mb-1">{analysis.signal}</p>}
+              {analysis.activity && <p className="text-xs text-black/45 leading-relaxed">{analysis.activity}</p>}
+              {analysis.insights && <p className="text-xs text-black/35 leading-relaxed mt-1 italic">{analysis.insights}</p>}
               {Array.isArray(analysis.apps) && analysis.apps.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
+                <div className="flex flex-wrap gap-1 mt-2">
                   {analysis.apps.slice(0, 5).map((app: string, i: number) => (
-                    <span key={i} className="px-2 py-1 rounded-lg text-[9px] font-semibold tracking-wider uppercase border"
-                      style={{ background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.15)", color: "#60a5fa" }}>{app}</span>
+                    <span key={i} className="px-2 py-0.5 rounded-full text-[9px] font-medium"
+                      style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>{app}</span>
                   ))}
                 </div>
               )}
-              
-              <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                <p className="text-[9px] text-white/20 font-medium">Synced with SNK & META</p>
-                <ShieldCheck size={11} className="text-white/10" />
+              <div className="mt-3 pt-2 border-t border-blue-100">
+                <p className="text-[9px] text-pink-400 font-semibold">✓ Context live-shared with Snooks & Meta</p>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 grid grid-cols-2 gap-3 w-full max-w-sm" style={{ opacity: analysis ? 1 : 0.6 }}>
+      <div className="relative z-10 grid grid-cols-2 gap-2.5 w-full max-w-sm" style={{ opacity: analysis ? 1 : 0.45 }}>
         {CAPABILITIES.map((cap) => (
-          <div key={cap.label} className="rounded-2xl p-4 transition-all hover:bg-white/[0.04]"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", backdropFilter: "blur(10px)" }}>
-            <div className="text-lg mb-2">{cap.icon}</div>
-            <div className="text-[11px] font-bold text-white/70 mb-1">{cap.label}</div>
-            <div className="text-[9px] text-white/30 leading-relaxed">{cap.desc}</div>
+          <div key={cap.label} className="rounded-2xl p-3.5"
+            style={{ background: "#f5f5f5", boxShadow: "4px 4px 10px #d8d8d8, -4px -4px 10px #ffffff" }}>
+            <div className="text-base mb-1">{cap.icon}</div>
+            <div className="text-[11px] font-semibold text-black/60 mb-0.5">{cap.label}</div>
+            <div className="text-[9px] text-black/28">{cap.desc}</div>
           </div>
         ))}
       </div>
 
-      <div className="relative z-10 flex items-start gap-4 px-6 py-5 rounded-2xl max-w-md"
-        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))", border: "1px solid rgba(255,255,255,0.05)" }}>
-        <ShieldCheck size={16} className="text-white/20 mt-0.5 shrink-0" />
-        <div>
-          <h4 className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1.5">Privacy Protocols</h4>
-          <p className="text-[10px] text-white/30 leading-relaxed">
-            Local-first observation. PII is automatically redacted before analysis. 
-            One static frame per session — no persistent video recording.
-          </p>
-        </div>
+      <div className="relative z-10 flex items-start gap-3 px-5 py-4 rounded-2xl max-w-sm"
+        style={{ background: "#f5f5f5", boxShadow: "5px 5px 12px #d8d8d8, -5px -5px 12px #ffffff" }}>
+        <ShieldCheck size={13} className="text-black/18 mt-0.5 shrink-0" />
+        <p className="text-[10px] text-black/28 leading-relaxed">
+          Privacy-first. One screenshot, never video. PII blocked before leaving your device.
+          Skippy sees your full screen including all open apps and browser tabs.
+        </p>
       </div>
     </div>
   );
 }
-

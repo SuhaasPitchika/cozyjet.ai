@@ -40,12 +40,12 @@ const ALL_NODES = [
   {
     icon: Twitter,     label: "Twitter",   color: "#1DA1F2",
     tag: "TWEETS",
-    noteTitle: "VIRAL TWEETS",
+    noteTitle: "VIRAL HOOKS",
     noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"],
   },
   {
     icon: RedditIcon,  label: "Reddit",    color: "#FF4500",
-    tag: "AUDIENCE MARKETING",
+    tag: "AUDIENCE",
     noteTitle: "AUDIENCE MKT",
     noteLines: ["Community-native", "Upvote psychology", "No-promo tone"],
   },
@@ -57,32 +57,32 @@ const ALL_NODES = [
   },
   {
     icon: ThreadsIcon, label: "Threads",   color: "#111111",
-    tag: "PERSONAL BRAND",
-    noteTitle: "PERSONAL BRAND",
+    tag: "STORIES",
+    noteTitle: "MICRO STORIES",
     noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"],
   },
   {
-    icon: Mail,        label: "Gmail",     color: "#EA4335",
-    tag: "COLD MAILING",
-    noteTitle: "COLD MAILING",
+    icon: Mail,        label: "Email",     color: "#EA4335",
+    tag: "GMAILS",
+    noteTitle: "HIGH-CR EMAIL",
     noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"],
   },
   {
     icon: Instagram,   label: "Instagram", color: "#E4405F",
-    tag: "POSTS & REELS",
-    noteTitle: "POSTS & REELS",
+    tag: "POSTS",
+    noteTitle: "VISUAL POSTS",
     noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"],
   },
   {
     icon: SlackIcon,   label: "Slack",     color: "#4A154B",
-    tag: "PRO MESSAGES",
+    tag: "PRO MSG",
     noteTitle: "PRO MESSAGES",
     noteLines: ["Team digests", "Launch announcements", "Newsletter"],
   },
   {
     icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2",
-    tag: "PROFESSIONAL NETWORKING",
-    noteTitle: "PROFESSIONAL NETWORKING",
+    tag: "BLOGS",
+    noteTitle: "AUTHORITY BLOGS",
     noteLines: ["Thought leadership", "Data stories", "Pro hooks"],
   },
 ];
@@ -111,21 +111,13 @@ function AnimatedSubtitle() {
         transition={{ duration: 0.45, ease: "easeInOut" }}
         style={{
           fontFamily: PIXEL,
-          fontSize: "clamp(9px, 1.1vw, 14px)",
+          fontSize: 8,
           textTransform: "uppercase",
           letterSpacing: "0.12em",
           textAlign: "center",
-          color: "rgba(255,255,255,0.98)",
+          color: "rgba(255,255,255,0.92)",
           minHeight: "1.6em",
-          textShadow: [
-            "0 0 8px rgba(96,165,250,1)",
-            "0 0 20px rgba(96,165,250,1)",
-            "0 0 40px rgba(96,165,250,0.9)",
-            "0 0 70px rgba(59,130,246,0.8)",
-            "0 0 100px rgba(59,130,246,0.6)",
-            "0 0 140px rgba(147,197,253,0.4)",
-            "0 1px 3px rgba(0,0,0,0.9)",
-          ].join(", "),
+          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 1px 3px rgba(0,0,0,0.8)",
           lineHeight: 2,
         }}
       >
@@ -193,47 +185,55 @@ function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: b
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: 6, scale: 0.88 }}
+          initial={{ opacity: 0, y: 6, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 4, scale: 0.9 }}
-          transition={{ duration: 0.16, ease: "easeOut" }}
+          exit={{ opacity: 0, y: 4, scale: 0.92 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
           className="absolute z-50 pointer-events-none"
-          style={{ bottom: "calc(100% + 16px)", left: "50%", transform: "translateX(-50%)", minWidth: 168 }}
+          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 140 }}
         >
-          {/* Drop shadow */}
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)", transform: "translate(5px,9px) rotate(1deg)", borderRadius: 2, filter: "blur(7px)" }} />
-          {/* Adhesive strip */}
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 26, borderRadius: "2px 2px 0 0", background: "linear-gradient(180deg, #f5c800 0%, #d4a900 100%)", zIndex: 2 }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)", borderRadius: "2px 2px 0 0" }} />
-          </div>
-          {/* Paper */}
           <div style={{
-            position: "relative",
-            zIndex: 1,
-            backgroundImage: [
-              "linear-gradient(160deg,#fef9c3 0%,#fef08a 20%,#fde047 50%,#fef9c3 80%,#fffde7 100%)",
-              "repeating-linear-gradient(transparent,transparent 18px,rgba(147,130,0,0.1) 18px,rgba(147,130,0,0.1) 19px)",
-            ].join(","),
-            paddingTop: 34,
-            paddingBottom: 18,
-            paddingLeft: 14,
-            paddingRight: 14,
-            borderRadius: "2px",
+            background: "#000",
+            border: "2px solid rgba(255,255,255,0.18)",
+            borderRadius: 2,
+            padding: "10px 12px",
+            boxShadow: "4px 4px 0px rgba(255,255,255,0.08), 0 0 20px rgba(0,0,0,0.8)",
           }}>
-            <div style={{ fontFamily: PIXEL, fontSize: 8, color: "#1a1200", letterSpacing: "0.08em", marginBottom: 10, textTransform: "uppercase" as const, lineHeight: 1.8 }}>
+            <div style={{
+              fontFamily: PIXEL,
+              fontSize: 7,
+              color: node.color,
+              letterSpacing: "0.1em",
+              marginBottom: 8,
+              textTransform: "uppercase",
+            }}>
               {node.noteTitle}
             </div>
-            <div style={{ height: 1, background: "rgba(180,150,0,0.3)", marginBottom: 8 }} />
             {node.noteLines.map((line, i) => (
-              <div key={i} style={{ fontFamily: PIXEL, fontSize: 7, color: "#2a1800", letterSpacing: "0.04em", lineHeight: 2.2, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ color: "#b45309", fontSize: 8 }}>›</span> {line}
+              <div key={i} style={{
+                fontFamily: PIXEL,
+                fontSize: 6,
+                color: "rgba(255,255,255,0.75)",
+                letterSpacing: "0.06em",
+                lineHeight: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}>
+                <span style={{ color: node.color, fontSize: 8 }}>›</span> {line}
               </div>
             ))}
-            {/* Corner fold */}
-            <div style={{ position: "absolute", bottom: 0, right: 0, width: 0, height: 0, borderLeft: "18px solid transparent", borderBottom: "18px solid rgba(180,150,0,0.3)" }} />
           </div>
-          {/* Tail */}
-          <div style={{ position: "absolute", bottom: -13, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderTop: "13px solid #fde047", filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.18))" }} />
+          <div style={{
+            position: "absolute",
+            bottom: -8,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft: "8px solid transparent",
+            borderRight: "8px solid transparent",
+            borderTop: "8px solid #000",
+          }} />
         </motion.div>
       )}
     </AnimatePresence>
@@ -246,42 +246,30 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
       className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none"
       style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 8px)" }}
     >
-      {!isAbove && (
-        <div style={{ width: 1.5, height: 20, borderLeft: "1.5px dashed rgba(255,255,255,0.5)" }} />
-      )}
+      {!isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
       <motion.div
         animate={{
-          y: [0, -3, 0],
-          scale: [1, 1.02, 1],
+          rotate: isAbove ? [-1.5, 1, -1.5] : [1.5, -1, 1.5],
+          y: [0, -2, 0],
         }}
-        transition={{
-          duration: 3.8,
-          repeat: Infinity,
-          ease: "easeInOut",
-          repeatDelay: 0.6,
-        }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background: "rgba(10, 20, 50, 0.72)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          border: "1px solid rgba(100, 160, 255, 0.45)",
-          boxShadow: "0 2px 16px rgba(59,130,246,0.25), 0 0 0 1px rgba(255,255,255,0.08) inset",
-          padding: "5px 10px",
-          borderRadius: "3px",
+          background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff176 100%)",
+          border: "2px solid rgba(0,0,0,0.8)",
+          boxShadow: "3px 3px 0px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.3)",
+          padding: "5px 8px",
           fontFamily: PIXEL,
           fontSize: 6,
-          color: "rgba(200,230,255,0.95)",
-          letterSpacing: "0.08em",
+          color: "#111",
+          letterSpacing: "0.05em",
           textTransform: "uppercase" as const,
           whiteSpace: "nowrap" as const,
-          textAlign: "center" as const,
+          imageRendering: "pixelated" as const,
         }}
       >
         {tag}
       </motion.div>
-      {isAbove && (
-        <div style={{ width: 1.5, height: 20, borderLeft: "1.5px dashed rgba(255,255,255,0.5)" }} />
-      )}
+      {isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
     </div>
   );
 }
@@ -289,154 +277,85 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
 function OrganicMarketingCloud() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7, rotate: -6 }}
-      animate={{ opacity: 1, scale: 1, rotate: -6 }}
-      transition={{ delay: 0.9, duration: 0.7, type: "spring", stiffness: 180, damping: 16 }}
+      initial={{ opacity: 0, scale: 0.75, rotate: -6 }}
+      animate={{ opacity: 1, scale: 1, rotate: -4 }}
+      transition={{ delay: 0.9, duration: 0.6, type: "spring", stiffness: 200, damping: 18 }}
       className="absolute z-30"
-      style={{ left: "-1%", top: "-18%" }}
+      style={{ left: "-2%", top: "-55%", rotate: "-4deg" }}
     >
       <motion.div
-        animate={{ y: [0, -5, 0], rotate: [-6, -4.5, -6] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-        style={{ position: "relative", width: 220 }}
+        animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
-        {/* Drop shadow layer for 3D lift effect */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.22)",
-          transform: "translate(6px, 10px) rotate(1deg)",
-          borderRadius: 2,
-          filter: "blur(8px)",
-        }} />
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.12)",
-          transform: "translate(12px, 18px) rotate(1.5deg)",
-          borderRadius: 2,
-          filter: "blur(14px)",
-        }} />
-
-        {/* Adhesive top strip */}
-        <div style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 32,
-          borderRadius: "2px 2px 0 0",
-          background: "linear-gradient(180deg, #f5c800 0%, #e6b800 60%, #d4a900 100%)",
-          zIndex: 2,
-        }}>
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)",
-            borderRadius: "2px 2px 0 0",
-          }} />
-          <div style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            background: "rgba(0,0,0,0.12)",
-          }} />
-        </div>
-
-        {/* Main paper body */}
-        <div style={{
-          position: "relative",
-          zIndex: 1,
-          backgroundImage: [
-            "linear-gradient(170deg, #fef9c3 0%, #fef08a 18%, #fde047 45%, #fef9c3 72%, #fffde7 88%, #fef9c3 100%)",
-            "repeating-linear-gradient(transparent, transparent 22px, rgba(147,130,0,0.09) 22px, rgba(147,130,0,0.09) 23px)",
-          ].join(", "),
-          paddingTop: 40,
-          paddingBottom: 22,
-          paddingLeft: 18,
-          paddingRight: 18,
-          borderRadius: "2px 2px 2px 2px",
-          boxShadow: [
-            "inset 2px 0 4px rgba(0,0,0,0.06)",
-            "inset -1px 0 2px rgba(255,255,255,0.6)",
-            "inset 0 -2px 4px rgba(0,0,0,0.05)",
-          ].join(", "),
-        }}>
-          {/* Subtle paper grain overlay */}
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.04,
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-            borderRadius: "2px",
-            pointerEvents: "none",
-          }} />
-
+        <div
+          style={{
+            background: "#fff",
+            border: "3px solid #000",
+            boxShadow: "5px 5px 0px #000",
+            padding: "14px 20px",
+            borderRadius: 4,
+            position: "relative",
+            maxWidth: 220,
+          }}
+        >
           <div style={{
             fontFamily: PIXEL,
-            fontSize: 10,
-            fontWeight: 700,
-            color: "#1a0f00",
-            lineHeight: 2.1,
-            letterSpacing: "0.06em",
-            marginBottom: 12,
-            textTransform: "uppercase" as const,
-            textShadow: "0 1px 0 rgba(255,255,255,0.35)",
-          }}>
-            ORGANIC<br/>MARKETING<br/>SOCIAL MEDIA
-          </div>
-
-          <div style={{
-            height: 1,
-            background: "linear-gradient(90deg, rgba(180,150,0,0.4), rgba(180,150,0,0.2), transparent)",
-            marginBottom: 10,
-          }} />
-
-          <div style={{
-            fontFamily: PIXEL,
-            fontSize: 8,
-            color: "#0a66c2",
+            fontSize: 7,
+            color: "#000",
             letterSpacing: "0.08em",
-            textTransform: "uppercase" as const,
-            textShadow: "0 1px 0 rgba(255,255,255,0.4)",
+            lineHeight: 2.2,
+            textTransform: "uppercase",
+          }}>
+            ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
+          </div>
+          <div style={{
+            marginTop: 10,
+            fontFamily: PIXEL,
+            fontSize: 6,
+            color: "#0a66c2",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            borderTop: "2px solid #000",
+            paddingTop: 8,
           }}>
             ↓ USE IT FOR ↓
           </div>
 
-          {/* Bottom-right corner fold */}
           <div style={{
             position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: 0,
-            height: 0,
-            borderLeft: "22px solid transparent",
-            borderBottom: "22px solid rgba(180,150,0,0.35)",
+            bottom: -16,
+            right: "25%",
+            width: 0, height: 0,
+            borderLeft: "12px solid transparent",
+            borderRight: "12px solid transparent",
+            borderTop: "16px solid #000",
           }} />
           <div style={{
             position: "absolute",
-            bottom: 1,
-            right: 1,
-            width: 0,
-            height: 0,
-            borderLeft: "20px solid transparent",
-            borderBottom: "20px solid rgba(255,255,200,0.7)",
+            bottom: -11,
+            right: "calc(25% + 3px)",
+            width: 0, height: 0,
+            borderLeft: "9px solid transparent",
+            borderRight: "9px solid transparent",
+            borderTop: "12px solid #fff",
           }} />
         </div>
 
-        {/* Pointer tail toward arch */}
-        <div style={{
-          position: "absolute",
-          bottom: -16,
-          right: "24%",
-          width: 0, height: 0,
-          borderLeft: "10px solid transparent",
-          borderRight: "10px solid transparent",
-          borderTop: "16px solid #fde047",
-          filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.15))",
-        }} />
+        {[
+          { size: 18, bottom: -28, right: "18%", rotate: "8deg" },
+          { size: 13, bottom: -40, right: "12%", rotate: "12deg" },
+          { size: 9,  bottom: -50, right: "7%",  rotate: "15deg" },
+        ].map((d, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            width: d.size, height: d.size,
+            bottom: d.bottom, right: d.right,
+            background: "#fff",
+            border: "2px solid #000",
+            borderRadius: 1,
+            transform: `rotate(${d.rotate})`,
+          }} />
+        ))}
       </motion.div>
     </motion.div>
   );
@@ -465,44 +384,33 @@ export function Hero() {
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             fontFamily: PIXEL,
-            fontSize: "clamp(16px, 2.8vw, 42px)",
+            fontSize: "clamp(14px, 2.4vw, 28px)",
             fontWeight: 700,
-            marginBottom: "1rem",
+            marginBottom: "1.2rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            lineHeight: 1.6,
+            lineHeight: 1.7,
             color: "#ffffff",
-            textShadow: [
-              "0 2px 0 rgba(0,0,0,0.95)",
-              "0 4px 0 rgba(0,0,0,0.7)",
-              "0 6px 0 rgba(0,0,0,0.4)",
-              "0 8px 0 rgba(0,0,0,0.2)",
-              "0 10px 0 rgba(0,0,0,0.1)",
-              "0 12px 24px rgba(0,0,0,0.8)",
-              "0 20px 60px rgba(0,0,0,0.5)",
-              "0 0 80px rgba(59,130,246,0.3)",
-            ].join(", "),
+            textShadow: "0 2px 0 rgba(0,0,0,0.9), 0 4px 32px rgba(0,0,0,0.8), 0 8px 48px rgba(0,0,0,0.5)",
           }}
         >
           AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <AnimatedSubtitle />
+        </motion.div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        className="relative z-10 text-center px-4 mt-10"
-        style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
-        <AnimatedSubtitle />
-      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-6"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-20"
         style={{ height: `${VH}px` }}
       >
         <OrganicMarketingCloud />
