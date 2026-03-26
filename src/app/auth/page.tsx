@@ -32,23 +32,18 @@ function SkyBg() {
   return (
     <div className="absolute inset-0 overflow-hidden">
       <div
-        className="absolute"
+        className="absolute inset-0"
         style={{
-          backgroundImage: "url('/auth-bg.jpg')",
+          backgroundImage: "url('/auth-bg2.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
-          transform: "rotate(90deg) scale(1.6)",
-          transformOrigin: "center center",
-          inset: "-50%",
-          width: "200%",
-          height: "200%",
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.3) 100%)",
+          background: "linear-gradient(to bottom, rgba(30,60,120,0.18) 0%, rgba(10,30,80,0.08) 50%, rgba(20,50,100,0.22) 100%)",
         }}
       />
     </div>
@@ -126,12 +121,12 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(255,255,255,0.88)",
-  backdropFilter: "blur(32px) saturate(200%)",
-  WebkitBackdropFilter: "blur(32px) saturate(200%)",
-  border: "1px solid rgba(100,160,255,0.35)",
-  boxShadow: "0 24px 64px rgba(0,60,160,0.22), 0 4px 24px rgba(80,140,190,0.14), 0 0 0 1px rgba(255,255,255,0.9) inset",
-  borderRadius: "8px",
+  background: "rgba(255,255,255,0.14)",
+  backdropFilter: "blur(40px) saturate(180%)",
+  WebkitBackdropFilter: "blur(40px) saturate(180%)",
+  border: "1px solid rgba(255,255,255,0.28)",
+  boxShadow: "0 24px 64px rgba(0,30,100,0.35), 0 4px 24px rgba(80,140,255,0.12), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(255,255,255,0.06)",
+  borderRadius: "16px",
 };
 
 export default function AuthPage() {
@@ -345,9 +340,9 @@ export default function AuthPage() {
     if (code.length === 6) handleVerifyCode();
   }, [code]);
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-black/25 border text-black/90 font-medium";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/30 border text-white/90 font-medium";
   const getInputClass = (f: string) =>
-    `${inputBase} bg-black/[0.03] ${focused === f ? "border-blue-400/60" : "border-black/10 hover:border-black/20"}`;
+    `${inputBase} bg-white/[0.08] ${focused === f ? "border-blue-300/70" : "border-white/20 hover:border-white/35"}`;
 
   if (step === "verify") {
     return (
@@ -368,10 +363,10 @@ export default function AuthPage() {
                   <path d="m2 8 10 7 10-7" />
                 </svg>
               </motion.div>
-              <h2 className="text-xl font-bold text-black/90 mb-1.5">Check your inbox</h2>
-              <p className="text-xs text-black/40 leading-relaxed mb-1">We sent a 6-digit code to</p>
-              <p className="text-sm font-semibold text-blue-600 mb-2">{email}</p>
-              <p className="text-[10px] text-black/30">Enter the code below to verify your account</p>
+              <h2 className="text-xl font-bold text-white mb-1.5">Check your inbox</h2>
+              <p className="text-xs text-white/50 leading-relaxed mb-1">We sent a 6-digit code to</p>
+              <p className="text-sm font-semibold text-blue-300 mb-2">{email}</p>
+              <p className="text-[10px] text-white/35">Enter the code below to verify your account</p>
             </div>
 
             {devCode && (
@@ -388,12 +383,12 @@ export default function AuthPage() {
               background: "rgba(59,130,246,0.04)",
               border: "1.5px solid rgba(59,130,246,0.15)",
             }}>
-              <p className="text-[9px] font-bold text-black/35 uppercase tracking-widest text-center mb-4">
+              <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest text-center mb-4">
                 Verification Code
               </p>
               <CodeInput value={code} onChange={setCode} />
               {code.length > 0 && code.length < 6 && (
-                <p className="text-[9px] text-black/25 text-center mt-3">
+                <p className="text-[9px] text-white/35 text-center mt-3">
                   {6 - code.length} digit{6 - code.length !== 1 ? "s" : ""} remaining
                 </p>
               )}

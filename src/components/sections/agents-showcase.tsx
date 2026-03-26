@@ -43,11 +43,11 @@ function GlassCard({ agent }: { agent: typeof AGENTS[0] }) {
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
       className="relative rounded-2xl overflow-hidden flex flex-col h-full"
       style={{
-        background: "rgba(6, 12, 36, 0.72)",
-        backdropFilter: "blur(28px) saturate(180%)",
-        WebkitBackdropFilter: "blur(28px) saturate(180%)",
-        border: `1px solid ${agent.color}33`,
-        boxShadow: `0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(0,0,0,0.3)`,
+        background: "rgba(255,255,255,0.06)",
+        backdropFilter: "blur(40px) saturate(160%)",
+        WebkitBackdropFilter: "blur(40px) saturate(160%)",
+        border: `1px solid rgba(255,255,255,0.12)`,
+        boxShadow: `0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)`,
       }}
     >
       {/* Colored top accent line */}

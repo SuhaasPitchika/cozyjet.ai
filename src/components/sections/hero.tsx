@@ -193,55 +193,47 @@ function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: b
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: 6, scale: 0.9 }}
+          initial={{ opacity: 0, y: 6, scale: 0.88 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 4, scale: 0.92 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
+          exit={{ opacity: 0, y: 4, scale: 0.9 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
           className="absolute z-50 pointer-events-none"
-          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 148 }}
+          style={{ bottom: "calc(100% + 16px)", left: "50%", transform: "translateX(-50%)", minWidth: 168 }}
         >
+          {/* Drop shadow */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)", transform: "translate(5px,9px) rotate(1deg)", borderRadius: 2, filter: "blur(7px)" }} />
+          {/* Adhesive strip */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 26, borderRadius: "2px 2px 0 0", background: "linear-gradient(180deg, #f5c800 0%, #d4a900 100%)", zIndex: 2 }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)", borderRadius: "2px 2px 0 0" }} />
+          </div>
+          {/* Paper */}
           <div style={{
-            background: "#000",
-            border: "2px solid rgba(255,255,255,0.18)",
-            borderRadius: 2,
-            padding: "12px 14px",
-            boxShadow: "4px 4px 0px rgba(255,255,255,0.08), 0 0 20px rgba(0,0,0,0.8)",
+            position: "relative",
+            zIndex: 1,
+            backgroundImage: [
+              "linear-gradient(160deg,#fef9c3 0%,#fef08a 20%,#fde047 50%,#fef9c3 80%,#fffde7 100%)",
+              "repeating-linear-gradient(transparent,transparent 18px,rgba(147,130,0,0.1) 18px,rgba(147,130,0,0.1) 19px)",
+            ].join(","),
+            paddingTop: 34,
+            paddingBottom: 18,
+            paddingLeft: 14,
+            paddingRight: 14,
+            borderRadius: "2px",
           }}>
-            <div style={{
-              fontFamily: PIXEL,
-              fontSize: 7,
-              color: node.color,
-              letterSpacing: "0.1em",
-              marginBottom: 9,
-              textTransform: "uppercase",
-            }}>
+            <div style={{ fontFamily: PIXEL, fontSize: 8, color: "#1a1200", letterSpacing: "0.08em", marginBottom: 10, textTransform: "uppercase" as const, lineHeight: 1.8 }}>
               {node.noteTitle}
             </div>
+            <div style={{ height: 1, background: "rgba(180,150,0,0.3)", marginBottom: 8 }} />
             {node.noteLines.map((line, i) => (
-              <div key={i} style={{
-                fontFamily: PIXEL,
-                fontSize: 6,
-                color: "rgba(255,255,255,0.78)",
-                letterSpacing: "0.06em",
-                lineHeight: 2.2,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}>
-                <span style={{ color: node.color, fontSize: 9 }}>›</span> {line}
+              <div key={i} style={{ fontFamily: PIXEL, fontSize: 7, color: "#2a1800", letterSpacing: "0.04em", lineHeight: 2.2, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ color: "#b45309", fontSize: 8 }}>›</span> {line}
               </div>
             ))}
+            {/* Corner fold */}
+            <div style={{ position: "absolute", bottom: 0, right: 0, width: 0, height: 0, borderLeft: "18px solid transparent", borderBottom: "18px solid rgba(180,150,0,0.3)" }} />
           </div>
-          <div style={{
-            position: "absolute",
-            bottom: -9,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 0, height: 0,
-            borderLeft: "9px solid transparent",
-            borderRight: "9px solid transparent",
-            borderTop: "9px solid #000",
-          }} />
+          {/* Tail */}
+          <div style={{ position: "absolute", bottom: -13, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderTop: "13px solid #fde047", filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.18))" }} />
         </motion.div>
       )}
     </AnimatePresence>
@@ -301,12 +293,12 @@ function OrganicMarketingCloud() {
       animate={{ opacity: 1, scale: 1, rotate: -6 }}
       transition={{ delay: 0.9, duration: 0.7, type: "spring", stiffness: 180, damping: 16 }}
       className="absolute z-30"
-      style={{ left: "-1%", top: "-45%" }}
+      style={{ left: "-1%", top: "-18%" }}
     >
       <motion.div
         animate={{ y: [0, -5, 0], rotate: [-6, -4.5, -6] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-        style={{ position: "relative", width: 210 }}
+        style={{ position: "relative", width: 220 }}
       >
         {/* Drop shadow layer for 3D lift effect */}
         <div style={{
@@ -383,34 +375,34 @@ function OrganicMarketingCloud() {
           }} />
 
           <div style={{
-            fontFamily: "'Georgia', 'Times New Roman', serif",
-            fontSize: 13,
+            fontFamily: PIXEL,
+            fontSize: 10,
             fontWeight: 700,
-            color: "#1a1200",
-            lineHeight: 1.65,
-            letterSpacing: "0.01em",
-            marginBottom: 10,
-            textShadow: "0 1px 0 rgba(255,255,255,0.4)",
+            color: "#1a0f00",
+            lineHeight: 2.1,
+            letterSpacing: "0.06em",
+            marginBottom: 12,
+            textTransform: "uppercase" as const,
+            textShadow: "0 1px 0 rgba(255,255,255,0.35)",
           }}>
-            Organic<br/>Marketing<br/>via Social Media
+            ORGANIC<br/>MARKETING<br/>SOCIAL MEDIA
           </div>
 
           <div style={{
             height: 1,
-            background: "linear-gradient(90deg, rgba(180,150,0,0.3), rgba(180,150,0,0.15), transparent)",
+            background: "linear-gradient(90deg, rgba(180,150,0,0.4), rgba(180,150,0,0.2), transparent)",
             marginBottom: 10,
           }} />
 
           <div style={{
-            fontFamily: "'Georgia', serif",
-            fontSize: 10.5,
+            fontFamily: PIXEL,
+            fontSize: 8,
             color: "#0a66c2",
-            letterSpacing: "0.02em",
-            fontStyle: "italic",
-            fontWeight: 600,
-            textShadow: "0 1px 0 rgba(255,255,255,0.5)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase" as const,
+            textShadow: "0 1px 0 rgba(255,255,255,0.4)",
           }}>
-            ↓ Use it for ↓
+            ↓ USE IT FOR ↓
           </div>
 
           {/* Bottom-right corner fold */}
