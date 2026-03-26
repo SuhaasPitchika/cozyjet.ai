@@ -10,55 +10,18 @@ import uuid
 
 router = APIRouter()
 
-@router.get("/variations/{seed_id}")
-async def get_variations(
+@router.post("/generate")
+async def generate_content(
     seed_id: uuid.UUID,
+    platforms: List[str],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Returns the 3 variations (Storytelling, Technical, Outcomes) for a seed.
+    Triggers Meta to generate variations for the given seed.
+    (This usually triggers a Celery task or an AI agent call)
     """
-    stmt = select(Content).where(
-        Content.seed_id == seed_id,
-        Content.user_id == current_user.id
-    ).order_by(Content.variation_index)
-    
-    result = await db.execute(stmt)
-    variations = result.scalars().all()
-    
-    if not variations:
-        raise HTTPException(status_code=404, detail="No variations found for this seed")
-        
-    return [
-        {
-            "id": v.id,
-            "text": v.content_text,
-            "type": v.content_type or ("Storytelling" if v.variation_index == 0 else "Technical" if v.variation_index == 1 else "Outcomes"),
-            "index": v.variation_index,
-            "status": v.status
-        } for v in variations
-    ]
-
-@router.patch("/{content_id}")
-async def update_content(
-    content_id: uuid.UUID,
-    text: str,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Update the text of a draft before approving."""
-    stmt = select(Content).where(Content.id == content_id, Content.user_id == current_user.id)
-    result = await db.execute(stmt)
-    content = result.scalars().first()
-    
-    if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
-        
-    content.content_text = text
-    content.updated_at = datetime.utcnow()
-    await db.commit()
-    return {"status": "success", "content_text": content.content_text}
+    pass
 
 @router.post("/{content_id}/approve")
 async def approve_content(
