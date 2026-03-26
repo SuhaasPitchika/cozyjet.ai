@@ -2,198 +2,131 @@
 
 import React, { useState } from "react";
 import { 
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon, 
-  Plus, CheckCircle2, Sparkles, Filter, 
-  Twitter, Linkedin, Instagram, Youtube, 
-  MessageSquare, SlidersHorizontal, Settings2, Clock
+  ChevronLeft, ChevronRight, Plus, 
+  Calendar as CalendarIcon, Filter, 
+  Zap, TrendingUp, Sparkles, LayoutGrid, List 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const PLATFORMS: Record<string, any> = {
-  twitter: { icon: Twitter, color: "bg-sky-500" },
-  linkedin: { icon: Linkedin, color: "bg-blue-600" },
-  instagram: { icon: Instagram, color: "bg-pink-600" },
-  youtube: { icon: Youtube, color: "bg-red-600" },
+const CALENDAR_DAYS = Array.from({ length: 35 }, (_, i) => ({
+  date: i + 1,
+  current: i < 31,
+  posts: i === 23 ? ['twitter', 'linkedin'] : i === 25 ? ['instagram'] : i === 28 ? ['twitter', 'reddit', 'youtube'] : []
+}));
+
+const SNOOKS_SUGGESTIONS = [
+  { id: 1, title: "Building a production grade FastAPI backend", platform: "LinkedIn", type: "Tutorial", reason: "AI detected a trend in developer content." },
+  { id: 2, title: "Why I switched to Gemini for Planning", platform: "Twitter", type: "Thread", reason: "Follows your recent work log." },
+  { id: 3, title: "CozyJet.AI Behind the Scenes", platform: "Instagram", type: "Carousel", reason: "Top performing format for your audience." },
+];
+
+const PLATFORM_COLORS: Record<string, string> = {
+  twitter: "bg-sky-400",
+  linkedin: "bg-blue-400",
+  instagram: "bg-pink-400",
+  youtube: "bg-red-400",
+  reddit: "bg-orange-400",
 };
 
-const MOCK_STRATEGY = [
-  { day: "Tuesday", recommendation: "Educational 'How-to' thread for Developers.", status: "Missing" },
-  { day: "Thursday", recommendation: "Behind-the-scenes progress on Figma.", status: "Scheduled", post_id: "1" },
-  { day: "Saturday", recommendation: "Personal outcome of the weekly sprint.", status: "Missing" },
-];
-
-const MOCK_POSTS = [
-  { id: "1", platform: "linkedin", title: "Figma Redesign Build", time: "10:30 AM", date: 24, status: "scheduled" },
-  { id: "2", platform: "twitter", title: "Secure JWT Auth Thread", time: "02:15 PM", date: 20, status: "published" },
-];
-
 export default function CalendarPage() {
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
   return (
-    <div className="flex-1 flex bg-[#fdfbf7] overflow-hidden h-screen font-sans">
-      <div className="flex-1 flex flex-col p-8 gap-8 overflow-y-auto pb-40">
+    <div className="flex-1 grid grid-cols-12 bg-[#0a0a0c] text-white overflow-hidden h-screen">
+      {/* Main Calendar View */}
+      <div className="col-span-12 lg:col-span-9 flex flex-col border-r border-white/5 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-headline font-bold text-slate-900 tracking-tight">Content Calendar</h1>
-            <p className="text-sm text-slate-500 font-medium">Manage your multi-platform presence across time.</p>
+        <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+               <CalendarIcon size={18} className="text-white/40" /> March 2026
+            </h2>
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5">
+              <button 
+                onClick={() => setView('grid')}
+                className={cn("p-1.5 rounded-md transition-all", view === 'grid' ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5")}
+              >
+                <LayoutGrid size={14} />
+              </button>
+              <button 
+                onClick={() => setView('list')}
+                className={cn("p-1.5 rounded-md transition-all", view === 'list' ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5")}
+              >
+                <List size={14} />
+              </button>
+            </div>
           </div>
-          <div className="flex gap-3">
-             <div className="flex bg-white rounded-2xl border border-slate-100 p-1 shadow-sm">
-                <button 
-                  onClick={() => setView("grid")}
-                  className={cn("px-4 py-2 rounded-xl text-xs font-bold transition-all", view === "grid" ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-900")}
-                >GRID</button>
-                <button 
-                  onClick={() => setView("list")}
-                  className={cn("px-4 py-2 rounded-xl text-xs font-bold transition-all", view === "list" ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-900")}
-                >LIST</button>
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-1 bg-white/5 border border-white/5 rounded-lg px-3 py-1.5">
+                <Filter size={12} className="text-white/30" />
+                <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest">Filter</span>
              </div>
-             <Button className="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs tracking-widest uppercase shadow-xl shadow-indigo-500/10">
-                <Plus size={16} className="mr-2" /> NEW POST
+             <Button className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold h-9">
+                <Plus size={16} /> Schedule Post
              </Button>
           </div>
         </div>
 
-        {/* Global Nav for Months */}
-        <div className="flex items-center gap-10">
-           <div className="flex items-center gap-4">
-              <button className="p-2 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 transition-colors"><ChevronLeft size={18} /></button>
-              <h2 className="text-xl font-bold font-headline text-slate-900">November 2026</h2>
-              <button className="p-2 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 transition-colors"><ChevronRight size={18} /></button>
-           </div>
-           
-           <div className="flex gap-4">
-              {Object.keys(PLATFORMS).map(id => (
-                 <div key={id} className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-100 bg-white cursor-pointer hover:border-indigo-200 transition-colors">
-                    {React.createElement(PLATFORMS[id].icon, { size: 14, className: "text-slate-400" })}
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{id}</span>
-                 </div>
-              ))}
-           </div>
-        </div>
-
-        {/* Calendar Grid */}
-        <div className="flex-1 grid grid-cols-7 border border-slate-100 rounded-[2.5rem] bg-white overflow-hidden shadow-2xl shadow-slate-200/50">
-           {DAYS.map(day => (
-             <div key={day} className="p-4 border-b border-r border-slate-50 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 bg-slate-50/30">
-                {day}
-             </div>
-           ))}
-           
-           {/* Calendar Days Rendering logic */}
-           {Array.from({ length: 35 }).map((_, i) => {
-             const dayNum = i - 4; // Mock start
-             const dayPosts = MOCK_POSTS.filter(p => p.date === dayNum);
-             
-             return (
-               <div key={i} className="min-h-[160px] p-4 border-b border-r border-slate-50 hover:bg-slate-50/50 transition-colors relative group">
-                  {dayNum > 0 && dayNum <= 30 && (
-                     <>
-                        <span className="text-xs font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">{dayNum}</span>
-                        <div className="mt-3 space-y-2">
-                           {dayPosts.map(post => (
-                             <motion.div 
-                               key={post.id} 
-                               layoutId={post.id}
-                               className={cn(
-                                 "p-2 rounded-xl border flex flex-col gap-1.5 cursor-pointer shadow-sm group/post",
-                                 post.status === "published" ? "bg-emerald-50 border-emerald-100 shadow-emerald-500/5" : "bg-white border-slate-100 shadow-slate-200/50"
-                               )}
-                             >
-                                <div className={cn("w-5 h-5 rounded-lg flex items-center justify-center text-white", PLATFORMS[post.platform].color)}>
-                                   {React.createElement(PLATFORMS[post.platform].icon, { size: 10 })}
-                                </div>
-                                <span className={cn("text-[10px] font-bold leading-tight line-clamp-2", post.status === "published" ? "text-emerald-700" : "text-slate-900")}>
-                                   {post.title}
-                                </span>
-                                <div className="flex items-center gap-1 mt-1 text-slate-300">
-                                   <Clock size={10} />
-                                   <span className="text-[8px] font-bold uppercase tracking-widest">{post.time}</span>
-                                </div>
-                             </motion.div>
-                           ))}
-                        </div>
-                        <button className="absolute bottom-4 right-4 p-2 rounded-xl bg-indigo-50 text-indigo-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-indigo-100">
-                           <Plus size={14} />
-                        </button>
-                     </>
-                  )}
-               </div>
-             )
-           })}
+        {/* Grid Container */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="grid grid-cols-7 border-t border-l border-white/5">
+             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
+                <div key={d} className="p-3 border-r border-b border-white/5 text-center">
+                   <span className="text-[10px] uppercase font-bold text-white/20 tracking-widest">{d}</span>
+                </div>
+             ))}
+             {CALENDAR_DAYS.map((day, i) => (
+                <div key={i} className={cn("aspect-square p-2 border-r border-b border-white/5 hover:bg-white/[0.02] transition-colors relative flex flex-col justify-between group", !day.current && "opacity-20")}>
+                    <span className="text-xs font-mono text-white/30">{day.date}</span>
+                    <div className="flex flex-wrap gap-1">
+                       {day.posts.map(p => (
+                          <div key={p} className={cn("w-1.5 h-1.5 rounded-full", PLATFORM_COLORS[p])} />
+                       ))}
+                    </div>
+                </div>
+             ))}
+          </div>
         </div>
       </div>
 
-      {/* Right Sidebar: Snooks Strategy */}
-      <div className="w-[400px] border-l border-slate-100 bg-[#fdfbf7] p-8 flex flex-col gap-10 overflow-y-auto h-screen pb-40">
-         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500">
-                     <CalendarIcon size={20} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900">Snooks Strategist</h3>
-               </div>
-               <Button variant="ghost" size="icon" className="text-slate-400"><Settings2 size={18} /></Button>
-            </div>
-            
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Snooks analyzes your activity and feed to find gaps in your narrative strategy.</p>
+      {/* Right Sidebar: Snooks Strategist */}
+      <div className="col-span-12 lg:col-span-3 flex flex-col bg-black/40 overflow-hidden shadow-2xl">
+         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02] shrink-0">
+            <h3 className="text-sm font-bold flex items-center gap-2">
+               <span className="text-amber-400">⚡</span> Snooks Suggestions
+            </h3>
+            <Sparkles size={14} className="text-white/20" />
          </div>
 
-         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Weekly Blueprint</span>
-               <span className="text-[10px] font-bold text-indigo-500 cursor-pointer">Re-analyze</span>
-            </div>
-            
-            {MOCK_STRATEGY.map((item, i) => (
-               <div key={i} className={cn(
-                 "p-6 rounded-[2rem] border transition-all",
-                 item.status === "Missing" ? "bg-white border-amber-100 shadow-xl shadow-amber-500/5" : "bg-emerald-50 border-emerald-100"
-               )}>
-                  <div className="flex items-start justify-between mb-4">
-                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.day}</span>
+         <div className="flex-1 p-6 overflow-y-auto space-y-6">
+            <div className="space-y-4">
+               {SNOOKS_SUGGESTIONS.map(s => (
+                  <div key={s.id} className="p-5 rounded-xl bg-white/[0.03] border border-white/5 space-y-3 group hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all cursor-pointer">
+                     <div className="flex items-center justify-between">
+                        <span className="text-[9px] px-2 py-0.5 rounded-lg border border-white/10 text-white/40 uppercase tracking-widest font-bold">
+                           {s.platform}
+                        </span>
+                        <TrendingUp size={12} className="text-emerald-500/40 group-hover:text-emerald-500" />
                      </div>
-                     {item.status === "Missing" ? (
-                        <div className="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[8px] font-bold uppercase tracking-widest border border-amber-100">Gap Detected</div>
-                     ) : (
-                        <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[8px] font-bold uppercase tracking-widest"><CheckCircle2 size={10} /></div>
-                     )}
-                  </div>
-                  <p className="text-xs font-bold text-slate-900 leading-relaxed mb-4">{item.recommendation}</p>
-                  
-                  {item.status === "Missing" && (
-                     <Button className="w-full h-10 rounded-xl bg-slate-900 text-white font-bold text-[10px] tracking-widest uppercase flex items-center gap-2 group">
-                        Fill Gap with Meta <Sparkles size={12} className="group-hover:rotate-12 transition-transform" />
+                     <h4 className="text-sm font-semibold leading-relaxed">{s.title}</h4>
+                     <p className="text-[10px] text-white/30 leading-relaxed italic">{s.reason}</p>
+                     <Button variant="ghost" className="w-full justify-between h-8 mt-2 text-[10px] px-2 hover:bg-white/5 border border-white/5 group-hover:border-emerald-500/20">
+                        Generate Content <ChevronRight size={12} />
                      </Button>
-                  )}
-               </div>
-            ))}
-         </div>
-
-         {/* Meta Refinement Chat Placeholder */}
-         <div className="mt-auto p-6 rounded-[2rem] bg-indigo-600 text-white space-y-4 shadow-2xl shadow-indigo-600/20">
-            <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white">
-                  <Sparkles size={16} />
-               </div>
-               <span className="font-bold text-sm">Meta Optimization Chat</span>
+                  </div>
+               ))}
             </div>
-            <p className="text-[10px] text-white/70 font-medium leading-relaxed">Meta can refine your entire weekly strategy at once. Give a high-level command below:</p>
-            <div className="relative">
-               <input 
-                 className="w-full h-12 bg-white/10 rounded-xl border border-white/20 outline-none px-4 text-xs font-medium placeholder:text-white/40 focus:bg-white/20 transition-all pr-12" 
-                 placeholder="Make this week more technical..." 
-               />
-               <button className="absolute right-2 top-2 w-8 h-8 rounded-lg bg-white flex items-center justify-center text-indigo-600">
-                  <Plus size={16} />
-               </button>
+
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/10 space-y-4 relative overflow-hidden">
+               <div className="relative z-10 space-y-2">
+                  <div className="text-[10px] uppercase font-bold text-emerald-400/60 tracking-widest">Current Trend</div>
+                  <h4 className="text-sm font-bold">Next.js 15 Server Components</h4>
+                  <p className="text-[10px] text-white/40 leading-relaxed">Engagement for this topic is up 45% in your niche over the last 24h.</p>
+               </div>
+               <div className="absolute right-[-10px] bottom-[-10px] opacity-10">
+                  <Zap size={64} />
+               </div>
             </div>
          </div>
       </div>

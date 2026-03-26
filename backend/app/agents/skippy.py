@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI # Using ChatOpenAI for OpenRouter
+from langchain_anthropic import ChatAnthropic
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
 from ..config import settings
@@ -6,15 +6,10 @@ import json
 
 class SkippyAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="anthropic/claude-3.5-sonnet",
-            openai_api_key=settings.OPENROUTER_API_KEY,
-            openai_api_base=settings.OPENROUTER_BASE_URL,
-            temperature=0.7,
-            default_headers={
-                "HTTP-Referer": settings.FRONTEND_URL,
-                "X-Title": "CozyJet AI"
-            }
+        self.llm = ChatAnthropic(
+            model="claude-3-5-sonnet-20240620",
+            anthropic_api_key=settings.ANTHROPIC_API_KEY,
+            temperature=0.7
         )
 
     async def summarize_activity(self, activity_data: dict) -> dict:
