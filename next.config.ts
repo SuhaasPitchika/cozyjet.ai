@@ -1,13 +1,15 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Removed 'output: export' — static export is incompatible with Next.js server features (API routes, server components, etc.) */
+  allowedDevOrigins: ['*.replit.dev', '*.worf.replit.dev', '*.janeway.replit.dev', '*.spock.replit.dev', '*.picard.replit.dev'],
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,12 @@
 {
   "placeholderImages": [
     {
+      "id": "cozyjetlogo",
+      "description": "A white airplane flying through a soft blue cloud with sparkles",
+      "imageUrl": "https://picsum.photos/seed/cozyjet-cloud-plane/400/400",
+      "imageHint": "plane cloud"
+    },
+    {
       "id": "workspace-1",
       "description": "Modern creative workspace with dual monitors and warm lighting",
       "imageUrl": "https://picsum.photos/seed/ws1/800/600",
@@ -31,22 +37,46 @@
       "imageHint": "video editing"
     },
     {
-      "id": "agent-skippy",
-      "description": "Skippy agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/skippy/400/400",
-      "imageHint": "robot assistant"
+      "id": "workspace-6",
+      "description": "Photography studio setup with softbox lighting",
+      "imageUrl": "https://picsum.photos/seed/ws6/800/600",
+      "imageHint": "photography studio"
     },
     {
-      "id": "agent-flippo",
-      "description": "Flippo agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/flippo/400/400",
-      "imageHint": "geometric shape"
+      "id": "workspace-7",
+      "description": "Architecture office with drawing boards and 3D models",
+      "imageUrl": "https://picsum.photos/seed/ws7/800/600",
+      "imageHint": "architecture office"
     },
     {
-      "id": "agent-snooks",
-      "description": "Snooks agent character placeholder",
-      "imageUrl": "https://picsum.photos/seed/snooks/400/400",
-      "imageHint": "marketing expert"
+      "id": "workspace-8",
+      "description": "A futuristic holographic workstation in a dark room",
+      "imageUrl": "https://picsum.photos/seed/ws8/800/600",
+      "imageHint": "holographic workspace"
+    },
+    {
+      "id": "workspace-9",
+      "description": "Industrial design lab with 3D printers and prototypes",
+      "imageUrl": "https://picsum.photos/seed/ws9/800/600",
+      "imageHint": "industrial design"
+    },
+    {
+      "id": "jet-sketch",
+      "description": "Top-down blueprint sketch of a high-tech orbital jet",
+      "imageUrl": "https://picsum.photos/seed/jet-sketch-top/800/1200",
+      "imageHint": "jet sketch"
+    },
+    {
+      "id": "jet-metal",
+      "description": "Sleek metallic orbital jet with photorealistic textures",
+      "imageUrl": "https://picsum.photos/seed/jet-metal-top/800/1200",
+      "imageHint": "metallic jet"
+    },
+    {
+      "id": "auth-sky",
+      "description": "A cinematic high-altitude sky with soft blue and pink dawn gradients",
+      "imageUrl": "https://picsum.photos/seed/sky-dawn/1920/1080",
+      "imageHint": "sky clouds"
     }
   ]
 }

@@ -1,63 +1,56 @@
-'use server';
+
+
 /**
- * @fileOverview A Genkit flow for Snooks to generate marketing content for various platforms.
- *
- * - snooksGenerateMarketingContent - A function that handles the content generation process.
- * - SnooksGenerateMarketingContentInput - The input type for the snooksGenerateMarketingContent function.
- * - SnooksGenerateMarketingContentOutput - The return type for the snooksGenerateMarketingContent function.
+ * @fileOverview A unified marketing intelligence flow for Snooks.
+ * Refined for conciseness, empathy, and high-fidelity strategy.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
-const SnooksGenerateMarketingContentInputSchema = z.object({
-  userPrompt: z.string().describe('The user\'s request for marketing content.'),
-  userContext: z.string().describe('User\'s stored context including tone preferences, niche, and past successful content, as a JSON string.'),
+const SnooksInputSchema = z.object({
+  userPrompt: z.string().describe('The user\'s request or question.'),
+  userContext: z.string().describe('User\'s stored context including tone preferences and niche.'),
 });
-export type SnooksGenerateMarketingContentInput = z.infer<typeof SnooksGenerateMarketingContentInputSchema>;
 
-const SnooksGenerateMarketingContentOutputSchema = z.object({
-  linkedinPost: z.string().describe('Generated content for a LinkedIn post.'),
-  xTweet: z.string().describe('Generated content for an X (Twitter) tweet.'),
-  emailContent: z.string().describe('Generated content for an email.'),
-  instagramPost: z.string().describe('Generated content for an Instagram post.'),
-  youtubeScript: z.string().describe('Generated content for a YouTube script.'),
+const SnooksOutputSchema = z.object({
+  responseText: z.string().describe('A concise, empathetic, and strategic response.'),
+  generatedContent: z.object({
+    linkedinPost: z.string().optional(),
+    xTweet: z.string().optional(),
+    emailContent: z.string().optional(),
+  }).optional(),
 });
-export type SnooksGenerateMarketingContentOutput = z.infer<typeof SnooksGenerateMarketingContentOutputSchema>;
 
-export async function snooksGenerateMarketingContent(input: SnooksGenerateMarketingContentInput): Promise<SnooksGenerateMarketingContentOutput> {
-  return snooksGenerateMarketingContentFlow(input);
+export async function snooksIntelligence(input: z.infer<typeof SnooksInputSchema>) {
+  return snooksIntelligenceFlow(input);
 }
 
-const snooksMarketingPrompt = ai.definePrompt({
-  name: 'snooksMarketingPrompt',
-  input: { schema: SnooksGenerateMarketingContentInputSchema },
-  output: { schema: SnooksGenerateMarketingContentOutputSchema },
-  prompt: `You are Snooks, an expert marketing head AI agent. Your goal is to generate high-quality, multi-platform marketing content based on user prompts and their specific context. You are skilled in viral content psychology, SEO principles, platform-specific hook structures, and persuasion frameworks.
+const snooksPrompt = ai.definePrompt({
+  name: 'snooksPrompt',
+  input: { schema: SnooksInputSchema },
+  output: { schema: SnooksOutputSchema },
+  prompt: `You are Snooks, an expert marketing head AI. You are brilliant, concise, and deeply understanding.
+  
+User Context: {{{userContext}}}
+User Prompt: {{{userPrompt}}}
 
-First, act as a content strategist to plan the overall structure and key messages based on the user's request and context. Then, as a copywriter, tailor the content for each platform, ensuring it is optimized for engagement and platform best practices. Finally, review and refine the content, acting as a critic, to ensure it meets the highest standards.
-
-User's Request: {{{userPrompt}}}
-User's Context (JSON): {{{userContext}}}
-
-Generate distinct content for each of the following platforms. The output MUST be a JSON object with the specified keys:
-- 'linkedinPost': Content for a professional LinkedIn post.
-- 'xTweet': Content for a concise X (Twitter) tweet.
-- 'emailContent': Content for a marketing email.
-- 'instagramPost': Content for an Instagram post (including captions and relevant hashtags).
-- 'youtubeScript': A short script or outline for a YouTube video.
-
-Ensure the content is engaging, platform-appropriate, and aligns with the user's provided context.`,
+INSTRUCTIONS:
+1. Respond with high empathy. Acknowledge the challenge or win the user is sharing.
+2. Be extremely concise. Avoid "filler" text. Get straight to the strategic gold.
+3. If they ask for content, provide it in the generatedContent fields. 
+4. If they ask a strategy question, provide a structured but brief advice in responseText.
+5. Your tone is authoritative yet supportive. Like a senior partner who values the user's time.`,
 });
 
-const snooksGenerateMarketingContentFlow = ai.defineFlow(
+const snooksIntelligenceFlow = ai.defineFlow(
   {
-    name: 'snooksGenerateMarketingContentFlow',
-    inputSchema: SnooksGenerateMarketingContentInputSchema,
-    outputSchema: SnooksGenerateMarketingContentOutputSchema,
+    name: 'snooksIntelligenceFlow',
+    inputSchema: SnooksInputSchema,
+    outputSchema: SnooksOutputSchema,
   },
   async (input) => {
-    const { output } = await snooksMarketingPrompt(input);
+    const { output } = await snooksPrompt(input);
     return output!;
   }
 );

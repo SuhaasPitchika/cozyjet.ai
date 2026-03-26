@@ -1,4 +1,4 @@
-'use server';
+
 /**
  * @fileOverview This file implements a Genkit flow for the Flippo AI agent to analyze
  * summarized work activity, generate a structured productivity timeline, and
@@ -55,7 +55,7 @@ const FlippoAnalyzeProductivityOutputSchema = z.object({
     ),
   productivityInsights: z
     .string()
-    .describe('Textual insights into the user\\'s productivity patterns.'),
+    .describe("Textual insights into the user's productivity patterns."),
 });
 export type FlippoAnalyzeProductivityOutput = z.infer<
   typeof FlippoAnalyzeProductivityOutputSchema
