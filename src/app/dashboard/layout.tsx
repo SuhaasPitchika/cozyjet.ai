@@ -9,7 +9,6 @@ import { LogOut, Eye, Zap, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
   { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
@@ -22,11 +21,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  const isLoading = isUserLoading || isReplitLoading;
-  const isAuthenticated = !!user || !!replitUser;
+  const isLoading = isUserLoading;
+  const isAuthenticated = !!user;
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth");
@@ -35,7 +33,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const handleSignOut = async () => {
     try {
       if (user) await signOut(auth);
-      if (replitUser) signOutReplit();
       router.push("/auth");
     } catch (e) { console.error(e); }
   };
@@ -43,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading || !isAuthenticated) return null;
 
   const activeItem = NAV_ITEMS.find((n) => n.href === pathname);
-  const displayName = user?.displayName || user?.email || replitUser?.name || "User";
+  const displayName = user?.displayName || user?.email || "User";
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (

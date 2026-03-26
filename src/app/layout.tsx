@@ -2,8 +2,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
-import { ReplitAuthProvider } from "@/contexts/replit-auth-context";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: 'CozyJet.AI | Autonomous Marketing & Productivity',
@@ -23,13 +21,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;700&family=Caveat:wght@400;700&family=Indie+Flower&family=Gloria+Hallelujah&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans antialiased bg-background text-foreground">
-        <Script src="https://auth.util.repl.co/script.js" strategy="beforeInteractive" />
-        <ReplitAuthProvider>
-          <FirebaseClientProvider>
-            {children}
-            <Toaster />
-          </FirebaseClientProvider>
-        </ReplitAuthProvider>
+        <FirebaseClientProvider>
+          {children}
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );
