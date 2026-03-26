@@ -297,90 +297,154 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
 function OrganicMarketingCloud() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
-      animate={{ opacity: 1, scale: 1, rotate: -8 }}
+      initial={{ opacity: 0, scale: 0.7, rotate: -6 }}
+      animate={{ opacity: 1, scale: 1, rotate: -6 }}
       transition={{ delay: 0.9, duration: 0.7, type: "spring", stiffness: 180, damping: 16 }}
       className="absolute z-30"
-      style={{
-        left: "-2%",
-        top: "-40%",
-      }}
+      style={{ left: "-1%", top: "-45%" }}
     >
       <motion.div
-        animate={{ y: [0, -6, 0], rotate: [-8, -6, -8] }}
+        animate={{ y: [0, -5, 0], rotate: [-6, -4.5, -6] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+        style={{ position: "relative", width: 210 }}
       >
-        <div
-          style={{
-            background: "#fff",
-            border: "3px solid #000",
-            boxShadow: "6px 6px 0px #000, 0 0 0 1px #000",
-            padding: "18px 22px",
-            borderRadius: 6,
-            position: "relative",
-            maxWidth: 240,
-          }}
-        >
-          <div style={{
-            fontFamily: PIXEL,
-            fontSize: 9,
-            color: "#000",
-            letterSpacing: "0.06em",
-            lineHeight: 2.4,
-            textTransform: "uppercase",
-            imageRendering: "pixelated",
-          }}>
-            ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
-          </div>
-          <div style={{
-            marginTop: 12,
-            fontFamily: PIXEL,
-            fontSize: 7,
-            color: "#0a66c2",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            borderTop: "2.5px solid #000",
-            paddingTop: 10,
-            imageRendering: "pixelated",
-          }}>
-            ↓ USE IT FOR ↓
-          </div>
+        {/* Drop shadow layer for 3D lift effect */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.22)",
+          transform: "translate(6px, 10px) rotate(1deg)",
+          borderRadius: 2,
+          filter: "blur(8px)",
+        }} />
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.12)",
+          transform: "translate(12px, 18px) rotate(1.5deg)",
+          borderRadius: 2,
+          filter: "blur(14px)",
+        }} />
 
+        {/* Adhesive top strip */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 32,
+          borderRadius: "2px 2px 0 0",
+          background: "linear-gradient(180deg, #f5c800 0%, #e6b800 60%, #d4a900 100%)",
+          zIndex: 2,
+        }}>
           <div style={{
             position: "absolute",
-            bottom: -20,
-            right: "22%",
-            width: 0, height: 0,
-            borderLeft: "14px solid transparent",
-            borderRight: "14px solid transparent",
-            borderTop: "20px solid #000",
+            inset: 0,
+            backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)",
+            borderRadius: "2px 2px 0 0",
           }} />
           <div style={{
             position: "absolute",
-            bottom: -14,
-            right: "calc(22% + 4px)",
-            width: 0, height: 0,
-            borderLeft: "10px solid transparent",
-            borderRight: "10px solid transparent",
-            borderTop: "14px solid #fff",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            background: "rgba(0,0,0,0.12)",
           }} />
         </div>
 
-        {[
-          { size: 20, bottom: -34, right: "16%", rotate: "8deg" },
-          { size: 14, bottom: -48, right: "9%",  rotate: "12deg" },
-          { size: 9,  bottom: -59, right: "4%",  rotate: "16deg" },
-        ].map((d, i) => (
-          <div key={i} style={{
+        {/* Main paper body */}
+        <div style={{
+          position: "relative",
+          zIndex: 1,
+          backgroundImage: [
+            "linear-gradient(170deg, #fef9c3 0%, #fef08a 18%, #fde047 45%, #fef9c3 72%, #fffde7 88%, #fef9c3 100%)",
+            "repeating-linear-gradient(transparent, transparent 22px, rgba(147,130,0,0.09) 22px, rgba(147,130,0,0.09) 23px)",
+          ].join(", "),
+          paddingTop: 40,
+          paddingBottom: 22,
+          paddingLeft: 18,
+          paddingRight: 18,
+          borderRadius: "2px 2px 2px 2px",
+          boxShadow: [
+            "inset 2px 0 4px rgba(0,0,0,0.06)",
+            "inset -1px 0 2px rgba(255,255,255,0.6)",
+            "inset 0 -2px 4px rgba(0,0,0,0.05)",
+          ].join(", "),
+        }}>
+          {/* Subtle paper grain overlay */}
+          <div style={{
             position: "absolute",
-            width: d.size, height: d.size,
-            bottom: d.bottom, right: d.right,
-            background: "#fff",
-            border: "2px solid #000",
-            borderRadius: 2,
-            transform: `rotate(${d.rotate})`,
+            inset: 0,
+            opacity: 0.04,
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            borderRadius: "2px",
+            pointerEvents: "none",
           }} />
-        ))}
+
+          <div style={{
+            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#1a1200",
+            lineHeight: 1.65,
+            letterSpacing: "0.01em",
+            marginBottom: 10,
+            textShadow: "0 1px 0 rgba(255,255,255,0.4)",
+          }}>
+            Organic<br/>Marketing<br/>via Social Media
+          </div>
+
+          <div style={{
+            height: 1,
+            background: "linear-gradient(90deg, rgba(180,150,0,0.3), rgba(180,150,0,0.15), transparent)",
+            marginBottom: 10,
+          }} />
+
+          <div style={{
+            fontFamily: "'Georgia', serif",
+            fontSize: 10.5,
+            color: "#0a66c2",
+            letterSpacing: "0.02em",
+            fontStyle: "italic",
+            fontWeight: 600,
+            textShadow: "0 1px 0 rgba(255,255,255,0.5)",
+          }}>
+            ↓ Use it for ↓
+          </div>
+
+          {/* Bottom-right corner fold */}
+          <div style={{
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            width: 0,
+            height: 0,
+            borderLeft: "22px solid transparent",
+            borderBottom: "22px solid rgba(180,150,0,0.35)",
+          }} />
+          <div style={{
+            position: "absolute",
+            bottom: 1,
+            right: 1,
+            width: 0,
+            height: 0,
+            borderLeft: "20px solid transparent",
+            borderBottom: "20px solid rgba(255,255,200,0.7)",
+          }} />
+        </div>
+
+        {/* Pointer tail toward arch */}
+        <div style={{
+          position: "absolute",
+          bottom: -16,
+          right: "24%",
+          width: 0, height: 0,
+          borderLeft: "10px solid transparent",
+          borderRight: "10px solid transparent",
+          borderTop: "16px solid #fde047",
+          filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.15))",
+        }} />
       </motion.div>
     </motion.div>
   );
@@ -409,12 +473,12 @@ export function Hero() {
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             fontFamily: PIXEL,
-            fontSize: "clamp(24px, 4.5vw, 68px)",
+            fontSize: "clamp(16px, 2.8vw, 42px)",
             fontWeight: 700,
-            marginBottom: "1.4rem",
+            marginBottom: "1rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            lineHeight: 1.5,
+            lineHeight: 1.6,
             color: "#ffffff",
             textShadow: [
               "0 2px 0 rgba(0,0,0,0.95)",
@@ -446,7 +510,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-20"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-6"
         style={{ height: `${VH}px` }}
       >
         <OrganicMarketingCloud />
