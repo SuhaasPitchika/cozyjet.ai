@@ -115,9 +115,17 @@ function AnimatedSubtitle() {
           textTransform: "uppercase",
           letterSpacing: "0.12em",
           textAlign: "center",
-          color: "rgba(255,255,255,0.92)",
+          color: "rgba(255,255,255,0.98)",
           minHeight: "1.6em",
-          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 1px 3px rgba(0,0,0,0.8)",
+          textShadow: [
+            "0 0 8px rgba(96,165,250,1)",
+            "0 0 20px rgba(96,165,250,1)",
+            "0 0 40px rgba(96,165,250,0.9)",
+            "0 0 70px rgba(59,130,246,0.8)",
+            "0 0 100px rgba(59,130,246,0.6)",
+            "0 0 140px rgba(147,197,253,0.4)",
+            "0 1px 3px rgba(0,0,0,0.9)",
+          ].join(", "),
           lineHeight: 2,
         }}
       >
@@ -190,13 +198,13 @@ function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: b
           exit={{ opacity: 0, y: 4, scale: 0.92 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
           className="absolute z-50 pointer-events-none"
-          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 140 }}
+          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 148 }}
         >
           <div style={{
             background: "#000",
             border: "2px solid rgba(255,255,255,0.18)",
             borderRadius: 2,
-            padding: "10px 12px",
+            padding: "12px 14px",
             boxShadow: "4px 4px 0px rgba(255,255,255,0.08), 0 0 20px rgba(0,0,0,0.8)",
           }}>
             <div style={{
@@ -204,7 +212,7 @@ function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: b
               fontSize: 7,
               color: node.color,
               letterSpacing: "0.1em",
-              marginBottom: 8,
+              marginBottom: 9,
               textTransform: "uppercase",
             }}>
               {node.noteTitle}
@@ -213,26 +221,26 @@ function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: b
               <div key={i} style={{
                 fontFamily: PIXEL,
                 fontSize: 6,
-                color: "rgba(255,255,255,0.75)",
+                color: "rgba(255,255,255,0.78)",
                 letterSpacing: "0.06em",
-                lineHeight: 2,
+                lineHeight: 2.2,
                 display: "flex",
                 alignItems: "center",
-                gap: 5,
+                gap: 6,
               }}>
-                <span style={{ color: node.color, fontSize: 8 }}>›</span> {line}
+                <span style={{ color: node.color, fontSize: 9 }}>›</span> {line}
               </div>
             ))}
           </div>
           <div style={{
             position: "absolute",
-            bottom: -8,
+            bottom: -9,
             left: "50%",
             transform: "translateX(-50%)",
             width: 0, height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: "8px solid #000",
+            borderLeft: "9px solid transparent",
+            borderRight: "9px solid transparent",
+            borderTop: "9px solid #000",
           }} />
         </motion.div>
       )}
@@ -244,32 +252,63 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none"
-      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 8px)" }}
+      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 10px)" }}
     >
-      {!isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
+      {!isAbove && (
+        <div style={{ width: 2, height: 26, borderLeft: "2px dashed rgba(255,255,255,0.4)" }} />
+      )}
       <motion.div
         animate={{
-          rotate: isAbove ? [-1.5, 1, -1.5] : [1.5, -1, 1.5],
-          y: [0, -2, 0],
+          rotate: isAbove ? [-3.5, 2.5, -1, -3.5] : [3.5, -2.5, 1, 3.5],
+          y: [0, -5, -2, 0],
+          scale: [1, 1.04, 1.01, 1],
         }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+        transition={{
+          duration: 3.8,
+          repeat: Infinity,
+          ease: "easeInOut",
+          repeatDelay: 0.4,
+        }}
         style={{
-          background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff176 100%)",
-          border: "2px solid rgba(0,0,0,0.8)",
-          boxShadow: "3px 3px 0px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.3)",
-          padding: "5px 8px",
+          background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 55%, #fff176 100%)",
+          border: "2.5px solid rgba(0,0,0,0.88)",
+          boxShadow: "4px 4px 0px rgba(0,0,0,0.9), 0 8px 18px rgba(0,0,0,0.45), inset 0 -3px 0 rgba(0,0,0,0.1)",
+          padding: "9px 13px",
           fontFamily: PIXEL,
-          fontSize: 6,
+          fontSize: 7,
           color: "#111",
-          letterSpacing: "0.05em",
+          letterSpacing: "0.07em",
           textTransform: "uppercase" as const,
           whiteSpace: "nowrap" as const,
           imageRendering: "pixelated" as const,
+          minWidth: 75,
+          textAlign: "center" as const,
+          position: "relative" as const,
         }}
       >
+        <div style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          width: 0,
+          height: 0,
+          borderLeft: "12px solid transparent",
+          borderBottom: "12px solid rgba(0,0,0,0.18)",
+        }} />
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          background: "rgba(255,255,255,0.55)",
+          borderRadius: "0 0 0 0",
+        }} />
         {tag}
       </motion.div>
-      {isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
+      {isAbove && (
+        <div style={{ width: 2, height: 26, borderLeft: "2px dashed rgba(255,255,255,0.4)" }} />
+      )}
     </div>
   );
 }
@@ -277,74 +316,79 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
 function OrganicMarketingCloud() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.75, rotate: -6 }}
-      animate={{ opacity: 1, scale: 1, rotate: -4 }}
-      transition={{ delay: 0.9, duration: 0.6, type: "spring", stiffness: 200, damping: 18 }}
+      initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
+      animate={{ opacity: 1, scale: 1, rotate: -8 }}
+      transition={{ delay: 0.9, duration: 0.7, type: "spring", stiffness: 180, damping: 16 }}
       className="absolute z-30"
-      style={{ left: "-2%", top: "-55%", rotate: "-4deg" }}
+      style={{
+        left: "-3%",
+        top: "-85%",
+      }}
     >
       <motion.div
-        animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ y: [0, -6, 0], rotate: [-8, -6, -8] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
         <div
           style={{
             background: "#fff",
             border: "3px solid #000",
-            boxShadow: "5px 5px 0px #000",
-            padding: "14px 20px",
-            borderRadius: 4,
+            boxShadow: "6px 6px 0px #000, 0 0 0 1px #000",
+            padding: "18px 22px",
+            borderRadius: 6,
             position: "relative",
-            maxWidth: 220,
+            maxWidth: 240,
           }}
         >
           <div style={{
             fontFamily: PIXEL,
-            fontSize: 7,
+            fontSize: 9,
             color: "#000",
-            letterSpacing: "0.08em",
-            lineHeight: 2.2,
+            letterSpacing: "0.06em",
+            lineHeight: 2.4,
             textTransform: "uppercase",
+            imageRendering: "pixelated",
           }}>
             ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
           </div>
           <div style={{
-            marginTop: 10,
+            marginTop: 12,
             fontFamily: PIXEL,
-            fontSize: 6,
+            fontSize: 7,
             color: "#0a66c2",
-            letterSpacing: "0.12em",
+            letterSpacing: "0.1em",
             textTransform: "uppercase",
-            borderTop: "2px solid #000",
-            paddingTop: 8,
+            borderTop: "2.5px solid #000",
+            paddingTop: 10,
+            imageRendering: "pixelated",
           }}>
             ↓ USE IT FOR ↓
           </div>
 
           <div style={{
             position: "absolute",
-            bottom: -16,
-            right: "25%",
+            bottom: -20,
+            right: "22%",
             width: 0, height: 0,
-            borderLeft: "12px solid transparent",
-            borderRight: "12px solid transparent",
-            borderTop: "16px solid #000",
+            borderLeft: "14px solid transparent",
+            borderRight: "14px solid transparent",
+            borderTop: "20px solid #000",
           }} />
           <div style={{
             position: "absolute",
-            bottom: -11,
-            right: "calc(25% + 3px)",
+            bottom: -14,
+            right: "calc(22% + 4px)",
             width: 0, height: 0,
-            borderLeft: "9px solid transparent",
-            borderRight: "9px solid transparent",
-            borderTop: "12px solid #fff",
+            borderLeft: "10px solid transparent",
+            borderRight: "10px solid transparent",
+            borderTop: "14px solid #fff",
           }} />
         </div>
 
         {[
-          { size: 18, bottom: -28, right: "18%", rotate: "8deg" },
-          { size: 13, bottom: -40, right: "12%", rotate: "12deg" },
-          { size: 9,  bottom: -50, right: "7%",  rotate: "15deg" },
+          { size: 20, bottom: -34, right: "16%", rotate: "8deg" },
+          { size: 14, bottom: -48, right: "9%",  rotate: "12deg" },
+          { size: 9,  bottom: -59, right: "4%",  rotate: "16deg" },
         ].map((d, i) => (
           <div key={i} style={{
             position: "absolute",
@@ -352,7 +396,7 @@ function OrganicMarketingCloud() {
             bottom: d.bottom, right: d.right,
             background: "#fff",
             border: "2px solid #000",
-            borderRadius: 1,
+            borderRadius: 2,
             transform: `rotate(${d.rotate})`,
           }} />
         ))}

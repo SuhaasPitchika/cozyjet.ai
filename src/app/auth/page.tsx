@@ -347,46 +347,76 @@ export default function AuthPage() {
       <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
         <SkyBg />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          className="relative z-20 w-full max-w-[420px] mx-4">
-          <div className="relative rounded-3xl p-8 text-center" style={glassCard}>
+          className="relative z-20 w-full max-w-[440px] mx-4">
+          <div className="relative rounded-3xl overflow-hidden" style={glassCard}>
             <div className="absolute top-0 inset-x-0 h-px rounded-t-3xl"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
-            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity }}
-              className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
-              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <rect x="3" y="8" width="18" height="13" rx="2" />
-                <path d="M16 8V5a4 4 0 0 0-8 0v3" />
-                <circle cx="12" cy="14" r="1.5" fill="currentColor" />
-              </svg>
-            </motion.div>
-            <h2 className="text-xl font-bold text-black/90 mb-2">Verify your email</h2>
-            <p className="text-sm text-black/40 mb-1">Code sent to</p>
-            <p className="text-sm font-semibold text-blue-600 mb-6">{email}</p>
-            {devCode && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="rounded-xl p-3 mb-4 text-xs text-amber-700 font-mono"
-                style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)" }}>
-                Dev mode · No SMTP configured · Code: <strong className="text-amber-800 text-sm tracking-widest">{devCode}</strong>
+              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent)" }} />
+
+            <div className="px-8 pt-8 pb-6 text-center">
+              <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity }}
+                className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M22 8.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2.5" />
+                  <path d="m2 8 10 7 10-7" />
+                </svg>
               </motion.div>
-            )}
-            <div className="mb-6">
-              <CodeInput value={code} onChange={setCode} />
+              <h2 className="text-xl font-bold text-black/90 mb-1.5">Check your inbox</h2>
+              <p className="text-xs text-black/40 leading-relaxed mb-1">We sent a 6-digit code to</p>
+              <p className="text-sm font-semibold text-blue-600 mb-2">{email}</p>
+              <p className="text-[10px] text-black/30">Enter the code below to verify your account</p>
             </div>
-            <motion.button onClick={handleVerifyCode} disabled={isVerifying || code.length !== 6}
-              whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5 disabled:opacity-40"
-              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
-              {isVerifying ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
-                : <span>Enter Studio</span>}
-            </motion.button>
-            <button onClick={handleResend} disabled={isResending}
-              className="flex items-center justify-center gap-1.5 mx-auto text-xs text-black/30 hover:text-blue-600 transition-colors disabled:opacity-40">
-              <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
-              {isResending ? "Sending..." : "Resend code"}
-            </button>
-            <p className="text-[10px] text-black/25 mt-4">Expires in 10 minutes</p>
+
+            {devCode && (
+              <div className="mx-8 mb-4">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="rounded-xl p-3 text-xs text-amber-700 font-mono text-center"
+                  style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)" }}>
+                  Dev mode · Email not sent · Code: <strong className="text-amber-800 text-sm tracking-widest">{devCode}</strong>
+                </motion.div>
+              </div>
+            )}
+
+            <div className="mx-8 mb-2 rounded-2xl p-5" style={{
+              background: "rgba(59,130,246,0.04)",
+              border: "1.5px solid rgba(59,130,246,0.15)",
+            }}>
+              <p className="text-[9px] font-bold text-black/35 uppercase tracking-widest text-center mb-4">
+                Verification Code
+              </p>
+              <CodeInput value={code} onChange={setCode} />
+              {code.length > 0 && code.length < 6 && (
+                <p className="text-[9px] text-black/25 text-center mt-3">
+                  {6 - code.length} digit{6 - code.length !== 1 ? "s" : ""} remaining
+                </p>
+              )}
+            </div>
+
+            <div className="px-8 pb-7 pt-4 space-y-3">
+              <motion.button onClick={handleVerifyCode} disabled={isVerifying || code.length !== 6}
+                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                className="w-full h-12 rounded-xl font-semibold text-white text-sm flex items-center justify-center gap-2.5 disabled:opacity-35 relative overflow-hidden group"
+                style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
+                {isVerifying
+                  ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
+                  : <span>Enter Studio →</span>}
+              </motion.button>
+
+              <div className="flex items-center justify-between">
+                <button onClick={handleResend} disabled={isResending}
+                  className="flex items-center gap-1.5 text-xs text-black/30 hover:text-blue-600 transition-colors disabled:opacity-40">
+                  <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
+                  {isResending ? "Sending new code..." : "Resend code"}
+                </button>
+                <span className="text-[10px] text-black/20">Expires in 10 min</span>
+              </div>
+            </div>
           </div>
+
+          <p className="text-center text-[10px] text-white/40 mt-4">
+            Didn&apos;t get an email? Check your spam folder.
+          </p>
         </motion.div>
       </div>
     );
