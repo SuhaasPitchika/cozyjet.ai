@@ -1,57 +1,31 @@
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.schema import SystemMessage, HumanMessage
 from ..config import settings
-import json
 
 class SkippyAgent:
     def __init__(self):
-        self.llm = ChatAnthropic(
-            model="claude-3-5-sonnet-20240620",
-            anthropic_api_key=settings.ANTHROPIC_API_KEY,
+        # OpenRouter/Gemini configuration
+        self.llm = ChatOpenAI(
+            model="google/gemini-2.0-flash-001",
+            openai_api_key=settings.OPEN_ROUTER,
+            openai_api_base="https://openrouter.ai/api/v1",
             temperature=0.7
         )
 
-    async def summarize_activity(self, activity_data: dict) -> dict:
+    async def enhance_work_description(self, raw_input: str, user_context: str = "") -> str:
+        system_prompt = """You are Skippy, the Content Brain for CozyJet Studio. 
+        Your job is to transform raw descriptions of work into detailed content seeds for marketing.
+        Fill in technical details, identify the problem solved, and estimate the accomplishment's significance.
+        Target audience: fellow developers, founders, and creators.
         """
-        Takes raw activity data (e.g. GitHub commit, Notion page edit) 
-        and generates a content seed: title, description, and strategic context.
-        """
+        
         prompt = ChatPromptTemplate.from_messages([
-            ("system", (
-                "You are Skippy, an expert content researcher. Your job is to transform raw "
-                "technical work data into a 'Content Seed' for a solo creator. "
-                "The seed should capture: "
-                "1. What work was done (the title and raw description). "
-                "2. Why it matters to their audience. "
-                "3. What strategic angle would resonate (e.g. technical depth, problem solving, results). "
-                "Output as a JSON object with 'title', 'description', and 'tags'."
-            )),
-            ("human", "Analyze this activity: {activity}")
+            ("system", system_prompt),
+            ("user", "Workspace Context: {context}\nRaw Description: {desc}")
         ])
         
         chain = prompt | self.llm
-        response = await chain.ainvoke({"activity": json.dumps(activity_data)})
-        
-        try:
-            # Basic parsing, Claude often doesn't need much help but a check is good
-            res_text = response.content
-            if "```json" in res_text:
-                res_text = res_text.split("```json")[1].split("```")[0].strip()
-            return json.loads(res_text)
-        except:
-            return {
-                "title": activity_data.get("title", "New Activity Detected"),
-                "description": activity_data.get("description", "A new activity has been recorded from your connected tools."),
-                "tags": ["automated"]
-            }
+        response = await chain.ainvoke({"context": user_context, "desc": raw_input})
+        return response.content
 
-    async def analyze_voice(self, transcribed_text: str) -> dict:
-        """For manual voice or text input enhancement."""
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "Transform this rough insight into a high-quality content seed. Identify the core problem, the solution, and the 'Aha!' moment."),
-            ("human", "{text}")
-        ])
-        chain = prompt | self.llm
-        resp = await chain.ainvoke({"text": transcribed_text})
-        return {"title": "Enhanced Insight", "description": resp.content, "tags": ["voice"]}
+skippy_agent = SkippyAgent()
