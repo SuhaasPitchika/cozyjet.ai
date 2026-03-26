@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
+from .middleware import RateLimitMiddleware
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -8,7 +9,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Implementation
+# Middleware
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
