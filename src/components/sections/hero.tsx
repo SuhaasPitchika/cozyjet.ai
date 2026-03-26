@@ -40,12 +40,12 @@ const ALL_NODES = [
   {
     icon: Twitter,     label: "Twitter",   color: "#1DA1F2",
     tag: "TWEETS",
-    noteTitle: "VIRAL HOOKS",
+    noteTitle: "VIRAL TWEETS",
     noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"],
   },
   {
     icon: RedditIcon,  label: "Reddit",    color: "#FF4500",
-    tag: "AUDIENCE",
+    tag: "AUDIENCE MARKETING",
     noteTitle: "AUDIENCE MKT",
     noteLines: ["Community-native", "Upvote psychology", "No-promo tone"],
   },
@@ -57,32 +57,32 @@ const ALL_NODES = [
   },
   {
     icon: ThreadsIcon, label: "Threads",   color: "#111111",
-    tag: "STORIES",
-    noteTitle: "MICRO STORIES",
+    tag: "PERSONAL BRAND",
+    noteTitle: "PERSONAL BRAND",
     noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"],
   },
   {
-    icon: Mail,        label: "Email",     color: "#EA4335",
-    tag: "GMAILS",
-    noteTitle: "HIGH-CR EMAIL",
+    icon: Mail,        label: "Gmail",     color: "#EA4335",
+    tag: "COLD MAILING",
+    noteTitle: "COLD MAILING",
     noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"],
   },
   {
     icon: Instagram,   label: "Instagram", color: "#E4405F",
-    tag: "POSTS",
-    noteTitle: "VISUAL POSTS",
+    tag: "POSTS & REELS",
+    noteTitle: "POSTS & REELS",
     noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"],
   },
   {
     icon: SlackIcon,   label: "Slack",     color: "#4A154B",
-    tag: "PRO MSG",
+    tag: "PRO MESSAGES",
     noteTitle: "PRO MESSAGES",
     noteLines: ["Team digests", "Launch announcements", "Newsletter"],
   },
   {
     icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2",
-    tag: "BLOGS",
-    noteTitle: "AUTHORITY BLOGS",
+    tag: "PROFESSIONAL NETWORKING",
+    noteTitle: "PROFESSIONAL NETWORKING",
     noteLines: ["Thought leadership", "Data stories", "Pro hooks"],
   },
 ];
@@ -111,7 +111,7 @@ function AnimatedSubtitle() {
         transition={{ duration: 0.45, ease: "easeInOut" }}
         style={{
           fontFamily: PIXEL,
-          fontSize: 8,
+          fontSize: "clamp(9px, 1.1vw, 14px)",
           textTransform: "uppercase",
           letterSpacing: "0.12em",
           textAlign: "center",
@@ -252,62 +252,43 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none"
-      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 10px)" }}
+      style={{ [isAbove ? "bottom" : "top"]: "calc(100% + 8px)" }}
     >
       {!isAbove && (
-        <div style={{ width: 2, height: 26, borderLeft: "2px dashed rgba(255,255,255,0.4)" }} />
+        <div style={{ width: 1.5, height: 20, borderLeft: "1.5px dashed rgba(255,255,255,0.5)" }} />
       )}
       <motion.div
         animate={{
-          rotate: isAbove ? [-3.5, 2.5, -1, -3.5] : [3.5, -2.5, 1, 3.5],
-          y: [0, -5, -2, 0],
-          scale: [1, 1.04, 1.01, 1],
+          y: [0, -3, 0],
+          scale: [1, 1.02, 1],
         }}
         transition={{
           duration: 3.8,
           repeat: Infinity,
           ease: "easeInOut",
-          repeatDelay: 0.4,
+          repeatDelay: 0.6,
         }}
         style={{
-          background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 55%, #fff176 100%)",
-          border: "2.5px solid rgba(0,0,0,0.88)",
-          boxShadow: "4px 4px 0px rgba(0,0,0,0.9), 0 8px 18px rgba(0,0,0,0.45), inset 0 -3px 0 rgba(0,0,0,0.1)",
-          padding: "9px 13px",
+          background: "rgba(10, 20, 50, 0.72)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(100, 160, 255, 0.45)",
+          boxShadow: "0 2px 16px rgba(59,130,246,0.25), 0 0 0 1px rgba(255,255,255,0.08) inset",
+          padding: "5px 10px",
+          borderRadius: "3px",
           fontFamily: PIXEL,
-          fontSize: 7,
-          color: "#111",
-          letterSpacing: "0.07em",
+          fontSize: 6,
+          color: "rgba(200,230,255,0.95)",
+          letterSpacing: "0.08em",
           textTransform: "uppercase" as const,
           whiteSpace: "nowrap" as const,
-          imageRendering: "pixelated" as const,
-          minWidth: 75,
           textAlign: "center" as const,
-          position: "relative" as const,
         }}
       >
-        <div style={{
-          position: "absolute",
-          bottom: 0,
-          right: 0,
-          width: 0,
-          height: 0,
-          borderLeft: "12px solid transparent",
-          borderBottom: "12px solid rgba(0,0,0,0.18)",
-        }} />
-        <div style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: "rgba(255,255,255,0.55)",
-          borderRadius: "0 0 0 0",
-        }} />
         {tag}
       </motion.div>
       {isAbove && (
-        <div style={{ width: 2, height: 26, borderLeft: "2px dashed rgba(255,255,255,0.4)" }} />
+        <div style={{ width: 1.5, height: 20, borderLeft: "1.5px dashed rgba(255,255,255,0.5)" }} />
       )}
     </div>
   );
@@ -321,8 +302,8 @@ function OrganicMarketingCloud() {
       transition={{ delay: 0.9, duration: 0.7, type: "spring", stiffness: 180, damping: 16 }}
       className="absolute z-30"
       style={{
-        left: "-3%",
-        top: "-85%",
+        left: "-2%",
+        top: "-40%",
       }}
     >
       <motion.div
@@ -428,27 +409,38 @@ export function Hero() {
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             fontFamily: PIXEL,
-            fontSize: "clamp(14px, 2.4vw, 28px)",
+            fontSize: "clamp(24px, 4.5vw, 68px)",
             fontWeight: 700,
-            marginBottom: "1.2rem",
+            marginBottom: "1.4rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            lineHeight: 1.7,
+            lineHeight: 1.5,
             color: "#ffffff",
-            textShadow: "0 2px 0 rgba(0,0,0,0.9), 0 4px 32px rgba(0,0,0,0.8), 0 8px 48px rgba(0,0,0,0.5)",
+            textShadow: [
+              "0 2px 0 rgba(0,0,0,0.95)",
+              "0 4px 0 rgba(0,0,0,0.7)",
+              "0 6px 0 rgba(0,0,0,0.4)",
+              "0 8px 0 rgba(0,0,0,0.2)",
+              "0 10px 0 rgba(0,0,0,0.1)",
+              "0 12px 24px rgba(0,0,0,0.8)",
+              "0 20px 60px rgba(0,0,0,0.5)",
+              "0 0 80px rgba(59,130,246,0.3)",
+            ].join(", "),
           }}
         >
           AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-          style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <AnimatedSubtitle />
-        </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="relative z-10 text-center px-4 mt-10"
+        style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <AnimatedSubtitle />
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 36 }}

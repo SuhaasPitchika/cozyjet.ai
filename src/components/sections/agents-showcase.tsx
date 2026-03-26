@@ -6,106 +6,112 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 const AGENTS = [
   {
     name: "Skippy",
-    role: "Screen Intelligence",
-    color: "#a0a0a0",
-    badge: "Observer",
-    desc: "Autonomous screen analysis and contextual workspace assistance with real-time signal delivery.",
-    powers: ["OCR extraction", "Activity tracking", "Anti-stuck logic"],
-    gradient: "from-gray-50 to-white",
-    accent: "bg-gray-100",
-    img: "/jet-sketch.png",
-    imgAlt: "Blueprint sketch of jet — technical precision like Skippy"
+    role: "Content Brain — Intelligence Layer",
+    color: "#60a5fa",
+    badge: "Content Brain",
+    desc: "Five-method content capture engine: voice input, screenshot OCR, real-time workspace monitoring, direct text, and screen analysis. Transforms raw context into marketing-ready intelligence in seconds — your AI's eyes and ears.",
+    powers: ["Voice → Marketing Gold", "Screenshot OCR Analysis", "Real-Time Workspace Intel", "Anti-Distraction Logic"],
+    img: "/assets/jet-blueprint-top.png",
+    imgAlt: "Jet blueprint top-down — Skippy precision intelligence"
   },
   {
     name: "Flippo",
-    role: "Productivity Brain",
-    color: "#6b7280",
-    badge: "Timeline",
-    desc: "Data-driven productivity insights, deep work scoring, and napkin.ai-style timeline generation.",
-    powers: ["Timeline generation", "Flow state analysis", "Focus matrix"],
-    gradient: "from-slate-50 to-white",
-    accent: "bg-slate-100",
-    img: "/jet-color.jpg",
-    imgAlt: "Fighter jet launching — Flippo's productivity engine"
+    role: "Content Planner — Strategic Orchestrator",
+    color: "#a78bfa",
+    badge: "Content Planner",
+    desc: "AI-powered productivity timelines, deep work scoring, and napkin.ai-style strategy generation. Converts workspace context into actionable content calendars and platform-specific viral launch sequences with focus matrix scoring.",
+    powers: ["AI Timeline Generation", "Deep Work Flow Scoring", "Content Calendar Matrix", "Launch Sequence Engine"],
+    img: "/assets/jet-fighter-top.png",
+    imgAlt: "Fighter jet top-down — Flippo strategic power"
   },
   {
     name: "Snooks",
-    role: "Marketing Head",
-    color: "#374151",
-    badge: "Marketing",
-    desc: "Elite content strategy and viral generation. Platform-native hooks, SEO, and growth playbooks.",
-    powers: ["Viral hook drafting", "Multi-platform sync", "SEO optimization"],
-    gradient: "from-zinc-50 to-white",
-    accent: "bg-zinc-100",
-    img: "/jet-sketch.png",
-    imgAlt: "Jet blueprint — precision marketing like Snooks"
+    role: "Content Factory — Viral Content Engine",
+    color: "#34d399",
+    badge: "Content Factory",
+    desc: "Platform-native viral content creation across LinkedIn, Twitter, Instagram, YouTube, and Reddit in under 30 seconds. Elite SEO-optimized hooks, growth playbooks, and multi-platform sync engineered for maximum organic reach.",
+    powers: ["30-Second Viral Generation", "Multi-Platform SEO Copy", "Growth Playbook Engine", "Platform-Native Hooks"],
+    img: "/assets/jet-blueprint-top.png",
+    imgAlt: "Jet blueprint — Snooks precision marketing"
   },
 ];
 
 function GlassCard({ agent }: { agent: typeof AGENTS[0] }) {
   return (
     <motion.div
-      whileHover={{ y: -6, scale: 1.01 }}
+      whileHover={{ y: -8, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
       className="relative rounded-2xl overflow-hidden flex flex-col h-full"
       style={{
-        background: "rgba(255,255,255,0.07)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15)",
+        background: "rgba(6, 12, 36, 0.72)",
+        backdropFilter: "blur(28px) saturate(180%)",
+        WebkitBackdropFilter: "blur(28px) saturate(180%)",
+        border: `1px solid ${agent.color}33`,
+        boxShadow: `0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(0,0,0,0.3)`,
       }}
     >
+      {/* Colored top accent line */}
+      <div className="absolute top-0 inset-x-0 h-[2px] z-20"
+        style={{ background: `linear-gradient(90deg, transparent, ${agent.color}, transparent)` }} />
+
       {/* Image area */}
       <div
         className="relative overflow-hidden"
         style={{
-          aspectRatio: "16/9",
-          background: "rgba(255,255,255,0.04)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          aspectRatio: "4/3",
+          background: "rgba(0,0,0,0.3)",
+          borderBottom: `1px solid ${agent.color}22`,
         }}
       >
         <img
           src={agent.img}
           alt={agent.imgAlt}
-          className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale"
-          style={{ filter: "grayscale(100%) brightness(1.1)" }}
+          className="absolute inset-0 w-full h-full object-contain object-center"
+          style={{
+            opacity: 0.55,
+            filter: `brightness(1.15) drop-shadow(0 0 30px ${agent.color}44)`,
+            padding: "12px",
+          }}
         />
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6) 100%)",
+            background: `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%)`,
           }}
         />
         {/* Badge */}
         <div className="absolute top-3 left-3">
           <span
-            className="text-[9px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full"
+            className="text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1.5"
             style={{
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "rgba(255,255,255,0.7)",
+              background: `${agent.color}22`,
+              border: `1px solid ${agent.color}55`,
+              color: agent.color,
               backdropFilter: "blur(8px)",
+              borderRadius: "3px",
             }}
           >
             {agent.badge}
           </span>
         </div>
         {/* Agent name on image */}
-        <div className="absolute bottom-3 left-4">
-          <h3 className="text-2xl font-bold text-white/90 tracking-tight font-pixel">{agent.name}</h3>
+        <div className="absolute bottom-4 left-4">
+          <h3 className="text-3xl font-bold tracking-tight font-pixel"
+            style={{ color: "rgba(255,255,255,0.95)", textShadow: `0 0 30px ${agent.color}88, 0 2px 8px rgba(0,0,0,0.8)` }}>
+            {agent.name}
+          </h3>
         </div>
       </div>
 
       {/* Content */}
       <div className="p-6 flex flex-col flex-1">
         <p
-          className="text-[9px] font-bold uppercase tracking-[0.25em] mb-3"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          className="text-[8px] font-bold uppercase tracking-[0.3em] mb-3"
+          style={{ color: agent.color, opacity: 0.8 }}
         >
           {agent.role}
         </p>
-        <p className="text-[11px] leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <p className="text-[11px] leading-relaxed mb-5" style={{ color: "rgba(200,220,255,0.6)" }}>
           {agent.desc}
         </p>
 
@@ -113,14 +119,15 @@ function GlassCard({ agent }: { agent: typeof AGENTS[0] }) {
           {agent.powers.map((power) => (
             <div
               key={power}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
+              className="flex items-center gap-2.5 px-3 py-2"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: `${agent.color}0d`,
+                border: `1px solid ${agent.color}22`,
+                borderRadius: "4px",
               }}
             >
-              <div className="w-1 h-1 rounded-full bg-white/30" />
-              <span className="text-[10px] text-white/40 uppercase tracking-wider font-bold">{power}</span>
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: agent.color, opacity: 0.7 }} />
+              <span className="text-[9px] uppercase tracking-wider font-bold" style={{ color: agent.color, opacity: 0.85 }}>{power}</span>
             </div>
           ))}
         </div>
@@ -130,7 +137,7 @@ function GlassCard({ agent }: { agent: typeof AGENTS[0] }) {
       <div
         className="absolute inset-0 pointer-events-none rounded-2xl"
         style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%)",
+          background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)",
         }}
       />
     </motion.div>

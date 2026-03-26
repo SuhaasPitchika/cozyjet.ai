@@ -184,10 +184,10 @@ export function RocketInfo() {
               <div className="absolute inset-0 z-20 pointer-events-none"
                 style={{ background: "radial-gradient(ellipse at center, transparent 35%, rgba(255,255,255,0.55) 65%, rgba(255,255,255,0.95) 85%, white 100%)" }} />
               <div className="absolute inset-0 z-0">
-                <Image src="/jet-sketch.png" alt="Jet Blueprint Sketch" fill className="object-contain opacity-45 grayscale" priority sizes="(max-width: 768px) 100vw, 40vw" />
+                <Image src="/assets/jet-blueprint-top.png" alt="Jet Blueprint Top View" fill className="object-contain opacity-40" priority sizes="(max-width: 768px) 100vw, 40vw" />
               </div>
               <motion.div className="absolute inset-0 z-10" style={{ clipPath }}>
-                <Image src="/jet-color.jpg" alt="Jet Fighter" fill className="object-contain drop-shadow-[0_20px_60px_rgba(0,100,200,0.15)]" priority sizes="(max-width: 768px) 100vw, 40vw" />
+                <Image src="/assets/jet-fighter-top.png" alt="Jet Fighter Top View" fill className="object-contain drop-shadow-[0_20px_60px_rgba(0,100,200,0.2)]" priority sizes="(max-width: 768px) 100vw, 40vw" />
               </motion.div>
             </div>
           </div>

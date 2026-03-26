@@ -5,7 +5,13 @@ function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-const pendingCodes = new Map<string, { code: string; expires: number; name: string }>();
+const globalWithCodes = global as typeof global & {
+  pendingCodes: Map<string, { code: string; expires: number; name: string }>;
+};
+if (!globalWithCodes.pendingCodes) {
+  globalWithCodes.pendingCodes = new Map();
+}
+const pendingCodes = globalWithCodes.pendingCodes;
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +22,7 @@ export async function POST(req: NextRequest) {
     const code = generateCode();
     const expires = Date.now() + 10 * 60 * 1000;
     pendingCodes.set(emailKey, { code, expires, name: name || '' });
+    console.log('[verify] Code stored for', emailKey, ':', code);
 
     const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const email = (req.nextUrl.searchParams.get('email') || '').toLowerCase().trim();
   const code = req.nextUrl.searchParams.get('code') || '';
+  console.log('[verify] Checking code for', email, '— stored count:', pendingCodes.size);
   const entry = pendingCodes.get(email);
 
   if (!entry) return NextResponse.json({ valid: false, reason: 'No code found' });

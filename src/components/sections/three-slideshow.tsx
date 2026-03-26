@@ -5,17 +5,17 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 const JET_IMAGES = [
-  { id: "jet-1", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter - Color" },
-  { id: "jet-2", src: "/assets/jet-blueprint.png", alt: "CozyJet Fighter - Blueprint" },
-  { id: "jet-3", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter - Side A" },
-  { id: "jet-4", src: "/assets/jet-blueprint.png", alt: "CozyJet Blueprint Detail" },
-  { id: "jet-5", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter Launch" },
-  { id: "jet-6", src: "/assets/jet-blueprint.png", alt: "CozyJet Technical Schema" },
-  { id: "jet-7", src: "/assets/jet-color.jpg", alt: "CozyJet Afterburner" },
-  { id: "jet-8", src: "/assets/jet-blueprint.png", alt: "CozyJet Wing Detail" },
+  { id: "jet-1", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Top View" },
+  { id: "jet-2", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Blueprint - Technical Schema" },
+  { id: "jet-3", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Afterburner" },
+  { id: "jet-4", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Blueprint - Detail View" },
+  { id: "jet-5", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Combat Ready" },
+  { id: "jet-6", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Technical Schematic" },
+  { id: "jet-7", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter Launch" },
+  { id: "jet-8", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Wing Detail" },
 ];
 
-const CARD_WIDTH = 480;
+const CARD_WIDTH = 580;
 const DEPTH_STRENGTH = 1000;
 const AUTO_ROTATION_SPEED = 0.0006;
 const MOMENTUM_DAMPING = 0.96;
@@ -152,7 +152,7 @@ const ThreeSlideshowComponent = () => {
               key={img.id}
               ref={(el) => { cardsRef.current[i] = el; }}
               className="absolute bg-black will-change-transform overflow-hidden shadow-2xl rounded-xl"
-              style={{ width: `${CARD_WIDTH}px`, height: `520px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
+              style={{ width: `${CARD_WIDTH}px`, height: `680px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
             >
               <Image
                 src={img.src}

@@ -30,19 +30,25 @@ function GoogleIcon() {
 
 function SkyBg() {
   return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      style={{
-        backgroundImage: "url('/auth-bg.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute"
+        style={{
+          backgroundImage: "url('/auth-bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+          transform: "rotate(90deg) scale(1.6)",
+          transformOrigin: "center center",
+          inset: "-50%",
+          width: "200%",
+          height: "200%",
+        }}
+      />
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.3) 100%)",
         }}
       />
     </div>
@@ -123,8 +129,9 @@ const glassCard: React.CSSProperties = {
   background: "rgba(255,255,255,0.88)",
   backdropFilter: "blur(32px) saturate(200%)",
   WebkitBackdropFilter: "blur(32px) saturate(200%)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 24px 64px rgba(80,140,190,0.18), 0 4px 24px rgba(80,140,190,0.12), 0 0 0 1px rgba(255,255,255,0.9) inset",
+  border: "1px solid rgba(100,160,255,0.35)",
+  boxShadow: "0 24px 64px rgba(0,60,160,0.22), 0 4px 24px rgba(80,140,190,0.14), 0 0 0 1px rgba(255,255,255,0.9) inset",
+  borderRadius: "8px",
 };
 
 export default function AuthPage() {
