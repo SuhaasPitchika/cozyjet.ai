@@ -79,57 +79,57 @@ export class TaskExecutor {
   async executeTask(agent: AgentConfig, task: TaskContext, input: string): Promise<any> {
     const startStep = new Date();
     
-    // Route to the appropriate API based on the agent type
-    let endpoint = 'skippy';
-    if (agent.id === 'flippo') endpoint = 'flippo';
-    else if (agent.id === 'snooks') endpoint = 'snooks';
+    // We dynamically import getLLMResponse to avoid circular dependencies if any
+    const { getLLMResponse } = await import('./llm-integration');
 
     try {
-      const payload = this.buildPayload(agent, task, input);
-      const host = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000';
-      
-      // We route the execution through the existing AI API handlers
-      const res = await fetch(`${host}/api/ai/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      // In a real sophisticated system, the system prompt would be driven by the agent config
+      // For now we map their personas directly based on their ID
+      let systemPrompt = "You are a helpful AI.";
+      let responseFormat: 'text' | 'json_object' = 'text';
 
-      if (!res.ok) {
-        throw new Error(`Failed to execute task: ${res.statusText}`);
+      if (agent.id === 'skippy') {
+        systemPrompt = `You are Skippy, the intelligent workspace observer for CozyJet Studio. Current workspace context: ${JSON.stringify(task.parameters || {})}. Keep responses concise (2-4 sentences).`;
+      } else if (agent.id === 'flippo') {
+        systemPrompt = `You are Flippo, an AI productivity brain. Return ONLY valid JSON: {"timeline":[], "deepWorkScore":0, "productivityInsights": ""}`;
+        responseFormat = 'json_object';
+      } else if (agent.id === 'snooks') {
+        systemPrompt = `You are Snooks, elite social media strategist. Return ONLY valid JSON with keys: responseText, generatedContent (linkedinPost, xThread, emailContent, growthHack, seoHooks).`;
+        responseFormat = 'json_object';
       }
 
-      const data = await res.json();
-      
+      const responseText = await getLLMResponse(systemPrompt, input, {
+        maxTokens: agent.maxSteps ? agent.maxSteps * 100 : 1000,
+        temperature: agent.temperature || 0.7,
+        responseFormat
+      });
+
+      let parsedOutput: any = responseText;
+      if (responseFormat === 'json_object') {
+        try {
+          parsedOutput = JSON.parse(responseText);
+        } catch {
+          console.warn("[TaskExecutor] Failed to parse JSON from", agent.id);
+        }
+      }
+
       const step: ExecutionStep = {
         stepNumber: 1,
         action: 'call_llm',
-        input: payload,
-        output: data.response || data,
+        input: input,
+        output: parsedOutput,
         duration: Date.now() - startStep.getTime(),
         timestamp: new Date(),
       };
 
       return {
-        output: data.response || data,
+        output: parsedOutput,
         steps: [step]
       };
     } catch (error: any) {
       console.error('[TaskExecutor] Execution failed:', error);
       throw error;
     }
-  }
-
-  private buildPayload(agent: AgentConfig, task: TaskContext, input: string): Record<string, any> {
-    // Dynamic payload building based on the agent config
-    if (agent.id === 'flippo') {
-      return { activitySummaries: typeof input === 'string' ? [{ startTime: '09:00', endTime: '10:00', description: input }] : input };
-    }
-    if (agent.id === 'snooks') {
-      return { userPrompt: input, userContext: task.parameters || {} };
-    }
-    // Default to skippy
-    return { userMessage: input, currentView: '/dashboard', observationContext: '' };
   }
 }
 
