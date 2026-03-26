@@ -21,8 +21,10 @@ app.add_middleware(
 async def health_check():
     return {"status": "online", "agents": {"skippy": "online", "flippo": "online", "snooks": "online", "meta": "online"}}
 
-# --- Sub-Router Placeholder ---
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(skippy.router, prefix="/api/skippy", tags=["skippy"])
-# app.include_router(snooks.router, prefix="/api/snooks", tags=["snooks"])
-# app.include_router(meta.router, prefix="/api/meta", tags=["meta"])
+from .api import auth, skippy, snooks, meta
+
+# --- Sub-Routers ---
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(skippy.router, prefix="/api/skippy", tags=["skippy"])
+app.include_router(snooks.router, prefix="/api/snooks", tags=["snooks"])
+app.include_router(meta.router, prefix="/api/meta", tags=["meta"])
