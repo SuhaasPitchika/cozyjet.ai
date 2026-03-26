@@ -77,7 +77,14 @@ export default function IntegrationsSettingsPage() {
   const handleConnect = async (platform: string) => {
     try {
       const { data } = await api.get(`/api/integrations/connect/${platform}`);
-      window.open(data.url, 'oauth', 'width=600,height=700,scrollbars=yes');
+      const popup = window.open(data.url, 'oauth', 'width=600,height=750,scrollbars=yes');
+      
+      const timer = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(timer);
+          fetchIntegrations();
+        }
+      }, 1000);
     } catch (e) {
       console.error(`Failed to connect ${platform}`, e);
     }
@@ -105,9 +112,17 @@ export default function IntegrationsSettingsPage() {
             >
               {/* Platform Logo */}
               <div className={cn(
-                 "w-16 h-16 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg",
+                 "w-16 h-16 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg relative overflow-hidden",
                  platform.color
               )}>
+                 {isConnected && (
+                    <motion.div 
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                      className="absolute inset-0 bg-white/20 skew-x-12"
+                    />
+                 )}
                  <platform.icon size={32} className={platform.id === "notion" ? "text-slate-900" : ""} />
               </div>
 
