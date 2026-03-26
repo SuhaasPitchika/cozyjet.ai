@@ -1,4 +1,4 @@
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
 from ..config import settings
@@ -6,15 +6,17 @@ import json
 
 class MetaAgent:
     def __init__(self, user_id: str):
-        self.llm = ChatAnthropic(
-            model="claude-3-5-sonnet-20240620",
-            anthropic_api_key=settings.ANTHROPIC_API_KEY,
-            temperature=0.7
+        self.llm = ChatOpenAI(
+            model="anthropic/claude-3.5-sonnet",
+            openai_api_key=settings.OPENROUTER_API_KEY,
+            openai_api_base=settings.OPENROUTER_BASE_URL,
+            temperature=0.7,
+            default_headers={
+                "HTTP-Referer": settings.FRONTEND_URL,
+                "X-Title": "CozyJet AI"
+            }
         )
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True
-        )
+        # self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     async def generate_variations(self, seed: dict, voice_profile: dict, platforms: list) -> dict:
         """
@@ -40,7 +42,7 @@ class MetaAgent:
             "Instagram: Captions with line breaks and hashtags. "
             "Reddit: Community-first, detailed but value-led."
             
-            "Output JSON object: {platform_name: [list of 3 variations indexed 0 to 2]}."
+            "Output JSON object: {{platform_name: [list of 3 variations indexed 0 to 2]}}."
         )
 
         prompt = ChatPromptTemplate.from_messages([
@@ -69,11 +71,9 @@ class MetaAgent:
                 res_text = res_text.split("```json")[1].split("```")[0].strip()
             return json.loads(res_text)
         except:
-            # Fallback if Claude doesn't JSON correctly
             return {"error": "Failed to parse variations JSON", "raw": response.content}
 
     async def refine_content(self, original_text: str, feedback: str) -> str:
-        """Uses memory for stateful refinement chat."""
         prompt = ChatPromptTemplate.from_messages([
             ("system", "Refine the provided content based on the user's feedback. Keep their voice profile in mind."),
             ("human", "Original: {text}\nFeedback: {feedback}")

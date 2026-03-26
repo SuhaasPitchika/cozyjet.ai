@@ -5,29 +5,43 @@ import json
 
 class SnooksAgent:
     def __init__(self):
-        # OpenRouter/Gemini configuration (Gemini excels at structured planning)
         self.llm = ChatOpenAI(
-            model="google/gemini-2.0-flash-001",
-            openai_api_key=settings.OPEN_ROUTER,
-            openai_api_base="https://openrouter.ai/api/v1",
+            model="anthropic/claude-3.5-sonnet",
+            openai_api_key=settings.OPENROUTER_API_KEY,
+            openai_api_base=settings.OPENROUTER_BASE_URL,
             temperature=0.7,
-            model_kwargs={"response_format": {"type": "json_object"}}
+            default_headers={
+                "HTTP-Referer": settings.FRONTEND_URL,
+                "X-Title": "CozyJet AI"
+            }
         )
 
-    async def suggest_content(self, recent_history: str, trends: str) -> dict:
-        system_prompt = """You are Snooks, the Content Planner/Strategist for CozyJet. 
-        Analyze the user's recent work history and current trends to identify content gaps.
-        Suggest 5 specific content ideas with titles and platform recommendations.
-        Return ONLY a JSON object: {"suggestions": [{"title": "", "platform": "", "reasoning": ""}]}
+    async def generate_strategy(self, content_seeds: list, voice_profile: dict) -> dict:
         """
-        
+        Generates a 7-day content strategy based on available seeds 
+        and user voice profile.
+        """
         prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("user", "Recent History: {history}\nTrending Topics: {trends}")
+            ("system", (
+                "You are Snooks, a master content strategist for solo creators. "
+                "Review the content seeds and create a high-impact 7-day plan. "
+                "Ensure platform diversification and strategic narrative flow. "
+                "Categorize into: Educate, Entertain, Inspire, Promote. "
+                "Output as JSON with 'plan' key containing daily assignments."
+            )),
+            ("human", "Available Seeds: {seeds}\nVoice Profile: {voice}")
         ])
         
         chain = prompt | self.llm
-        response = await chain.ainvoke({"history": recent_history, "trends": trends})
-        return json.loads(response.content)
-
-snooks_agent = SnooksAgent()
+        resp = await chain.ainvoke({
+            "seeds": json.dumps(content_seeds),
+            "voice": json.dumps(voice_profile)
+        })
+        
+        try:
+            res_text = resp.content
+            if "```json" in res_text:
+                res_text = res_text.split("```json")[1].split("```")[0].strip()
+            return json.loads(res_text)
+        except:
+            return {"error": "Failed to parse strategy", "raw": resp.content}
