@@ -53,33 +53,17 @@ export default function OnboardingConnectPage() {
   const handleConnect = async (platform: string) => {
     setConnectingId(platform);
     try {
-      // 1. Get Auth URL from Backend
       const { data } = await api.get(`/api/integrations/connect/${platform}`);
-      
-      // 2. Open Popup (Frictionless Flow)
       const width = 600;
-      const height = 750;
+      const height = 700;
       const left = window.screenX + (window.innerWidth - width) / 2;
       const top = window.screenY + (window.innerHeight - height) / 2;
       
-      const popup = window.open(
+      window.open(
         data.url, 
         'oauth', 
         `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
       );
-
-      // 3. Fallback: If popup closed without message
-      const timer = setInterval(() => {
-        if (popup?.closed) {
-           clearInterval(timer);
-           // Refresh active integrations in background
-           api.get("/api/integrations/").then(({ data }) => {
-             const active = data.filter((i: any) => i.status === "connected").map((i: any) => i.platform);
-             setConnected(active);
-             setConnectingId(null);
-           });
-        }
-      }, 1000);
     } catch (e) {
       console.error(`Failed to connect ${platform}`, e);
       setConnectingId(null);
@@ -119,23 +103,15 @@ export default function OnboardingConnectPage() {
                  className={cn(
                    "p-8 rounded-[2.5rem] border transition-all flex flex-col gap-6 group relative overflow-hidden",
                    isConnected 
-                     ? "bg-emerald-50 border-emerald-200 shadow-xl shadow-emerald-500/10 ring-2 ring-emerald-500/10" 
+                     ? "bg-emerald-50 border-emerald-200 shadow-xl shadow-emerald-500/10" 
                      : "bg-white border-slate-100 shadow-2xl shadow-slate-200/50 hover:border-indigo-200 hover:shadow-indigo-500/10"
                  )}
                >
                  {/* platform logo */}
                  <div className={cn(
-                   "w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg relative overflow-hidden",
+                   "w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg",
                    platform.color
                  )}>
-                    {isConnected && (
-                      <motion.div 
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "100%" }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                        className="absolute inset-0 bg-white/20 skew-x-12"
-                      />
-                    )}
                     <platform.icon size={28} className={platform.id === "notion" ? "text-slate-900" : ""} />
                  </div>
 
