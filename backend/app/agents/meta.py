@@ -1,34 +1,83 @@
-from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain.prompts import ChatPromptTemplate
+from langchain.memory import ConversationBufferMemory
 from ..config import settings
 import json
 
 class MetaAgent:
-    def __init__(self):
-        # OpenRouter/Claude Sonnet or Gemini 
-        self.llm = ChatOpenAI(
-            model="google/gemini-2.0-flash-001", # OR anthropic/claude-3.5-sonnet
-            openai_api_key=settings.OPEN_ROUTER,
-            openai_api_base="https://openrouter.ai/api/v1",
-            temperature=0.75,
-            model_kwargs={"response_format": {"type": "json_object"}}
+    def __init__(self, user_id: str):
+        self.llm = ChatAnthropic(
+            model="claude-3-5-sonnet-20240620",
+            anthropic_api_key=settings.ANTHROPIC_API_KEY,
+            temperature=0.7
+        )
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
         )
 
-    async def generate_content(self, seed: dict, voice_profile: dict, platforms: list) -> dict:
-        system_prompt = """You are Meta, the elite marketing intelligence. 
-        Generate 3 variations for each platform (Storytelling, Technical, Outcome-led).
-        Apply platform-specific constraints: LinkedIn (1300-1900 chars), Twitter (6-12 tweets thread), etc.
-        Return ONLY valid JSON with keys: {platform_name: [variation1, variation2, variation3]}
+    async def generate_variations(self, seed: dict, voice_profile: dict, platforms: list) -> dict:
         """
-        
+        Generates 3 variations per platform:
+        1. Emotional storytelling with a hook.
+        2. Direct and technical peer-to-peer.
+        3. Measurable outcomes and results.
+        """
+        system_prompt = (
+            "You are Meta, a premium AI content factory for solo creators. "
+            "Your tone: {voice_tone}, your style: {voice_style}, your formality: {voice_formality}. "
+            "Use emojis at a {emoji_usage} level. "
+            "Your audience expects {technical_depth} depth. "
+            
+            "Produce 3 distinct variations per requested platform. "
+            "Variation 0: EMOTIONAL STORYTELLING (Hook -> Narrative -> CTA). "
+            "Variation 1: DEEPLY TECHNICAL (Peer-to-peer focus, direct insight). "
+            "Variation 2: OUTCOMES & RESULTS (Metric-first, tangible value). "
+            
+            "Platform Constraints: "
+            "LinkedIn: 1200-1800 chars, readable line breaks, 3-5 hashtags. "
+            "Twitter: Thread format (first tweet as hook). "
+            "Instagram: Captions with line breaks and hashtags. "
+            "Reddit: Community-first, detailed but value-led."
+            
+            "Output JSON object: {platform_name: [list of 3 variations indexed 0 to 2]}."
+        )
+
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
-            ("user", "User Voice Profile: {voice}\nPlatforms: {platforms}\nContent Seed: {seed}")
+            ("human", "Generate content for {platforms} based on this work seed: {seed}")
         ])
         
         chain = prompt | self.llm
-        # Invoke and return parsed JSON
-        response = await chain.ainvoke({"voice": json.dumps(voice_profile), "platforms": ", ".join(platforms), "seed": json.dumps(seed)})
-        return json.loads(response.content)
+        
+        # Prepare context from voice_profile
+        voice_ctx = {
+            "voice_tone": voice_profile.get("tone", "honest"),
+            "voice_style": voice_profile.get("style", "direct"),
+            "voice_formality": voice_profile.get("formality", "semi-formal"),
+            "emoji_usage": voice_profile.get("emoji_usage", "moderate"),
+            "technical_depth": voice_profile.get("technical_depth", "expert-level"),
+            "seed": json.dumps(seed),
+            "platforms": ", ".join(platforms)
+        }
+        
+        response = await chain.ainvoke(voice_ctx)
+        
+        try:
+            res_text = response.content
+            if "```json" in res_text:
+                res_text = res_text.split("```json")[1].split("```")[0].strip()
+            return json.loads(res_text)
+        except:
+            # Fallback if Claude doesn't JSON correctly
+            return {"error": "Failed to parse variations JSON", "raw": response.content}
 
-meta_agent = MetaAgent()
+    async def refine_content(self, original_text: str, feedback: str) -> str:
+        """Uses memory for stateful refinement chat."""
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "Refine the provided content based on the user's feedback. Keep their voice profile in mind."),
+            ("human", "Original: {text}\nFeedback: {feedback}")
+        ])
+        chain = prompt | self.llm
+        resp = await chain.ainvoke({"text": original_text, "feedback": feedback})
+        return resp.content
