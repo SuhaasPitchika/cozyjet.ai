@@ -1,61 +1,52 @@
 import httpx
-from datetime import datetime
-from ..config import settings
-from ..models.user import Integration
-from ..services.encryption import token_encryption_service
+import json
+from datetime import datetime, timedelta
+from typing import List, Dict, Any
+from ..models.user import Integration, IntegrationPlatform
 from sqlalchemy.ext.asyncio import AsyncSession
+from cryptography.fernet import Fernet
+import os
+
+# Encryption setup placeholder
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key().decode())
+fernet = Fernet(ENCRYPTION_KEY.encode())
 
 class IntegrationService:
     @staticmethod
-    async def get_valid_token(integration: Integration, db: AsyncSession) -> str:
-        """
-        Returns a valid access token. If expired and a refresh token exists, 
-        it performs an automatic refresh.
-        """
-        # 1. Check if token is still valid (with 5 min buffer)
-        if integration.token_expires_at and integration.token_expires_at > datetime.utcnow():
-            return token_encryption_service.decrypt(integration.access_token_encrypted)
-        
-        # 2. If no refresh token, we can't refresh
-        if not integration.refresh_token_encrypted:
-            return token_encryption_service.decrypt(integration.access_token_encrypted)
+    def encrypt_token(token: str) -> str:
+        return fernet.encrypt(token.encode()).decode()
 
-        # 3. Perform Refresh
-        refresh_token = token_encryption_service.decrypt(integration.refresh_token_encrypted)
-        
-        # Platform Specific Refresh Logic
-        if integration.platform == "google":
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    "https://oauth2.googleapis.com/token",
-                    data={
-                        "client_id": settings.GOOGLE_CLIENT_ID,
-                        "client_secret": settings.GOOGLE_CLIENT_SECRET,
-                        "refresh_token": refresh_token,
-                        "grant_type": "refresh_token"
-                    }
-                )
-                data = resp.json()
-                
-                if "access_token" in data:
-                    new_at = data["access_token"]
-                    expires_in = data.get("expires_in", 3600)
-                    
-                    # Update Integration
-                    integration.access_token_encrypted = token_encryption_service.encrypt(new_at)
-                    # Note: Google might not always return a new refresh_token
-                    if "refresh_token" in data:
-                        integration.refresh_token_encrypted = token_encryption_service.encrypt(data["refresh_token"])
-                        
-                    integration.token_expires_at = datetime.utcnow().replace(second=0, microsecond=0) + \
-                                                  (new_at := datetime.utcnow()) # Incorrect logic, fixing below
-                    
-                    # Correct expire update
-                    from datetime import timedelta
-                    integration.token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
-                    
-                    await db.commit()
-                    return new_at
-        
-        # Fallback to current token (it might still work if platform didn't provide expires_at)
-        return token_encryption_service.decrypt(integration.access_token_encrypted)
+    @staticmethod
+    def decrypt_token(encrypted_token: str) -> str:
+        return fernet.decrypt(encrypted_token.encode()).decode()
+
+    @async_to_sync # Utility or use async natively
+    async def fetch_github_activity(self, integration: Integration) -> List[Dict[str, Any]]:
+        token = self.decrypt_token(integration.access_token)
+        async with httpx.AsyncClient() as client:
+            # Fetch commits from user's repos
+            headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+            resp = await client.get("https://api.github.com/user/repos?sort=updated&per_page=5", headers=headers)
+            repos = resp.json()
+            
+            activity = []
+            for repo in repos:
+                commits_resp = await client.get(f"https://api.github.com/repos/{repo['full_name']}/commits?per_page=3", headers=headers)
+                commits = commits_resp.json()
+                for commit in commits:
+                    activity.append({
+                        "platform": "github",
+                        "title": f"Commit in {repo['name']}",
+                        "description": commit['commit']['message'],
+                        "url": commit['html_url'],
+                        "metadata": {"repo": repo['full_name'], "sha": commit['sha']}
+                    })
+            return activity
+
+    async def fetch_notion_activity(self, integration: Integration) -> List[Dict[str, Any]]:
+        # Placeholder for Notion API call
+        return []
+
+    async def fetch_figma_activity(self, integration: Integration) -> List[Dict[str, Any]]:
+        # Placeholder for Figma API call
+        return []

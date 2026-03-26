@@ -17,7 +17,6 @@ const INTEGRATIONS = [
   { id: "github", label: "GitHub", icon: Github, desc: "Your commits and shipped features.", color: "bg-slate-900" },
   { id: "notion", label: "Notion", icon: FileText, desc: "Pages and docs you update.", color: "bg-white border-slate-200" },
   { id: "figma", label: "Figma", icon: Layout, desc: "Files and designs you edit.", color: "bg-purple-600" },
-  { id: "google", label: "Google", icon: Globe, desc: "Drive files and Calendar events.", color: "bg-red-500" },
   { id: "twitter", label: "X / Twitter", icon: Link2, desc: "Your social engagement.", color: "bg-blue-400" },
   { id: "linkedin", label: "LinkedIn", icon: Link2, desc: "Your professional growth.", color: "bg-blue-600" },
 ];
