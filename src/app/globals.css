@@ -1,28 +1,29 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 34 33% 98%; /* Mild Light Cream #fdfbf7 */
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 243 75% 58%; /* Deep Indigo/Electric Blue #6366f1 */
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --background: 262 15% 14%;
+    --foreground: 0 0% 98%;
+    --card: 262 15% 16%;
+    --card-foreground: 0 0% 98%;
+    --popover: 262 15% 14%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 266 79% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 100% 69%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 262 15% 22%;
+    --muted-foreground: 262 10% 70%;
+    --accent: 220 100% 69%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 243 75% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 262 15% 22%;
+    --input: 262 15% 22%;
+    --ring: 266 79% 68%;
     --radius: 0.75rem;
   }
 }
@@ -32,53 +33,44 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(#e5e7eb 1.2px, transparent 0);
-    background-size: 20px 20px;
+    @apply bg-background text-foreground font-body antialiased selection:bg-primary/30 selection:text-primary-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline tracking-tight;
   }
 }
 
 .glass {
-  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm;
+  @apply bg-background/60 backdrop-blur-xl border border-white/10;
 }
 
-/* Neumorphic Utilities */
-.neumorphic-flat {
-  background: #fdfaf5;
-  box-shadow: 12px 12px 24px #d9d6d1, -12px -12px 24px #ffffff;
+.hero-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 28px 28px;
 }
 
-.neumorphic-inset {
-  background: #fdfaf5;
-  box-shadow: inset 8px 8px 16px #d9d6d1, inset -8px -8px 16px #ffffff;
+.neumeric-node {
+  @apply bg-[#231F2A] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.5),inset_-2px_-2px_5px_rgba(255,255,255,0.05),4px_4px_10px_rgba(0,0,0,0.3)];
 }
 
-.neumorphic-button-active {
-  background: #fdfaf5;
-  box-shadow: 4px 4px 8px #d9d6d1, -4px -4px 8px #ffffff;
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Moving Dots Animation */
-@keyframes move-dots {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 32px 32px;
-  }
-}
-
-.animate-move-dots {
-  animation: move-dots 4s linear infinite;
+.shimmer-text {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 8s infinite linear;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 3px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  @apply bg-background;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-black/5 rounded-full hover:bg-black/10 transition-colors;
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
 }

@@ -1,204 +1,98 @@
+
 "use client";
 
-import React, { useRef, useEffect, useCallback, memo, useState } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useRef, useEffect } from "react";
+import * as THREE from "three";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-const JET_IMAGES = [
-  { id: "jet-1", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Top View" },
-  { id: "jet-2", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Blueprint - Technical Schema" },
-  { id: "jet-3", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Afterburner" },
-  { id: "jet-4", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Blueprint - Detail View" },
-  { id: "jet-5", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter - Combat Ready" },
-  { id: "jet-6", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Technical Schematic" },
-  { id: "jet-7", src: "/assets/jet-fighter-top.png", alt: "CozyJet Fighter Launch" },
-  { id: "jet-8", src: "/assets/jet-blueprint-top.png", alt: "CozyJet Wing Detail" },
-];
-
-const CARD_WIDTH = 580;
-const DEPTH_STRENGTH = 1000;
-const AUTO_ROTATION_SPEED = 0.0006;
-const MOMENTUM_DAMPING = 0.96;
-
-const STEPS = [
-  "MARKETING CONTENT",
-  "SOCIAL MEDIA GROWTH",
-  "PRODUCTIVITY",
-  "ON SCREEN SUPPORT",
-  "AGENTIC PERSONAL AI",
-];
-
-const ThreeSlideshowComponent = () => {
+export function ThreeSlideshow() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const rotationRef = useRef(0);
-  const velocityRef = useRef(0);
-  const isDraggingRef = useRef(false);
-  const lastMouseXRef = useRef(0);
-  const rafIdRef = useRef<number>(0);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentStepIndex((prev) => (prev + 1) % STEPS.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!containerRef.current) return;
 
-  const updateCards = useCallback(() => {
-    if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.0001) {
-      rotationRef.current += velocityRef.current;
-      velocityRef.current *= MOMENTUM_DAMPING;
-    } else if (!isDraggingRef.current) {
-      rotationRef.current += AUTO_ROTATION_SPEED;
-    }
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / 600, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    
+    renderer.setSize(window.innerWidth, 600);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    containerRef.current.appendChild(renderer.domElement);
 
-    const cards = cardsRef.current;
-    const total = JET_IMAGES.length;
+    const textureLoader = new THREE.TextureLoader();
+    const group = new THREE.Group();
+    scene.add(group);
 
-    cards.forEach((card, i) => {
-      if (!card) return;
-      const basePos = i / total;
-      let currentPos = (basePos + rotationRef.current) % 1;
-      if (currentPos < 0) currentPos += 1;
-      let focus = currentPos - 0.5;
-      if (focus > 0.5) focus -= 1;
-      if (focus < -0.5) focus += 1;
-      const visibleSpan = 0.45;
-      const isVisible = Math.abs(focus) < visibleSpan;
-      if (!isVisible) {
-        card.style.opacity = "0";
-        card.style.pointerEvents = "none";
-        return;
-      }
-      const normalizedFocus = focus / visibleSpan;
-      const x = focus * (window.innerWidth * 1.6);
-      const z = (1 - Math.abs(normalizedFocus)) * -DEPTH_STRENGTH;
-      const scale = 0.4 + Math.abs(normalizedFocus) * 0.35;
-      const rotateY = normalizedFocus * -60;
-      const fadeDist = visibleSpan - Math.abs(focus);
-      const opacity = Math.min(1, fadeDist * 10);
-      card.style.opacity = opacity.toString();
-      card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
-      card.style.zIndex = Math.round(Math.abs(normalizedFocus) * 100).toString();
-      card.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale}) rotateY(${rotateY}deg)`;
-      const tilt = Math.abs(normalizedFocus) * 15;
-      card.style.clipPath = normalizedFocus > 0
-        ? `polygon(${tilt}% 0%, 100% 0%, 100% 100%, ${tilt}% 100%)`
-        : `polygon(0% 0%, ${100 - tilt}% 0%, ${100 - tilt}% 100%, 0% 100%)`;
+    const items: THREE.Mesh[] = [];
+    const images = PlaceHolderImages.filter(img => img.id.startsWith("workspace"));
+
+    images.forEach((img, i) => {
+      const texture = textureLoader.load(img.imageUrl);
+      const geometry = new THREE.PlaneGeometry(3, 2);
+      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      // Parabolic Placement
+      const t = (i / (images.length - 1)) * 2 - 1; // -1 to 1
+      mesh.position.x = t * 10;
+      mesh.position.y = -Math.pow(t, 2) * 2;
+      mesh.position.z = -Math.abs(t) * 5;
+      mesh.rotation.y = -t * 0.5;
+      
+      group.add(mesh);
+      items.push(mesh);
     });
 
-    rafIdRef.current = requestAnimationFrame(updateCards);
-  }, []);
+    // Particle field
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 200;
+    const posArray = new Float32Array(particlesCount * 3);
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 40;
+    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({ size: 0.05, color: 0xA36BEE });
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
 
-  useEffect(() => {
-    rafIdRef.current = requestAnimationFrame(updateCards);
-    return () => cancelAnimationFrame(rafIdRef.current);
-  }, [updateCards]);
+    camera.position.z = 12;
 
-  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
-    isDraggingRef.current = true;
-    const x = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
-    lastMouseXRef.current = x;
-    velocityRef.current = 0;
-  };
+    let time = 0;
+    const animate = () => {
+      time += 0.01;
+      requestAnimationFrame(animate);
+      
+      group.position.x = Math.sin(time * 0.5) * 0.5;
+      particlesMesh.rotation.y += 0.001;
+      particlesMesh.position.y += 0.005;
+      if (particlesMesh.position.y > 10) particlesMesh.position.y = -10;
 
-  const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-    if (!isDraggingRef.current) return;
-    const x = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
-    const deltaX = x - lastMouseXRef.current;
-    rotationRef.current -= deltaX / (window.innerWidth * 0.8);
-    velocityRef.current = -deltaX / (window.innerWidth * 0.8);
-    lastMouseXRef.current = x;
-  };
+      renderer.render(scene, camera);
+    };
 
-  const handleMouseUp = () => { isDraggingRef.current = false; };
+    animate();
 
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchmove', handleMouseMove);
-    window.addEventListener('touchend', handleMouseUp);
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / 600;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, 600);
+    };
+
+    window.addEventListener('resize', handleResize);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleMouseMove);
-      window.removeEventListener('touchend', handleMouseUp);
+      window.removeEventListener('resize', handleResize);
+      renderer.dispose();
+      containerRef.current?.removeChild(renderer.domElement);
     };
   }, []);
 
   return (
-    <section className="relative w-full bg-[#f2e8d5] overflow-hidden flex flex-col items-center justify-center py-12">
-      <div className="relative z-20 text-center px-6 mb-6">
-        <motion.h2
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          className="text-[28px] md:text-[38px] font-extrabold text-black leading-tight tracking-tighter font-pixel drop-shadow-sm"
-        >
-          Projects
-        </motion.h2>
+    <div className="relative w-full h-[600px] bg-[#231F2A] overflow-hidden border-y border-white/5">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#231F2A] via-transparent to-[#231F2A] z-10" />
+      <div ref={containerRef} className="w-full h-full" />
+      <div className="absolute bottom-12 left-0 right-0 text-center z-20">
+        <h2 className="font-headline text-2xl font-bold text-white/40">Our Agency Environments</h2>
       </div>
-
-      <div
-        ref={containerRef}
-        className="relative w-full h-[58vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
-        style={{ perspective: "2500px", transformStyle: "preserve-3d", clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleMouseDown}
-      >
-        <div className="relative w-full h-full flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
-          {JET_IMAGES.map((img, i) => (
-            <div
-              key={img.id}
-              ref={(el) => { cardsRef.current[i] = el; }}
-              className="absolute bg-black will-change-transform overflow-hidden shadow-2xl rounded-xl"
-              style={{ width: `${CARD_WIDTH}px`, height: `680px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
-            >
-              <Image
-                src={img.src}
-                alt={img.alt}
-                fill
-                className="object-contain object-center brightness-90 hover:brightness-100 transition-all duration-500 bg-white"
-                sizes="480px"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none opacity-40" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 mt-8 h-20 flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.div key={currentStepIndex} className="text-center">
-            <div className="flex justify-center overflow-hidden flex-wrap">
-              {STEPS[currentStepIndex].split("").map((char, ci) => (
-                <motion.span
-                  key={`${currentStepIndex}-${ci}`}
-                  initial={{ opacity: 0, x: -5, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, x: 5, filter: "blur(8px)" }}
-                  transition={{ delay: ci * 0.04, duration: 0.2, ease: "easeOut" }}
-                  className="text-black font-extrabold text-[16px] md:text-[20px] uppercase tracking-tighter font-pixel inline-block whitespace-pre"
-                >
-                  {char}
-                </motion.span>
-              ))}
-            </div>
-            <div className="w-full max-w-xs mx-auto h-0.5 bg-primary/10 mt-3 relative overflow-hidden">
-              <motion.div
-                className="absolute inset-0 bg-primary"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 4, ease: "linear" }}
-                style={{ transformOrigin: "left" }}
-              />
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </section>
+    </div>
   );
-};
-
-export const ThreeSlideshow = memo(ThreeSlideshowComponent);
+}

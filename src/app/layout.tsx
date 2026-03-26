@@ -1,35 +1,28 @@
-import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
-import "./globals.css";
-import { cn } from "@/lib/utils";
-import { Sidebar } from "@/components/dashboard/sidebar";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-headline" });
+import type {Metadata} from 'next';
+import './globals.css';
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "CozyJet AI | Your Solo Marketing Employee",
-  description: "The intelligent marketing studio for developers and creators.",
+  title: 'CozyJet.AI | Autonomous Marketing & Productivity',
+  description: 'The billionaire-vision AI agentic studio for solopreneurs and startups. Powered by Skippy, Flippo, and Snooks.',
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className="h-full">
-      <body className={cn(
-        "min-h-screen font-sans antialiased",
-        inter.variable,
-        outfit.variable
-      )}>
-        <div className="flex h-screen overflow-hidden bg-[#fdfbf7]">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto relative z-0">
-             {children}
-          </main>
-        </div>
+    <html lang="en" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-body antialiased bg-background text-foreground">
+        {children}
+        <Toaster />
       </body>
     </html>
   );

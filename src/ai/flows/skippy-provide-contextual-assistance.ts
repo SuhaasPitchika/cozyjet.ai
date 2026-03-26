@@ -1,4 +1,4 @@
-
+'use server';
 /**
  * @fileOverview A Genkit flow for Skippy to provide contextual assistance.
  *

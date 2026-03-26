@@ -1,194 +1,98 @@
-"use client";
 
-import React, { useState } from "react";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { Rocket, LayoutDashboard, Brain, MessageSquare, Sparkles, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { LogOut, Eye, Zap, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useUser, useAuth } from "@/firebase";
-import { signOut } from "firebase/auth";
-
-const NAV_ITEMS = [
-  { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
-  { label: "Flippo", href: "/dashboard/flippo", icon: Zap, color: "#8b5cf6", desc: "Timeline & Productivity" },
-  { label: "Snooks", href: "/dashboard/meta", icon: Sparkles, color: "#ec4899", desc: "Marketing Intelligence" },
-];
+import { CustomCursor } from "@/components/layout/custom-cursor";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
-  const isLoading = isUserLoading;
-  const isAuthenticated = !!user;
-
-  React.useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.push("/auth");
-  }, [isLoading, isAuthenticated, router]);
-
-  const handleSignOut = async () => {
-    try {
-      if (user) await signOut(auth);
-      router.push("/auth");
-    } catch (e) { console.error(e); }
-  };
-
-  if (isLoading || !isAuthenticated) return null;
-
-  const activeItem = NAV_ITEMS.find((n) => n.href === pathname);
-  const displayName = user?.displayName || user?.email || "User";
-  const initials = displayName.slice(0, 2).toUpperCase();
-
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "radial-gradient(ellipse at top left, #12121a 0%, #030303 100%)" }}>
-      <aside
-        className="w-[72px] shrink-0 flex flex-col z-40 items-center py-5 gap-2 relative"
-        style={{
-          background: "rgba(18,18,24,0.45)",
-          backdropFilter: "blur(40px) saturate(200%)",
-          WebkitBackdropFilter: "blur(40px) saturate(200%)",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "1px 0 32px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.02)",
-        }}
-      >
-        <Link href="/" className="mb-5 group block">
-          <motion.div
-            whileHover={{ scale: 1.08 }}
-            className="w-10 h-10 rounded-2xl overflow-hidden flex items-center justify-center"
-            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
-          >
-            <Image src="/cozyjet-logo.png" alt="CozyJet" width={40} height={40} className="object-contain" />
-          </motion.div>
-        </Link>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background overflow-hidden relative">
+        <CustomCursor name="Cozy User" />
+        
+        <Sidebar className="border-r border-white/5 bg-black">
+          <SidebarHeader className="p-6">
+            <Link href="/" className="flex items-center gap-2">
+              <Rocket className="w-8 h-8 text-primary" />
+              <span className="font-headline text-xl font-bold tracking-tighter">CozyJet</span>
+            </Link>
+          </SidebarHeader>
 
-        <div className="w-6 h-px mb-2" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <SidebarContent className="p-4">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Dashboard Overview">
+                  <Link href="/dashboard" className="flex items-center gap-3">
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span>Overview</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <div className="mt-8 mb-2 px-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                The Agents
+              </div>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Skippy Intelligence">
+                  <Link href="/dashboard/skippy" className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-[#C9B8FF]" />
+                    <span>Skippy Agent</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-        <nav className="flex flex-col gap-2 flex-1 w-full px-2.5">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            return (
-              <Link key={item.href} href={item.href}
-                onMouseEnter={() => setHoveredItem(item.href)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative w-full h-12 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer"
-                  style={
-                    isActive
-                      ? {
-                          background: `linear-gradient(135deg, ${item.color}18, ${item.color}10)`,
-                          boxShadow: `0 0 0 1.5px ${item.color}35, 0 4px 16px ${item.color}20`,
-                        }
-                      : { background: "transparent" }
-                  }
-                >
-                  <item.icon
-                    size={18}
-                    style={{ color: isActive ? item.color : "rgba(255,255,255,0.4)" }}
-                    strokeWidth={isActive ? 2.2 : 1.8}
-                  />
-                  <span
-                    className="text-[8px] font-bold uppercase tracking-wide"
-                    style={{ color: isActive ? item.color : "rgba(255,255,255,0.3)" }}
-                  >
-                    {item.label}
-                  </span>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Flippo Productivity">
+                  <Link href="/dashboard/flippo" className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-[#6297FF]" />
+                    <span>Flippo Agent</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-                  <AnimatePresence>
-                    {hoveredItem === item.href && !isActive && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -4, scale: 0.95 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -4, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute left-full ml-3 z-50 pointer-events-none"
-                      >
-                        <div
-                          className="px-3 py-2 rounded-xl whitespace-nowrap"
-                          style={{
-                            background: "rgba(18,18,24,0.85)",
-                            backdropFilter: "blur(16px)",
-                            border: "1px solid rgba(255,255,255,0.08)",
-                            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                          }}
-                        >
-                          <p className="text-white text-[11px] font-semibold">{item.label}</p>
-                          <p className="text-white/40 text-[9px] mt-0.5">{item.desc}</p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </Link>
-            );
-          })}
-        </nav>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Snooks Marketing">
+                  <Link href="/dashboard/snooks" className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-[#A36BEE]" />
+                    <span>Snooks Agent</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-        <div className="flex flex-col items-center gap-2 w-full px-2.5">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="w-9 h-9 rounded-2xl flex items-center justify-center cursor-pointer select-none"
-            style={{
-              background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-              boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
-            }}
-            title={user?.email || replitUser?.name || ""}
-          >
-            <span className="text-[10px] font-bold text-white">{initials}</span>
-          </motion.div>
-          <motion.button
-            onClick={handleSignOut}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all group"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.04)" }}
-            title="Sign out"
-          >
-            <LogOut size={14} className="text-white/40 group-hover:text-red-400 transition-colors" />
-          </motion.button>
-        </div>
-      </aside>
+              <SidebarMenuItem className="opacity-40">
+                <SidebarMenuButton asChild tooltip="Coming Soon">
+                  <Link href="/dashboard/coming-soon" className="flex items-center gap-3">
+                    <Sparkles className="w-5 h-5" />
+                    <span>Studio X</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarContent>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header
-          className="h-11 shrink-0 flex items-center justify-between px-6 border-b"
-          style={{
-            background: "rgba(10,10,14,0.45)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            borderColor: "rgba(255,255,255,0.05)",
-          }}
-        >
-          <div className="flex items-center gap-2">
-            {activeItem && (
-              <>
-                <div className="w-5 h-5 rounded-lg flex items-center justify-center" style={{ background: `${activeItem.color}15` }}>
-                  <activeItem.icon size={11} style={{ color: activeItem.color }} />
-                </div>
-                <span className="text-sm font-semibold text-white/90">{activeItem.label}</span>
-                <span className="text-white/20 text-xs">·</span>
-                <span className="text-xs text-white/40">{activeItem.desc}</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <motion.div
-              animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-              style={{ boxShadow: "0 0 6px rgba(52,211,153,0.7)" }}
-            />
-            <span className="text-[10px] text-gray-400 font-medium">Live</span>
-          </div>
-        </header>
-        <main className="flex-1 overflow-auto">{children}</main>
+          <SidebarFooter className="p-4 border-t border-white/5">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Settings">
+                  <Settings className="w-5 h-5" />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton className="text-destructive hover:text-destructive" tooltip="Log Out">
+                  <LogOut className="w-5 h-5" />
+                  <span>Log Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        <main className="flex-1 overflow-y-auto bg-background/50 relative">
+          {children}
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
