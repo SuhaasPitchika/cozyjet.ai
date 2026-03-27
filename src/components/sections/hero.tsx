@@ -111,13 +111,13 @@ function AnimatedSubtitle() {
         transition={{ duration: 0.45, ease: "easeInOut" }}
         style={{
           fontFamily: PIXEL,
-          fontSize: 8,
+          fontSize: 13,
           textTransform: "uppercase",
-          letterSpacing: "0.12em",
+          letterSpacing: "0.10em",
           textAlign: "center",
-          color: "rgba(255,255,255,0.92)",
+          color: "rgba(255,255,255,0.95)",
           minHeight: "1.6em",
-          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 1px 3px rgba(0,0,0,0.8)",
+          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 2px 4px rgba(0,0,0,0.9)",
           lineHeight: 2,
         }}
       >
@@ -282,7 +282,7 @@ function OrganicMarketingCloud() {
       animate={{ opacity: 1, scale: 1, rotate: -4 }}
       transition={{ delay: 0.9, duration: 0.6, type: "spring", stiffness: 200, damping: 18 }}
       className="absolute z-30"
-      style={{ left: "-2%", top: "-55%", rotate: "-4deg" }}
+      style={{ left: "-2%", top: "10%", rotate: "-4deg" }}
     >
       <motion.div
         animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }}

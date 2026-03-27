@@ -39,14 +39,7 @@ function SkyBg() {
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
       }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(200,230,255,0.10) 40%, rgba(180,210,255,0.18) 100%)",
-        }}
-      />
-    </div>
+    />
   );
 }
 
@@ -121,11 +114,11 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(255,255,255,0.88)",
-  backdropFilter: "blur(32px) saturate(200%)",
-  WebkitBackdropFilter: "blur(32px) saturate(200%)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 24px 64px rgba(80,140,190,0.18), 0 4px 24px rgba(80,140,190,0.12), 0 0 0 1px rgba(255,255,255,0.9) inset",
+  background: "rgba(255,255,255,0.28)",
+  backdropFilter: "blur(40px) saturate(180%)",
+  WebkitBackdropFilter: "blur(40px) saturate(180%)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.6) inset, 0 -1px 0 rgba(255,255,255,0.2) inset",
 };
 
 export default function AuthPage() {
@@ -342,9 +335,9 @@ export default function AuthPage() {
     if (code.length === 6) handleVerifyCode();
   }, [code]);
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-black/25 border text-black/90 font-medium";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/50 border text-white font-medium";
   const getInputClass = (f: string) =>
-    `${inputBase} bg-black/[0.03] ${focused === f ? "border-blue-400/60" : "border-black/10 hover:border-black/20"}`;
+    `${inputBase} bg-white/20 ${focused === f ? "border-white/70" : "border-white/30 hover:border-white/50"}`;
 
   if (step === "verify") {
     return (
@@ -426,7 +419,7 @@ export default function AuthPage() {
                 </p>
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Email</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Email</label>
                     <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com" className={getInputClass("reset-email")}
                       onFocus={() => setFocused("reset-email")} onBlur={() => setFocused(null)} />
@@ -482,21 +475,21 @@ export default function AuthPage() {
                 <path d="M2 12l10 5 10-5"/>
               </svg>
             </motion.div>
-            <h1 className="text-xl font-bold text-black/90 tracking-tight">
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: "rgba(255,255,255,0.95)" }}>
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="text-xs text-black/35 mt-1.5 leading-relaxed">
+            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
               {mode === "login" ? "Sign in to your AI agentic studio" : "Join your AI-powered marketing & productivity studio"}
             </p>
           </div>
 
-          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.07)" }}>
+          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)" }}>
             {([{ label: "Sign In", val: "login" }, { label: "Create Account", val: "signup" }] as const).map((tab) => (
               <button key={tab.val} onClick={() => { setMode(tab.val); setPassword(""); }}
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
                 style={mode === tab.val
                   ? { background: "linear-gradient(135deg, rgba(59,130,246,0.9), rgba(37,99,235,0.8))", color: "white" }
-                  : { color: "rgba(0,0,0,0.35)" }}>
+                  : { color: "rgba(255,255,255,0.55)" }}>
                 {tab.label}
               </button>
             ))}
@@ -507,7 +500,7 @@ export default function AuthPage() {
               {mode === "signup" && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.22 }} className="space-y-1.5 overflow-hidden">
-                  <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Full Name</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Full Name</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
                     className={getInputClass("name")} onFocus={() => setFocused("name")} onBlur={() => setFocused(null)} />
                 </motion.div>
@@ -515,7 +508,7 @@ export default function AuthPage() {
             </AnimatePresence>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Email</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Email</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" className={getInputClass("email")}
                 onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} />
@@ -523,7 +516,7 @@ export default function AuthPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-black/35 uppercase tracking-widest">Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Password</label>
                 {mode === "login" && (
                   <button type="button" onClick={() => setMode("forgot")}
                     className="text-[10px] text-blue-500/80 hover:text-blue-600 transition-colors">
@@ -538,7 +531,7 @@ export default function AuthPage() {
                   className={`${getInputClass("password")} pr-11`}
                   onFocus={() => setFocused("password")} onBlur={() => setFocused(null)} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/25 hover:text-black/55 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
@@ -558,15 +551,15 @@ export default function AuthPage() {
 
           <div className="px-8 py-5">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
-              <span className="text-[10px] text-black/25 font-medium uppercase tracking-widest">or</span>
-              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.2)" }} />
+              <span className="text-[10px] font-medium uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>or</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.2)" }} />
             </div>
             <motion.button onClick={handleGoogle} disabled={isGoogleLoading || isLoading}
               whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium text-black/70 disabled:opacity-40 transition-all"
-              style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.09)" }}>
-              {isGoogleLoading ? <Loader2 size={15} className="animate-spin text-black/40" /> : <GoogleIcon />}
+              className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium disabled:opacity-40 transition-all"
+              style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.9)" }}>
+              {isGoogleLoading ? <Loader2 size={15} className="animate-spin" style={{ color: "rgba(255,255,255,0.7)" }} /> : <GoogleIcon />}
               <span>Continue with Google</span>
             </motion.button>
           </div>
@@ -574,7 +567,7 @@ export default function AuthPage() {
           <div className="absolute bottom-0 inset-x-0 h-px"
             style={{ background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent)" }} />
         </div>
-        <p className="text-center text-[10px] text-black/30 mt-5 leading-relaxed">
+        <p className="text-center text-[10px] mt-5 leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </motion.div>

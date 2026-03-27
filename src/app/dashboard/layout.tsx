@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { LogOut, Eye, Zap, Sparkles } from "lucide-react";
+import { LogOut, Eye, Zap, Sparkles, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
   { label: "Snooks", href: "/dashboard/snooks", icon: Zap, color: "#8b5cf6", desc: "Timeline & Productivity" },
   { label: "Meta", href: "/dashboard/meta", icon: Sparkles, color: "#ec4899", desc: "Marketing Chat" },
+  { label: "Tuning", href: "/dashboard/tuning", icon: Settings2, color: "#f59e0b", desc: "AI Model Tuning" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
