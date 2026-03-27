@@ -11,6 +11,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ function SkyBg() {
     <div
       className="absolute inset-0 overflow-hidden"
       style={{
-        backgroundImage: "url('/auth-bg.jpg')",
+        backgroundImage: "url('/flower-field.png')",
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
@@ -42,7 +43,7 @@ function SkyBg() {
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.25) 100%)",
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(200,230,255,0.10) 40%, rgba(180,210,255,0.18) 100%)",
         }}
       />
     </div>
@@ -280,7 +281,10 @@ export default function AuthPage() {
         const result = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
         if (result.user) {
           await syncUserProfile(result.user);
-          await sendVerificationCode(trimmedEmail, name);
+          await sendEmailVerification(result.user, {
+            url: window.location.origin + "/dashboard/skippy",
+            handleCodeInApp: false,
+          });
           setStep("verify");
         }
       }
@@ -360,32 +364,41 @@ export default function AuthPage() {
                 <circle cx="12" cy="14" r="1.5" fill="currentColor" />
               </svg>
             </motion.div>
-            <h2 className="text-xl font-bold text-black/90 mb-2">Verify your email</h2>
-            <p className="text-sm text-black/40 mb-1">Code sent to</p>
-            <p className="text-sm font-semibold text-blue-600 mb-6">{email}</p>
-            {devCode && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="rounded-xl p-3 mb-4 text-xs text-amber-700 font-mono"
-                style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)" }}>
-                Dev mode · No SMTP configured · Code: <strong className="text-amber-800 text-sm tracking-widest">{devCode}</strong>
-              </motion.div>
-            )}
-            <div className="mb-6">
-              <CodeInput value={code} onChange={setCode} />
-            </div>
-            <motion.button onClick={handleVerifyCode} disabled={isVerifying || code.length !== 6}
+            <h2 className="text-xl font-bold text-black/90 mb-2">Check your inbox</h2>
+            <p className="text-sm text-black/40 mb-1">Verification link sent to</p>
+            <p className="text-sm font-semibold text-blue-600 mb-4">{email}</p>
+            <p className="text-xs text-black/50 leading-relaxed mb-6">
+              Click the link in the email to verify your account and access CozyJet Studio. Check your spam folder if you don&apos;t see it.
+            </p>
+            <motion.button
+              onClick={() => router.push("/dashboard/skippy")}
               whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-              className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5 disabled:opacity-40"
+              className="w-full h-12 rounded-xl font-semibold text-white text-sm mb-4 flex items-center justify-center gap-2.5"
               style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}>
-              {isVerifying ? <><Loader2 size={15} className="animate-spin" /><span>Verifying...</span></>
-                : <span>Enter Studio</span>}
+              <span>Continue to Studio</span>
             </motion.button>
-            <button onClick={handleResend} disabled={isResending}
+            <button onClick={async () => {
+              setIsResending(true);
+              try {
+                const { getAuth } = await import("firebase/auth");
+                const currentUser = getAuth().currentUser;
+                if (currentUser) {
+                  await sendEmailVerification(currentUser, {
+                    url: window.location.origin + "/dashboard/skippy",
+                    handleCodeInApp: false,
+                  });
+                  toast({ title: "Email Resent", description: "A new verification link has been sent." });
+                }
+              } catch {
+                toast({ title: "Error", description: "Could not resend. Please wait a moment.", variant: "destructive" });
+              } finally {
+                setIsResending(false);
+              }
+            }} disabled={isResending}
               className="flex items-center justify-center gap-1.5 mx-auto text-xs text-black/30 hover:text-blue-600 transition-colors disabled:opacity-40">
               <RefreshCw size={11} className={isResending ? "animate-spin" : ""} />
-              {isResending ? "Sending..." : "Resend code"}
+              {isResending ? "Sending..." : "Resend verification email"}
             </button>
-            <p className="text-[10px] text-black/25 mt-4">Expires in 10 minutes</p>
           </div>
         </motion.div>
       </div>

@@ -7,12 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 const JET_IMAGES = [
   { id: "jet-1", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter - Color" },
   { id: "jet-2", src: "/assets/jet-blueprint.png", alt: "CozyJet Fighter - Blueprint" },
-  { id: "jet-3", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter - Side A" },
-  { id: "jet-4", src: "/assets/jet-blueprint.png", alt: "CozyJet Blueprint Detail" },
-  { id: "jet-5", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter Launch" },
-  { id: "jet-6", src: "/assets/jet-blueprint.png", alt: "CozyJet Technical Schema" },
-  { id: "jet-7", src: "/assets/jet-color.jpg", alt: "CozyJet Afterburner" },
-  { id: "jet-8", src: "/assets/jet-blueprint.png", alt: "CozyJet Wing Detail" },
+  { id: "jet-3", src: "/flower-field.png", alt: "CozyJet - Flower Field" },
+  { id: "jet-4", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter - Side A" },
+  { id: "jet-5", src: "/assets/jet-blueprint.png", alt: "CozyJet Blueprint Detail" },
+  { id: "jet-6", src: "/flower-field.png", alt: "CozyJet - Serene Landscape" },
+  { id: "jet-7", src: "/assets/jet-color.jpg", alt: "CozyJet Fighter Launch" },
+  { id: "jet-8", src: "/assets/jet-blueprint.png", alt: "CozyJet Technical Schema" },
 ];
 
 const CARD_WIDTH = 480;
@@ -141,7 +141,7 @@ const ThreeSlideshowComponent = () => {
 
       <div
         ref={containerRef}
-        className="relative w-full h-[58vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
+        className="relative w-full h-[75vh] flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden"
         style={{ perspective: "2500px", transformStyle: "preserve-3d", clipPath: "polygon(0% 0%, 25% 15%, 50% 25%, 75% 15%, 100% 0%, 100% 100%, 75% 85%, 50% 75%, 25% 85%, 0% 100%)" }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
@@ -152,7 +152,7 @@ const ThreeSlideshowComponent = () => {
               key={img.id}
               ref={(el) => { cardsRef.current[i] = el; }}
               className="absolute bg-black will-change-transform overflow-hidden shadow-2xl rounded-xl"
-              style={{ width: `${CARD_WIDTH}px`, height: `520px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
+              style={{ width: `${CARD_WIDTH}px`, height: `680px`, transformStyle: "preserve-3d", backfaceVisibility: "hidden", transition: "none" }}
             >
               <Image
                 src={img.src}

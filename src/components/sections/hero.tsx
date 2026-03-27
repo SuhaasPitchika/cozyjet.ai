@@ -38,50 +38,50 @@ const ALL_NODES = [
     noteLines: ["Hook + full script", "Title & SEO", "Retention loops"],
   },
   {
-    icon: Twitter,     label: "Twitter",   color: "#1DA1F2",
+    icon: Twitter,     label: "X",         color: "#1DA1F2",
     tag: "TWEETS",
     noteTitle: "VIRAL HOOKS",
     noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"],
   },
   {
     icon: RedditIcon,  label: "Reddit",    color: "#FF4500",
-    tag: "AUDIENCE",
+    tag: "AUDIENCE MARKETING",
     noteTitle: "AUDIENCE MKT",
     noteLines: ["Community-native", "Upvote psychology", "No-promo tone"],
   },
   {
     icon: TiktokIcon,  label: "TikTok",    color: "#000000",
-    tag: "SHORTFORM",
+    tag: "SHORT-FORM",
     noteTitle: "SHORT FORM",
     noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"],
   },
   {
     icon: ThreadsIcon, label: "Threads",   color: "#111111",
-    tag: "STORIES",
+    tag: "ORGANIC COMMUNITY BUILDING",
     noteTitle: "MICRO STORIES",
     noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"],
   },
   {
-    icon: Mail,        label: "Email",     color: "#EA4335",
-    tag: "GMAILS",
+    icon: Mail,        label: "Gmail",     color: "#EA4335",
+    tag: "COLD EMAILING",
     noteTitle: "HIGH-CR EMAIL",
     noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"],
   },
   {
     icon: Instagram,   label: "Instagram", color: "#E4405F",
-    tag: "POSTS",
+    tag: "REELS & POSTS",
     noteTitle: "VISUAL POSTS",
     noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"],
   },
   {
     icon: SlackIcon,   label: "Slack",     color: "#4A154B",
-    tag: "PRO MSG",
+    tag: "PRO BUSINESS MESSAGES",
     noteTitle: "PRO MESSAGES",
     noteLines: ["Team digests", "Launch announcements", "Newsletter"],
   },
   {
     icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2",
-    tag: "BLOGS",
+    tag: "PROFESSIONAL BLOGS",
     noteTitle: "AUTHORITY BLOGS",
     noteLines: ["Thought leadership", "Data stories", "Pro hooks"],
   },
@@ -257,14 +257,15 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
           background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff176 100%)",
           border: "2px solid rgba(0,0,0,0.8)",
           boxShadow: "3px 3px 0px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.3)",
-          padding: "5px 8px",
+          padding: "7px 11px",
           fontFamily: PIXEL,
-          fontSize: 6,
+          fontSize: 8,
           color: "#111",
           letterSpacing: "0.05em",
           textTransform: "uppercase" as const,
           whiteSpace: "nowrap" as const,
           imageRendering: "pixelated" as const,
+          lineHeight: 1.6,
         }}
       >
         {tag}
@@ -291,32 +292,32 @@ function OrganicMarketingCloud() {
           style={{
             background: "#fff",
             border: "3px solid #000",
-            boxShadow: "5px 5px 0px #000",
-            padding: "14px 20px",
+            boxShadow: "6px 6px 0px #000",
+            padding: "18px 26px",
             borderRadius: 4,
             position: "relative",
-            maxWidth: 220,
+            minWidth: 260,
           }}
         >
           <div style={{
             fontFamily: PIXEL,
-            fontSize: 7,
+            fontSize: 10,
             color: "#000",
-            letterSpacing: "0.08em",
+            letterSpacing: "0.06em",
             lineHeight: 2.2,
             textTransform: "uppercase",
           }}>
             ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
           </div>
           <div style={{
-            marginTop: 10,
+            marginTop: 12,
             fontFamily: PIXEL,
-            fontSize: 6,
+            fontSize: 8,
             color: "#0a66c2",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
             borderTop: "2px solid #000",
-            paddingTop: 8,
+            paddingTop: 10,
           }}>
             ↓ USE IT FOR ↓
           </div>
@@ -384,7 +385,7 @@ export function Hero() {
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             fontFamily: PIXEL,
-            fontSize: "clamp(14px, 2.4vw, 28px)",
+            fontSize: "clamp(22px, 3.6vw, 46px)",
             fontWeight: 700,
             marginBottom: "1.2rem",
             textTransform: "uppercase",
@@ -396,14 +397,6 @@ export function Hero() {
         >
           AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-          style={{ minHeight: "2.8em", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <AnimatedSubtitle />
-        </motion.div>
       </div>
 
       <motion.div
@@ -415,6 +408,26 @@ export function Hero() {
       >
         <OrganicMarketingCloud />
         <ArchSVG />
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1, duration: 0.6 }}
+          style={{
+            position: "absolute",
+            bottom: -56,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 30,
+            minHeight: "2.8em",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          <AnimatedSubtitle />
+        </motion.div>
 
         {ALL_NODES.map((node, i) => {
           const pt    = NODE_PTS[i];
