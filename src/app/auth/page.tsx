@@ -335,9 +335,9 @@ export default function AuthPage() {
     if (code.length === 6) handleVerifyCode();
   }, [code]);
 
-  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-white/50 border text-white font-medium";
+  const inputBase = "w-full h-11 px-4 rounded-xl text-sm outline-none transition-all duration-200 placeholder-black/30 border text-black/80 font-medium";
   const getInputClass = (f: string) =>
-    `${inputBase} bg-white/20 ${focused === f ? "border-white/70" : "border-white/30 hover:border-white/50"}`;
+    `${inputBase} bg-black/5 ${focused === f ? "border-blue-400/60" : "border-black/15 hover:border-black/30"}`;
 
   if (step === "verify") {
     return (
@@ -419,7 +419,7 @@ export default function AuthPage() {
                 </p>
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Email</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.45)" }}>Email</label>
                     <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com" className={getInputClass("reset-email")}
                       onFocus={() => setFocused("reset-email")} onBlur={() => setFocused(null)} />
@@ -475,21 +475,21 @@ export default function AuthPage() {
                 <path d="M2 12l10 5 10-5"/>
               </svg>
             </motion.div>
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: "rgba(255,255,255,0.95)" }}>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: "rgba(0,0,0,0.88)" }}>
               {mode === "login" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "rgba(0,0,0,0.52)" }}>
               {mode === "login" ? "Sign in to your AI agentic studio" : "Join your AI-powered marketing & productivity studio"}
             </p>
           </div>
 
-          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)" }}>
+          <div className="flex mx-8 mb-6 rounded-xl p-1 gap-1" style={{ background: "rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.1)" }}>
             {([{ label: "Sign In", val: "login" }, { label: "Create Account", val: "signup" }] as const).map((tab) => (
               <button key={tab.val} onClick={() => { setMode(tab.val); setPassword(""); }}
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
                 style={mode === tab.val
                   ? { background: "linear-gradient(135deg, rgba(59,130,246,0.9), rgba(37,99,235,0.8))", color: "white" }
-                  : { color: "rgba(255,255,255,0.55)" }}>
+                  : { color: "rgba(0,0,0,0.45)" }}>
                 {tab.label}
               </button>
             ))}
@@ -500,7 +500,7 @@ export default function AuthPage() {
               {mode === "signup" && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.22 }} className="space-y-1.5 overflow-hidden">
-                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Full Name</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.45)" }}>Full Name</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
                     className={getInputClass("name")} onFocus={() => setFocused("name")} onBlur={() => setFocused(null)} />
                 </motion.div>
@@ -508,7 +508,7 @@ export default function AuthPage() {
             </AnimatePresence>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Email</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.45)" }}>Email</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" className={getInputClass("email")}
                 onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} />
@@ -516,7 +516,7 @@ export default function AuthPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>Password</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.45)" }}>Password</label>
                 {mode === "login" && (
                   <button type="button" onClick={() => setMode("forgot")}
                     className="text-[10px] text-blue-500/80 hover:text-blue-600 transition-colors">
@@ -531,7 +531,7 @@ export default function AuthPage() {
                   className={`${getInputClass("password")} pr-11`}
                   onFocus={() => setFocused("password")} onBlur={() => setFocused(null)} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/30 hover:text-black/60 transition-colors">
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
@@ -551,14 +551,14 @@ export default function AuthPage() {
 
           <div className="px-8 py-5">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.2)" }} />
-              <span className="text-[10px] font-medium uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>or</span>
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.2)" }} />
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.1)" }} />
+              <span className="text-[10px] font-medium uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.35)" }}>or</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.1)" }} />
             </div>
             <motion.button onClick={handleGoogle} disabled={isGoogleLoading || isLoading}
               whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
               className="w-full h-11 rounded-xl flex items-center justify-center gap-2.5 text-sm font-medium disabled:opacity-40 transition-all"
-              style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.9)" }}>
+              style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.12)", color: "rgba(0,0,0,0.75)" }}>
               {isGoogleLoading ? <Loader2 size={15} className="animate-spin" style={{ color: "rgba(255,255,255,0.7)" }} /> : <GoogleIcon />}
               <span>Continue with Google</span>
             </motion.button>
@@ -567,7 +567,7 @@ export default function AuthPage() {
           <div className="absolute bottom-0 inset-x-0 h-px"
             style={{ background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent)" }} />
         </div>
-        <p className="text-center text-[10px] mt-5 leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <p className="text-center text-[10px] mt-5 leading-relaxed" style={{ color: "rgba(0,0,0,0.38)" }}>
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </motion.div>

@@ -28,7 +28,7 @@ const TiktokIcon = ({ className, style }: { className?: string; style?: React.CS
   </svg>
 );
 
-const PIXEL = "'Press Start 2P', 'Courier New', monospace";
+const PIXEL = "var(--font-pixel), 'Press Start 2P', 'Courier New', monospace";
 
 const ALL_NODES = [
   {
@@ -111,7 +111,7 @@ function AnimatedSubtitle() {
         transition={{ duration: 0.45, ease: "easeInOut" }}
         style={{
           fontFamily: PIXEL,
-          fontSize: 13,
+          fontSize: 17,
           textTransform: "uppercase",
           letterSpacing: "0.10em",
           textAlign: "center",
@@ -415,7 +415,7 @@ export function Hero() {
           transition={{ delay: 1.1, duration: 0.6 }}
           style={{
             position: "absolute",
-            bottom: -56,
+            bottom: -95,
             left: "50%",
             transform: "translateX(-50%)",
             zIndex: 30,

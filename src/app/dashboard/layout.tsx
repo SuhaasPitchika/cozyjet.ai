@@ -5,17 +5,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { LogOut, Eye, Zap, Sparkles, Settings2 } from "lucide-react";
+import { LogOut, PenLine, CalendarDays, BarChart3, Sliders, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
-  { label: "Skippy", href: "/dashboard/skippy", icon: Eye, color: "#3b82f6", desc: "Observer Agent" },
-  { label: "Snooks", href: "/dashboard/snooks", icon: Zap, color: "#8b5cf6", desc: "Timeline & Productivity" },
-  { label: "Meta", href: "/dashboard/meta", icon: Sparkles, color: "#ec4899", desc: "Marketing Chat" },
-  { label: "Tuning", href: "/dashboard/tuning", icon: Settings2, color: "#f59e0b", desc: "AI Model Tuning" },
+  { label: "Create", href: "/dashboard/create", icon: PenLine, color: "#4f46e5", desc: "Content Studio" },
+  { label: "Calendar", href: "/dashboard/calendar", icon: CalendarDays, color: "#7c3aed", desc: "Schedule & Plan" },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, color: "#0ea5e9", desc: "Performance" },
+  { label: "Tune", href: "/dashboard/tuning", icon: Sliders, color: "#f59e0b", desc: "AI Voice Tuning" },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings, color: "#64748b", desc: "Integrations" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
