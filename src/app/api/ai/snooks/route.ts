@@ -3,14 +3,11 @@ import { callOpenRouter, SNOOKS_SYSTEM_PROMPT } from "@/backend/agent-engine";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userPrompt, userContext, skippyContext, contentSeeds } =
+    const { userPrompt, userContext, skippyContext, contentSeeds, conversationHistory } =
       await req.json();
 
     if (!userPrompt) {
-      return NextResponse.json(
-        { error: "userPrompt is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "userPrompt is required" }, { status: 400 });
     }
 
     let systemContent = SNOOKS_SYSTEM_PROMPT;
@@ -20,40 +17,60 @@ export async function POST(req: NextRequest) {
     if (contentSeeds && contentSeeds.length > 0) {
       systemContent += `\n\nAVAILABLE CONTENT SEEDS FROM SKIPPY:\n${JSON.stringify(contentSeeds, null, 2)}`;
     }
-
-    const contextNote = userContext
-      ? `\nUser context: ${typeof userContext === "string" ? userContext : JSON.stringify(userContext)}`
-      : "";
-
-    const response = await callOpenRouter(
-      [
-        { role: "system", content: systemContent },
-        { role: "user", content: userPrompt + contextNote },
-      ],
-      {
-        maxTokens: 3000,
-        temperature: 0.65,
-        jsonMode: true,
-      }
-    );
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(response);
-    } catch {
-      const match = response.match(/\{[\s\S]*\}/);
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch {
-          parsed = { responseText: response, raw: response };
-        }
-      } else {
-        parsed = { responseText: response, raw: response };
-      }
+    if (userContext) {
+      systemContent += `\n\nUSER CONTEXT:\n${typeof userContext === "string" ? userContext : JSON.stringify(userContext)}`;
     }
 
-    return NextResponse.json(parsed);
+    const history = Array.isArray(conversationHistory) ? conversationHistory : [];
+
+    let chatMessages: { role: "user" | "assistant"; content: string }[];
+
+    if (history.length > 0) {
+      chatMessages = history.map((m: { role: string; content: string }) => ({
+        role: (m.role === "bot" ? "assistant" : m.role) as "user" | "assistant",
+        content: m.content,
+      }));
+      const lastMsg = chatMessages[chatMessages.length - 1];
+      if (!lastMsg || lastMsg.role !== "user" || !lastMsg.content.startsWith(userPrompt.slice(0, 30))) {
+        chatMessages.push({ role: "user", content: userPrompt });
+      }
+    } else {
+      chatMessages = [{ role: "user", content: userPrompt }];
+    }
+
+    const messages = [
+      { role: "system" as const, content: systemContent },
+      ...chatMessages,
+    ];
+
+    const isPlanningRequest = /\bplan\b|content plan|week|calendar|schedule\b|content strategy|when to post|content for the next/i.test(userPrompt);
+
+    const responseText = await callOpenRouter(messages, {
+      maxTokens: 2500,
+      temperature: 0.65,
+      jsonMode: isPlanningRequest,
+    });
+
+    if (isPlanningRequest) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        const match = responseText.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            parsed = JSON.parse(match[0]);
+          } catch {
+            parsed = { response: responseText };
+          }
+        } else {
+          parsed = { response: responseText };
+        }
+      }
+      return NextResponse.json(parsed);
+    }
+
+    return NextResponse.json({ response: responseText });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal server error";
     console.error("Snooks route error:", message);

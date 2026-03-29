@@ -149,28 +149,19 @@ export default function TuningPage() {
     setMessages((p) => [...p, userMsg]);
     setIsGenerating(true);
 
-    const systemContext = `You are Tuning, an AI voice calibration assistant inside CozyJet AI Studio. Your job is to help users:
-1. Transform AI-sounding content into authentic, human writing
-2. Learn and replicate the user's unique voice and tone
-3. Rewrite content to match selected tone tags: ${tones.join(", ")}
-4. Configure and explain how to get the best results from different AI models
-
-Current model: ${selectedModelInfo.name} by ${selectedModelInfo.provider}.
-
-When rewriting, always: sound like a real person typed it, use natural sentence rhythm, vary sentence length, avoid starting every sentence the same way, remove corporate buzzwords, keep it specific not generic.`;
-
     historyRef.current.push({ role: "user", content: text });
 
     try {
-      const res = await fetch("/api/ai/meta", {
+      const res = await fetch("/api/ai/tuning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            { role: "user", content: systemContext + "\n\nUser request: " + text },
-            ...historyRef.current.slice(-10).slice(1),
-          ],
-          skippyContext: "",
+          messages: historyRef.current.slice(-12).map((m) => ({
+            role: m.role === "bot" ? "assistant" : m.role,
+            content: m.content,
+          })),
+          selectedModel,
+          tones,
         }),
       });
 

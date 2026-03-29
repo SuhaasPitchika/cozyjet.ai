@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.OPEN_ROUTER;
-    if (!apiKey) return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+    if (!apiKey) return NextResponse.json({ error: 'OPEN_ROUTER API key not configured. Add it in Secrets.' }, { status: 502 });
 
     const platformInstructions = platforms.map((p) => {
       const guide = PLATFORM_GUIDES[p];

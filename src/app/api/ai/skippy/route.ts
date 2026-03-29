@@ -1,26 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import agenticBackend from '@/backend/agent-engine';
+import { NextRequest, NextResponse } from "next/server";
+import { callOpenRouter, SKIPPY_SYSTEM_PROMPT } from "@/backend/agent-engine";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userMessage, currentView, observationContext } = await req.json();
-    if (!userMessage) return NextResponse.json({ error: 'userMessage is required' }, { status: 400 });
-    
-    const params = { currentView, observationContext };
+    const { userMessage, conversationHistory, observationContext } = await req.json();
 
-    const result = await agenticBackend.processAgentTask(
-      { id: 'skippy', name: 'Skippy', capabilities: ['observe', 'advise'] },
-      params,
-      userMessage
-    );
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || 'AI service error' }, { status: 502 });
+    if (!userMessage) {
+      return NextResponse.json({ error: "userMessage is required" }, { status: 400 });
     }
 
-    return NextResponse.json({ response: result.result?.output ?? "I'm having a brief moment. Try again?" });
-  } catch (error) {
-    console.error('Skippy route error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const systemContent = observationContext
+      ? `${SKIPPY_SYSTEM_PROMPT}\n\nCurrent observation context:\n${JSON.stringify(observationContext, null, 2)}`
+      : SKIPPY_SYSTEM_PROMPT;
+
+    const history = Array.isArray(conversationHistory) ? conversationHistory : [];
+    const messages = [
+      { role: "system" as const, content: systemContent },
+      ...history.map((m: { role: string; content: string }) => ({
+        role: (m.role === "bot" ? "assistant" : m.role) as "user" | "assistant",
+        content: m.content,
+      })),
+      { role: "user" as const, content: userMessage },
+    ];
+
+    const response = await callOpenRouter(messages, {
+      maxTokens: 1500,
+      temperature: 0.6,
+    });
+
+    return NextResponse.json({ response });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+    console.error("Skippy route error:", message);
+    if (message.includes("API key")) {
+      return NextResponse.json(
+        { error: "OPEN_ROUTER API key not configured. Add it in Secrets." },
+        { status: 502 }
+      );
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
