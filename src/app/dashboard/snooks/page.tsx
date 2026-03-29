@@ -1,175 +1,259 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, TrendingUp, Calendar, Clock, AlertTriangle,
-  BarChart3, Sparkles, CheckCircle2, ChevronRight,
+  Send, Loader2, Calendar, ChevronLeft, ChevronRight,
+  Sparkles, User, TrendingUp, Clock, Zap, RotateCcw,
+  Copy, Check, CalendarDays,
 } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
-interface ContentSuggestion {
+interface ChatMsg {
   id: string;
-  title: string;
+  role: "user" | "bot";
+  content: string;
+  timestamp: Date;
+  memoryTag?: string;
+}
+
+interface CalendarEvent {
+  date: number;
+  month: number;
+  year: number;
   platform: string;
-  type: string;
-  rationale: string;
-  optimal_time: string;
-  estimated_reach: string;
-  seed_ref?: string;
+  title: string;
+  color: string;
 }
 
-interface TrendAlert {
-  topic: string;
-  relevance: string;
-  urgency: string;
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+      className="p-1.5 rounded-lg hover:bg-black/5 transition-colors text-black/20 hover:text-black/50"
+    >
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+    </button>
+  );
 }
 
-interface SnooksData {
-  week_summary?: string;
-  suggestions?: ContentSuggestion[];
-  trend_alerts?: TrendAlert[];
-  calendar_health?: { score: number; gaps: string[]; recommendation: string };
-  posting_times?: Record<string, string>;
-}
+const STARTER_PROMPTS = [
+  { icon: "📈", text: "Should I post about my latest feature shipping today?" },
+  { icon: "🔥", text: "What's trending right now that I can connect my niche to?" },
+  { icon: "📅", text: "Plan my content for the next 7 days" },
+  { icon: "🕐", text: "What's the best time to post on LinkedIn this week?" },
+  { icon: "🚀", text: "How do I go viral as a solo developer?" },
+  { icon: "♻️", text: "Repurpose my GitHub activity into 3 content ideas" },
+];
+
+const MEMORY_TAGS = [
+  "Prefers LinkedIn for long-form",
+  "Posts best on Tue/Thu",
+  "Niche: AI/SaaS for devs",
+  "Tone: direct + analytical",
+  "Audience: builders & founders",
+];
+
+const DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const PLATFORM_COLORS: Record<string, string> = {
-  LinkedIn: "#0077b5",
-  Twitter: "#1da1f2",
-  Instagram: "#e1306c",
+  LinkedIn: "#0A66C2",
+  Twitter: "#1DA1F2",
+  Instagram: "#E4405F",
   All: "#6366f1",
 };
 
-const TYPE_COLORS: Record<string, string> = {
-  educational: "#3b82f6",
-  "behind-the-scenes": "#8b5cf6",
-  milestone: "#10b981",
-  tip: "#f59e0b",
-  story: "#ec4899",
-  trending: "#ef4444",
-};
+function MiniCalendar({ events }: { events: CalendarEvent[] }) {
+  const today = new Date();
+  const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
-const REACH_CONFIG: Record<string, { label: string; color: string }> = {
-  Low: { label: "Low", color: "#6b7280" },
-  Medium: { label: "Medium", color: "#f59e0b" },
-  High: { label: "High", color: "#10b981" },
-  Viral: { label: "Viral 🔥", color: "#ef4444" },
-};
+  const prevMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  const nextMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
-const URGENCY_COLORS: Record<string, string> = {
-  "Act now": "#ef4444",
-  "This week": "#f59e0b",
-  Monitor: "#6b7280",
-};
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-function GlassCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const monthEvents = events.filter((e) => e.month === month && e.year === year);
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
   return (
-    <div
-      className={`rounded-2xl ${className}`}
-      style={{
-        background: "rgba(255,255,255,0.06)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08)",
-        ...style,
-      }}
-    >
-      {children}
+    <div className="flex flex-col h-full">
+      {/* Calendar header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+        <div className="flex items-center gap-2">
+          <CalendarDays size={13} className="text-indigo-500" />
+          <span className="text-[12px] font-bold text-black/70">{monthNames[month]} {year}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={prevMonth} className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-black/5 transition-colors">
+            <ChevronLeft size={12} className="text-black/40" />
+          </button>
+          <button onClick={nextMonth} className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-black/5 transition-colors">
+            <ChevronRight size={12} className="text-black/40" />
+          </button>
+        </div>
+      </div>
+
+      {/* Day names */}
+      <div className="grid grid-cols-7 px-3 py-2">
+        {DAY_NAMES.map((d) => (
+          <div key={d} className="text-center text-[9px] font-bold text-black/25">{d}</div>
+        ))}
+      </div>
+
+      {/* Days */}
+      <div className="grid grid-cols-7 px-3 gap-y-1 flex-1">
+        {cells.map((day, idx) => {
+          if (!day) return <div key={idx} />;
+          const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+          const dayEvents = monthEvents.filter((e) => e.date === day);
+          return (
+            <div key={idx} className="flex flex-col items-center gap-0.5 py-0.5">
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold"
+                style={isToday
+                  ? { background: "#6366f1", color: "white" }
+                  : { color: "rgba(0,0,0,0.55)" }
+                }
+              >
+                {day}
+              </div>
+              <div className="flex gap-px flex-wrap justify-center">
+                {dayEvents.slice(0, 2).map((e, i) => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: PLATFORM_COLORS[e.platform] || "#6366f1" }} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="px-4 py-3 border-t space-y-1.5" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+        {Object.entries(PLATFORM_COLORS).filter(([k]) => k !== "All").map(([p, c]) => {
+          const count = monthEvents.filter((e) => e.platform === p).length;
+          return (
+            <div key={p} className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ background: c }} />
+                <span className="text-[10px] text-black/45">{p}</span>
+              </div>
+              <span className="text-[10px] font-semibold text-black/35">{count} posts</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const r = 22;
-  const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  const color = score >= 75 ? "#10b981" : score >= 50 ? "#6366f1" : "#ec4899";
-  return (
-    <svg width="56" height="56" viewBox="0 0 56 56" className="shrink-0">
-      <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
-      <motion.circle
-        cx="28" cy="28" r={r} fill="none" stroke={color}
-        strokeWidth="4" strokeLinecap="round"
-        strokeDasharray={`${circ}`}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: circ - dash }}
-        transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
-        style={{ transformOrigin: "28px 28px", transform: "rotate(-90deg)" }}
-      />
-      <text x="28" y="33" textAnchor="middle" fontSize="12" fontWeight="800" fill="rgba(255,255,255,0.8)">{score}</text>
-    </svg>
-  );
-}
-
-function SuggestionCard({ item, index }: { item: ContentSuggestion; index: number }) {
-  const platColor = PLATFORM_COLORS[item.platform] || "#6366f1";
-  const typeColor = TYPE_COLORS[item.type] || "#6366f1";
-  const reach = REACH_CONFIG[item.estimated_reach] || REACH_CONFIG.Medium;
+function MessageBubble({ msg }: { msg: ChatMsg }) {
+  const isBot = msg.role === "bot";
+  const fmt = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -16 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.07, duration: 0.4 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className={`flex gap-3 ${!isBot ? "flex-row-reverse" : ""}`}
     >
-      <GlassCard className="p-4 hover:border-white/20 transition-colors cursor-default">
-        <div className="flex items-start gap-3">
-          <div className="flex flex-col items-center gap-2 pt-0.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-[10px] font-bold text-white"
-              style={{ background: `${platColor}20`, border: `1px solid ${platColor}40`, color: platColor }}
-            >
-              {item.platform === "LinkedIn" ? "in" : item.platform === "Twitter" ? "𝕏" : item.platform === "Instagram" ? "IG" : "✦"}
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="text-[13px] font-semibold text-white/85 leading-tight">{item.title}</h3>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: `${typeColor}18`, color: typeColor }}>
-                  {item.type}
-                </span>
-                <span className="text-[9px] font-bold" style={{ color: reach.color }}>{reach.label}</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-white/40 leading-relaxed mb-2.5">{item.rationale}</p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <Clock size={10} className="text-white/25" />
-                <span className="text-[10px] text-white/35">{item.optimal_time}</span>
-              </div>
-              {item.seed_ref && (
-                <div className="flex items-center gap-1">
-                  <Sparkles size={10} className="text-indigo-400/50" />
-                  <span className="text-[10px] text-indigo-400/60">from Skippy</span>
-                </div>
-              )}
-            </div>
-          </div>
+      {isBot ? (
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 text-base"
+          style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
+          📅
         </div>
-      </GlassCard>
+      ) : (
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+          style={{ background: "rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.08)" }}>
+          <User size={13} className="text-black/45" />
+        </div>
+      )}
+
+      <div className={`flex-1 max-w-[80%] group ${!isBot ? "flex flex-col items-end" : ""}`}>
+        <div
+          className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed ${isBot ? "rounded-tl-sm" : "rounded-tr-sm"}`}
+          style={isBot ? {
+            background: "rgba(255,255,255,0.8)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.95)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)",
+            color: "rgba(0,0,0,0.72)",
+          } : {
+            background: "linear-gradient(135deg, rgba(124,58,237,0.15), rgba(99,102,241,0.1))",
+            border: "1px solid rgba(124,58,237,0.25)",
+            color: "rgba(0,0,0,0.72)",
+          }}
+        >
+          <p className="whitespace-pre-wrap">{msg.content}</p>
+        </div>
+
+        <div className={`flex items-center gap-1 mt-1 ${!isBot ? "justify-end" : ""}`}>
+          <span className="text-[9px] text-black/20">{fmt(msg.timestamp)}</span>
+          {isBot && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <CopyBtn text={msg.content} />
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 }
 
+function TypingDots() {
+  return (
+    <div className="flex gap-3">
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 text-base"
+        style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
+        📅
+      </div>
+      <div className="px-4 py-3 rounded-2xl rounded-tl-sm"
+        style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+        <div className="flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+              className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const SAMPLE_EVENTS: CalendarEvent[] = [
+  { date: new Date().getDate(), month: new Date().getMonth(), year: new Date().getFullYear(), platform: "LinkedIn", title: "Ship story", color: "#0A66C2" },
+  { date: new Date().getDate() + 2, month: new Date().getMonth(), year: new Date().getFullYear(), platform: "Twitter", title: "Thread", color: "#1DA1F2" },
+  { date: new Date().getDate() + 4, month: new Date().getMonth(), year: new Date().getFullYear(), platform: "Instagram", title: "Behind scenes", color: "#E4405F" },
+  { date: new Date().getDate() + 5, month: new Date().getMonth(), year: new Date().getFullYear(), platform: "LinkedIn", title: "Tip post", color: "#0A66C2" },
+];
+
 export default function SnooksPage() {
   const { assistanceMsg, skippyContext } = useDashboardStore();
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [data, setData] = useState<SnooksData | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"suggestions" | "trends" | "timing">("suggestions");
-  const [dateLabel, setDateLabel] = useState("This week");
+  const [showCalendar, setShowCalendar] = useState(true);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(SAMPLE_EVENTS);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const historyRef = useRef<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
-    const d = new Date();
-    const end = new Date(d);
-    end.setDate(d.getDate() + 6);
-    const fmt = (dt: Date) => dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    setDateLabel(`${fmt(d)} – ${fmt(end)}`);
-  }, []);
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, isGenerating]);
 
-  const buildSkippyCtx = () => {
+  const buildSkippyCtx = useCallback(() => {
     if (skippyContext) {
       const parts = [];
       if (skippyContext.signal) parts.push(skippyContext.signal);
@@ -177,304 +261,272 @@ export default function SnooksPage() {
       return parts.join(". ");
     }
     return assistanceMsg || "";
-  };
+  }, [skippyContext, assistanceMsg]);
 
-  const generate = async () => {
+  const handleSend = async (override?: string) => {
+    const text = (override || input).trim();
+    if (!text || isGenerating) return;
+    setInput("");
+
+    const userMsg: ChatMsg = { id: Date.now().toString(), role: "user", content: text, timestamp: new Date() };
+    setMessages((p) => [...p, userMsg]);
     setIsGenerating(true);
-    setData(null);
-    setErrorMsg(null);
 
     const skippyCtx = buildSkippyCtx();
-    const userPrompt = skippyCtx
-      ? `Based on my workspace activity: "${skippyCtx}". Plan my content week for ${dateLabel}. Generate a complete content strategy with 6 post suggestions, trend alerts, and calendar health analysis.`
-      : `I am a solopreneur building an AI SaaS product. Plan my content week for ${dateLabel}. Generate a complete content strategy with 6 post suggestions for LinkedIn, Twitter, and Instagram, trend alerts relevant to my niche, and calendar health analysis. Make the suggestions specific, actionable, and high-quality.`;
+    const systemNote = skippyCtx ? ` [Workspace context: ${skippyCtx}]` : "";
+    historyRef.current.push({ role: "user", content: text + systemNote });
 
     try {
       const res = await fetch("/api/ai/snooks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userPrompt, userContext: { date: dateLabel, role: "solopreneur", niche: "AI/SaaS" }, skippyContext: skippyCtx }),
+        body: JSON.stringify({
+          userPrompt: text,
+          userContext: { date: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }), role: "solopreneur", niche: "AI/SaaS" },
+          skippyContext: skippyCtx,
+          conversationHistory: historyRef.current.slice(-10),
+        }),
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "API error");
-      }
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      const botContent = data.response || data.week_summary || (data.suggestions ? `Here are ${data.suggestions.length} content suggestions:\n\n${data.suggestions.map((s: { title: string; rationale: string }, i: number) => `${i + 1}. **${s.title}**\n${s.rationale}`).join("\n\n")}` : "Let me help you plan your content strategy.");
 
-      const json = await res.json();
-
-      if (json.error) throw new Error(json.error);
-
-      const parsed: SnooksData = {
-        week_summary: json.week_summary || json.responseText || "",
-        suggestions: Array.isArray(json.suggestions) ? json.suggestions : [],
-        trend_alerts: Array.isArray(json.trend_alerts) ? json.trend_alerts : [],
-        calendar_health: json.calendar_health || null,
-        posting_times: json.posting_times || null,
-      };
-
-      setData(parsed);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      if (message.includes("API key")) {
-        setErrorMsg("OPEN_ROUTER API key not configured. Add it in environment secrets.");
-      } else {
-        setErrorMsg(message || "Something went wrong. Please try again.");
-      }
+      historyRef.current.push({ role: "assistant", content: botContent });
+      setMessages((p) => [...p, { id: (Date.now() + 1).toString(), role: "bot", content: botContent, timestamp: new Date() }]);
+    } catch {
+      setMessages((p) => [...p, {
+        id: "err-" + Date.now(), role: "bot",
+        content: "I'm having a moment connecting. Please check your API key or try again.",
+        timestamp: new Date(),
+      }]);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const suggestions = data?.suggestions || [];
-  const trendAlerts = data?.trend_alerts || [];
-  const health = data?.calendar_health;
-  const postingTimes = data?.posting_times;
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  const hasMessages = messages.length > 0;
+  const skippyCtx = buildSkippyCtx();
 
   return (
-    <div
-      className="h-full flex flex-col overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #0a0a1a 0%, #0f0c29 35%, #1a1040 65%, #0d0d20 100%)" }}
-    >
-      {/* Ambient orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 right-20 w-72 h-72 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #8b5cf6 0%, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="absolute bottom-10 left-10 w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(50px)" }} />
-      </div>
-
+    <div className="h-full flex flex-col"
+      style={{ background: "linear-gradient(135deg, #f5f0eb 0%, #ede8e3 40%, #f0ece7 100%)" }}>
       {/* Header */}
-      <div
-        className="relative z-10 px-8 py-5 border-b flex items-center justify-between shrink-0"
-        style={{ borderColor: "rgba(255,255,255,0.06)", backdropFilter: "blur(20px)", background: "rgba(255,255,255,0.03)" }}
-      >
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-            <span className="text-[10px] text-white/25 font-semibold uppercase tracking-widest">Content Strategist · Snooks</span>
-          </div>
-          <h1 className="text-lg font-bold text-white/85 tracking-tight">Weekly Strategy</h1>
-          <p className="text-[11px] text-white/30 mt-0.5">{dateLabel}</p>
-        </div>
+      <div className="px-6 py-4 border-b flex items-center justify-between shrink-0"
+        style={{ borderColor: "rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.45)", backdropFilter: "blur(20px)" }}>
         <div className="flex items-center gap-3">
-          {buildSkippyCtx() && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
-              <Zap size={10} className="text-indigo-400" />
-              <span className="text-[9px] text-indigo-400 font-medium">Skippy context</span>
-            </div>
-          )}
-          {data && (
-            <button onClick={() => setData(null)} className="text-[11px] text-white/20 hover:text-white/50 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
-              Clear
-            </button>
-          )}
-          <motion.button
-            onClick={generate}
-            disabled={isGenerating}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 4px 16px rgba(124,58,237,0.4)" }}
-          >
-            {isGenerating ? (
-              <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}><Zap size={14} /></motion.div><span>Planning…</span></>
-            ) : (
-              <><Sparkles size={14} /><span>{data ? "Replan Week" : "Plan My Week"}</span></>
-            )}
-          </motion.button>
-        </div>
-      </div>
-
-      <div className="relative z-10 flex-1 overflow-hidden flex flex-col">
-        {/* Error */}
-        {errorMsg && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="mx-8 mt-4 px-4 py-3 rounded-xl text-sm text-red-400 font-medium"
-            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
-            {errorMsg}
-          </motion.div>
-        )}
-
-        {/* Empty state */}
-        {!data && !isGenerating && !errorMsg && (
-          <div className="flex-1 flex flex-col items-center justify-center gap-8 text-center px-8">
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto"
-              style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)", backdropFilter: "blur(20px)" }}>
-              <Calendar size={36} className="text-violet-400/60" />
-            </motion.div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white/50">Your week, planned.</h2>
-              <p className="text-sm text-white/25 max-w-sm leading-relaxed">
-                {buildSkippyCtx()
-                  ? "Skippy has workspace context. Snooks will build a personalised content week around your actual work."
-                  : "Snooks looks at what content you should be posting this week, when to post it, and what trending topics you can own."}
-              </p>
-              {buildSkippyCtx() && (
-                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs text-violet-400 font-medium mt-2"
-                  style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}>
-                  📡 &quot;{buildSkippyCtx().slice(0, 70)}{buildSkippyCtx().length > 70 ? "…" : ""}&quot;
-                </div>
-              )}
-            </div>
-            <motion.button onClick={generate} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-semibold text-white"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4)" }}>
-              <Sparkles size={16} /> Plan My Content Week
-            </motion.button>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+            style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
+            📅
           </div>
-        )}
-
-        {/* Loading skeleton */}
-        {isGenerating && (
-          <div className="flex-1 px-8 py-6 space-y-4 overflow-auto">
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {[0,1,2].map((i) => (
-                <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
-              ))}
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[14px] font-bold text-black/75">Snooks</h1>
+              <motion.div animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                className="w-1.5 h-1.5 rounded-full bg-violet-400" />
             </div>
-            {[0,1,2,3,4,5].map((i) => (
-              <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }} />
+            <p className="text-[10px] text-black/35">Content Strategist · Growth Intelligence</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Memory pills */}
+          <div className="hidden md:flex items-center gap-1.5">
+            <span className="text-[10px] text-black/30 flex items-center gap-1">
+              <Zap size={9} className="text-violet-400" /> Memory:
+            </span>
+            {MEMORY_TAGS.slice(0, 2).map((tag) => (
+              <span key={tag} className="text-[9px] font-medium px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(124,58,237,0.08)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.15)" }}>
+                {tag}
+              </span>
             ))}
           </div>
-        )}
 
-        {/* Data view */}
-        {data && !isGenerating && (
-          <div className="flex-1 overflow-hidden flex flex-col">
-            {/* Week summary + stats */}
-            {(data.week_summary || health) && (
-              <div className="px-8 pt-5 pb-3 flex items-start gap-4">
-                {health && (
-                  <GlassCard className="flex items-center gap-3 p-3 shrink-0">
-                    <ScoreRing score={health.score} />
-                    <div>
-                      <p className="text-[11px] font-bold text-white/70">Calendar Health</p>
-                      <p className="text-[10px] text-white/35 mt-0.5 max-w-[140px] leading-relaxed">{health.recommendation}</p>
-                    </div>
-                  </GlassCard>
-                )}
-                {data.week_summary && (
-                  <GlassCard className="flex-1 p-3">
-                    <p className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-1">This Week&apos;s Strategy</p>
-                    <p className="text-[12px] text-white/60 leading-relaxed">{data.week_summary}</p>
-                  </GlassCard>
-                )}
+          {skippyCtx && (
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg"
+              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)" }}>
+              <TrendingUp size={10} className="text-indigo-500" />
+              <span className="text-[9px] text-indigo-500 font-medium">Skippy live</span>
+            </div>
+          )}
+
+          {hasMessages && (
+            <button onClick={() => { setMessages([]); historyRef.current = []; }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] text-black/30 hover:text-black/55 hover:bg-black/5 transition-all">
+              <RotateCcw size={11} />Clear
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowCalendar((p) => !p)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
+            style={showCalendar
+              ? { background: "rgba(99,102,241,0.1)", color: "#6366f1", border: "1px solid rgba(99,102,241,0.2)" }
+              : { background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.45)", border: "1px solid rgba(0,0,0,0.07)" }}
+          >
+            <Calendar size={12} />
+            Calendar
+          </button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto">
+            {!hasMessages ? (
+              <div className="h-full flex flex-col items-center justify-center gap-6 px-8 py-10 text-center">
+                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl"
+                  style={{
+                    background: "rgba(255,255,255,0.65)", backdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.9)",
+                    boxShadow: "0 4px 24px rgba(124,58,237,0.12), 0 8px 40px rgba(0,0,0,0.06)",
+                  }}>
+                  📅
+                </motion.div>
+
+                <div>
+                  <h2 className="text-[20px] font-bold text-black/65">Snooks is ready</h2>
+                  <p className="text-[12px] text-black/35 mt-2 max-w-sm mx-auto leading-relaxed">
+                    Your content strategist that thinks about the bigger picture. Ask about what to post, when to post it, how to go viral, or get a full week planned.
+                  </p>
+                  {skippyCtx && (
+                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-medium"
+                      style={{ background: "rgba(124,58,237,0.07)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.15)" }}>
+                      <Zap size={10} /> Skippy workspace context loaded
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Memory tags */}
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-[10px] text-black/30 font-semibold uppercase tracking-widest">What Snooks remembers about you</p>
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {MEMORY_TAGS.map((tag) => (
+                      <span key={tag} className="text-[10px] font-medium px-2.5 py-1 rounded-full"
+                        style={{ background: "rgba(255,255,255,0.7)", color: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.9)" }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+                  {STARTER_PROMPTS.map((p) => (
+                    <motion.button key={p.text} onClick={() => handleSend(p.text)}
+                      whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.98 }}
+                      className="flex items-start gap-2.5 text-left px-4 py-3.5 rounded-2xl transition-all"
+                      style={{
+                        background: "rgba(255,255,255,0.65)", backdropFilter: "blur(20px)",
+                        border: "1px solid rgba(255,255,255,0.9)",
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)",
+                      }}>
+                      <span className="shrink-0 text-base">{p.icon}</span>
+                      <span className="text-[11px] text-black/50 leading-relaxed">{p.text}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="px-6 py-6 space-y-5 max-w-2xl mx-auto">
+                <AnimatePresence initial={false}>
+                  {messages.map((msg) => <MessageBubble key={msg.id} msg={msg} />)}
+                </AnimatePresence>
+                {isGenerating && <TypingDots />}
               </div>
             )}
+          </div>
 
-            {/* Tabs */}
-            <div className="px-8 py-2 flex gap-1 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              {(["suggestions", "trends", "timing"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all capitalize"
-                  style={activeTab === tab ? { background: "rgba(124,58,237,0.2)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" } : { color: "rgba(255,255,255,0.3)", border: "1px solid transparent" }}
+          {/* Input */}
+          <div className="px-5 py-4 shrink-0 border-t"
+            style={{ borderColor: "rgba(0,0,0,0.07)", background: "rgba(255,255,255,0.35)", backdropFilter: "blur(20px)" }}>
+            <div className="max-w-2xl mx-auto">
+              <div
+                className="flex items-end gap-3 px-4 py-3 rounded-2xl transition-all focus-within:ring-2 focus-within:ring-violet-300/50"
+                style={{
+                  background: "rgba(255,255,255,0.75)",
+                  border: "1.5px solid rgba(255,255,255,0.95)",
+                  backdropFilter: "blur(20px)",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1)",
+                }}
+              >
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                  disabled={isGenerating}
+                  placeholder="Ask Snooks: should I post today? how do I grow? plan my week…"
+                  rows={1}
+                  className="flex-1 bg-transparent text-[13px] text-black/70 placeholder:text-black/25 outline-none resize-none min-h-[22px] max-h-32 leading-[1.5]"
+                />
+                <motion.button
+                  onClick={() => handleSend()}
+                  disabled={isGenerating || !input.trim()}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="p-2.5 rounded-xl disabled:opacity-25 transition-all shrink-0 self-end"
+                  style={input.trim()
+                    ? { background: "linear-gradient(135deg, #7c3aed, #6366f1)", boxShadow: "0 4px 12px rgba(124,58,237,0.4)" }
+                    : { background: "rgba(0,0,0,0.06)" }}
                 >
-                  {tab === "suggestions" && <><BarChart3 size={12} /> Posts ({suggestions.length})</>}
-                  {tab === "trends" && <><TrendingUp size={12} /> Trends ({trendAlerts.length})</>}
-                  {tab === "timing" && <><Clock size={12} /> Best Times</>}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            <div className="flex-1 overflow-auto px-8 py-5 space-y-3">
-              <AnimatePresence mode="wait">
-                {activeTab === "suggestions" && (
-                  <motion.div key="suggestions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                    {suggestions.map((item, i) => <SuggestionCard key={item.id || i} item={item} index={i} />)}
-                    {suggestions.length === 0 && <p className="text-white/25 text-sm text-center py-8">No suggestions generated.</p>}
-                    {health?.gaps && health.gaps.length > 0 && (
-                      <GlassCard className="p-3 mt-2">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <AlertTriangle size={11} className="text-amber-400" />
-                          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Calendar Gaps</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {health.gaps.map((gap, i) => (
-                            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(245,158,11,0.1)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.15)" }}>{gap}</span>
-                          ))}
-                        </div>
-                      </GlassCard>
-                    )}
-                  </motion.div>
-                )}
-
-                {activeTab === "trends" && (
-                  <motion.div key="trends" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                    {trendAlerts.map((alert, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                        <GlassCard className="p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <TrendingUp size={12} className="text-pink-400" />
-                                <span className="text-[13px] font-semibold text-white/85">{alert.topic}</span>
-                              </div>
-                              <p className="text-[11px] text-white/40 leading-relaxed">{alert.relevance}</p>
-                            </div>
-                            <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${URGENCY_COLORS[alert.urgency] || "#6b7280"}18`, color: URGENCY_COLORS[alert.urgency] || "#6b7280", border: `1px solid ${URGENCY_COLORS[alert.urgency] || "#6b7280"}30` }}>
-                              {alert.urgency}
-                            </span>
-                          </div>
-                        </GlassCard>
-                      </motion.div>
-                    ))}
-                    {trendAlerts.length === 0 && <p className="text-white/25 text-sm text-center py-8">No trend alerts detected.</p>}
-                  </motion.div>
-                )}
-
-                {activeTab === "timing" && (
-                  <motion.div key="timing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                    {postingTimes ? (
-                      Object.entries(postingTimes).map(([platform, timing], i) => (
-                        <motion.div key={platform} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                          <GlassCard className="p-4 flex items-center gap-4">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
-                              style={{ background: `${PLATFORM_COLORS[platform] || "#6366f1"}20`, border: `1px solid ${PLATFORM_COLORS[platform] || "#6366f1"}40`, color: PLATFORM_COLORS[platform] || "#6366f1" }}
-                            >
-                              {platform === "LinkedIn" ? "in" : platform === "Twitter" ? "𝕏" : "IG"}
-                            </div>
-                            <div>
-                              <p className="text-[13px] font-semibold text-white/80">{platform}</p>
-                              <p className="text-[11px] text-white/35 mt-0.5">{timing}</p>
-                            </div>
-                            <ChevronRight size={14} className="ml-auto text-white/15" />
-                          </GlassCard>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <div className="space-y-3">
-                        {[{ platform: "LinkedIn", time: "Best: Tuesday–Thursday 8–10am" }, { platform: "Twitter", time: "Best: Mon–Fri 9am, 12pm, 5pm" }, { platform: "Instagram", time: "Best: Tuesday–Friday 11am–1pm" }].map((pt, i) => (
-                          <GlassCard key={pt.platform} className="p-4 flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-bold" style={{ background: `${PLATFORM_COLORS[pt.platform]}20`, color: PLATFORM_COLORS[pt.platform] }}>
-                              {pt.platform === "LinkedIn" ? "in" : pt.platform === "Twitter" ? "𝕏" : "IG"}
-                            </div>
-                            <div>
-                              <p className="text-[13px] font-semibold text-white/80">{pt.platform}</p>
-                              <p className="text-[11px] text-white/35">{pt.time}</p>
-                            </div>
-                          </GlassCard>
-                        ))}
-                      </div>
-                    )}
-                    <GlassCard className="p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 size={12} className="text-emerald-400" />
-                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Pro tip</span>
-                      </div>
-                      <p className="text-[11px] text-white/40 leading-relaxed">
-                        Post at the beginning of the optimal window, not the end. Early posts get more algorithm boost as the platform tests their reach.
-                      </p>
-                    </GlassCard>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  {isGenerating
+                    ? <Loader2 size={13} className="text-violet-600 animate-spin" />
+                    : <Send size={13} className={input.trim() ? "text-white" : "text-black/35"} />
+                  }
+                </motion.button>
+              </div>
+              <p className="text-[9px] text-black/20 mt-2 text-center">
+                Snooks remembers your preferences and workspace context · Powered by OpenRouter
+              </p>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Calendar sidebar */}
+        <AnimatePresence>
+          {showCalendar && (
+            <motion.aside
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 220, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              className="shrink-0 border-l overflow-hidden flex flex-col"
+              style={{
+                borderColor: "rgba(0,0,0,0.07)",
+                background: "rgba(255,255,255,0.55)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
+              <MiniCalendar events={calendarEvents} />
+
+              {/* Upcoming */}
+              <div className="px-4 pb-4 flex-1 overflow-y-auto">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-black/25 mb-2">Upcoming</p>
+                <div className="space-y-2">
+                  {calendarEvents.slice(0, 4).map((evt, i) => (
+                    <div key={i} className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.9)" }}>
+                      <div className="w-1.5 h-full rounded-full shrink-0" style={{ background: PLATFORM_COLORS[evt.platform], minHeight: 24 }} />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold text-black/65 truncate">{evt.title}</p>
+                        <p className="text-[9px] text-black/30">{evt.platform} · Day {evt.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

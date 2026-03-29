@@ -22,25 +22,36 @@ src/
   app/
     api/
       ai/
-        skippy/         # Skippy chat + workspace intelligence endpoint
-        snooks/         # Marketing content generation endpoint
-        screen-analyze/ # Screen capture vision analysis (NEW)
+        skippy/         # Skippy screen analysis endpoint
+        snooks/         # Content strategy + chat endpoint
+        screen-analyze/ # Screen capture vision analysis
+        meta/           # Meta copywriter chat endpoint
       auth/
-        send-verification/ # Email OTP generation & sending (NEW)
+        send-verification/ # Email OTP generation & sending
     dashboard/
-      layout.tsx        # Glassmorphic sidebar: Skippy / Snooks / Meta nav
-      skippy/           # Observer: dot cursor canvas, glowing toggle, screen share
-      snooks/           # Productivity timeline generator with score rings
-      meta/             # Chat system with OpenRouter, conversation history (NEW)
+      layout.tsx        # Minimal glassmorphism sidebar: Skippy / Snooks / Meta / Tuning / Settings
+      skippy/           # Integration hub (GitHub, Notion, Figma, Google Drive, Google Calendar, etc.) + content seeds feed
+      snooks/           # Chat interface with AI memory, inline calendar sidebar, growth/virality advisor
+      meta/             # Chat copywriter interface, 3 variations, platform tabs, voice prefs
+      tuning/           # Chat interface for voice calibration, API model config, humanizer
+      settings/         # Account & preferences
     auth/               # Email + code verification flow (6-digit OTP)
   components/
     layout/
-      navbar.tsx        # 80px logo (bigger than text), glassmorphic pill
-    sections/
-      hero.tsx          # 100vh, social logos (Reddit/Slack/TikTok/Pinterest/Discord), hyperrealistic sticky notes
-      three-slideshow.tsx # Smaller (42vh), "Projects" heading, animated text below
+      navbar.tsx        # Glassmorphic pill, CozyJet logo
+    sections/           # Landing page sections
   hooks/                # Zustand stores (useDashboardStore)
 ```
+
+### Dashboard Design System (v2)
+- **Background**: warm cream gradient `#f5f0eb → #ede8e3 → #f0ece7`
+- **Sidebar**: ultra-minimal glassmorphism, 5 items only (Skippy/Snooks/Meta/Tuning/Settings), emoji icons
+- **Cards**: `rgba(255,255,255,0.72)` with `backdrop-filter: blur(24px)`, thick white borders
+- **Chat UI**: shared design — white glass bubbles (bot), warm amber/violet/pink tinted (user)
+- **Skippy**: left panel = integration cards grid, right panel = content seeds feed
+- **Snooks**: full chat + collapsible mini-calendar sidebar with event dots
+- **Meta**: chat with platform tab selector (All/LinkedIn/Twitter/Instagram) + voice prefs strip
+- **Tuning**: chat with collapsible config panel (model selector, tone tags, API key)
 
 ### API Routes (Server-side)
 - `/api/ai/skippy` — Chat & workspace intelligence (OpenRouter, multi-turn)

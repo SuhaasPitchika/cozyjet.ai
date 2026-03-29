@@ -1,13 +1,121 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldCheck, Cpu, Sparkles, ArrowRight, Github, FileText,
-  Figma, Chrome, X, Zap, Eye, EyeOff,
+  ShieldCheck, Sparkles, X, Zap, Eye, EyeOff, Plus, Check,
+  RefreshCw, ArrowRight,
 } from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 import { useRouter } from "next/navigation";
+
+/* ── Integration definitions ── */
+const INTEGRATIONS = [
+  {
+    id: "github",
+    name: "GitHub",
+    desc: "Commits, PRs & releases",
+    color: "#171717",
+    bg: "#f6f8fa",
+    connected: true,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "notion",
+    name: "Notion",
+    desc: "Pages, docs & databases",
+    color: "#000000",
+    bg: "#f7f6f3",
+    connected: true,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z" />
+      </svg>
+    ),
+  },
+  {
+    id: "figma",
+    name: "Figma",
+    desc: "Design files & components",
+    color: "#a259ff",
+    bg: "#faf5ff",
+    connected: false,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.354-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.02s1.354 3.018 3.019 3.018h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.019 3.019 3.019h3.117V8.981H8.148zm-3.019 8.49c0-1.665 1.355-3.019 3.019-3.019s3.019 1.354 3.019 3.019-1.355 3.019-3.019 3.019-3.019-1.355-3.019-3.019zm3.019-1.548c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.019 3.019 3.019 3.019-1.354 3.019-3.019-1.355-3.019-3.019-3.019zm7.734-3.491c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49-4.49-2.014-4.49-4.49 2.014-4.49 4.49-4.49zm0 1.471c-1.665 0-3.019 1.354-3.019 3.019s1.354 3.019 3.019 3.019 3.019-1.354 3.019-3.019-1.354-3.019-3.019-3.019z" />
+      </svg>
+    ),
+  },
+  {
+    id: "gdrive",
+    name: "Google Drive",
+    desc: "Docs, sheets & slides",
+    color: "#4285f4",
+    bg: "#f0f7ff",
+    connected: true,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M4.433 22.396l2.266-3.925H22.5l-2.267 3.925zm3.995-6.925L6.16 12.008 14.255 1.5h4.534zm-6.928 3l2.267-3.925L8 8.075 1.5 19.471z" />
+      </svg>
+    ),
+  },
+  {
+    id: "gcal",
+    name: "Google Calendar",
+    desc: "Events & meetings",
+    color: "#1a73e8",
+    bg: "#f0f5ff",
+    connected: true,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm-7-9.5c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zm.5-4h-1v2.12l1.75 1.06.5-.87-1.25-.76V14z" />
+      </svg>
+    ),
+  },
+  {
+    id: "linear",
+    name: "Linear",
+    desc: "Issues & projects",
+    color: "#5E6AD2",
+    bg: "#f2f3ff",
+    connected: false,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M3.533 7.773a8.44 8.44 0 009.694 9.694l-9.694-9.694zM2.8 6.067l15.133 15.133a8.5 8.5 0 01-4.93 1.8L2.8 6.067zm18.4 10.733l-14.1-14.1A8.44 8.44 0 0121.2 16.8zM6.067 2.8l16.2 16.2a8.44 8.44 0 00-16.2-16.2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    desc: "Team conversations",
+    color: "#4A154B",
+    bg: "#fdf5ff",
+    connected: false,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.834 24a2.528 2.528 0 01-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 01-2.521-2.52A2.528 2.528 0 018.834 0a2.528 2.528 0 012.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 012.521 2.521 2.528 2.528 0 01-2.521 2.521H2.522A2.528 2.528 0 010 8.834a2.528 2.528 0 012.522-2.521h6.312zm10.122 2.521a2.528 2.528 0 012.522-2.521A2.528 2.528 0 0124 8.834a2.528 2.528 0 01-2.522 2.521h-2.522V8.834zm-1.268 0a2.528 2.528 0 01-2.523 2.521 2.527 2.527 0 01-2.52-2.521V2.522A2.527 2.527 0 0115.165 0a2.528 2.528 0 012.523 2.522v6.312zm-2.523 10.122a2.528 2.528 0 012.523 2.522A2.528 2.528 0 0115.165 24a2.527 2.527 0 01-2.52-2.522v-2.522h2.52zm0-1.268a2.527 2.527 0 01-2.52-2.523 2.526 2.526 0 012.52-2.52h6.313A2.527 2.527 0 0124 15.165a2.528 2.528 0 01-2.522 2.523h-6.313z" />
+      </svg>
+    ),
+  },
+  {
+    id: "vscode",
+    name: "VS Code",
+    desc: "Editor activity & commits",
+    color: "#0078d4",
+    bg: "#f0f7ff",
+    connected: false,
+    logo: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+        <path d="M23.15 2.587L18.21.21a1.494 1.494 0 00-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 00-1.276.057L.327 7.261A1 1 0 00.326 8.74L3.899 12 .326 15.26a1 1 0 00.001 1.479L1.65 17.94a.999.999 0 001.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 001.704.29l4.942-2.377A1.5 1.5 0 0024 20.06V3.939a1.5 1.5 0 00-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z" />
+      </svg>
+    ),
+  },
+];
 
 interface ContentSeed {
   id: string;
@@ -17,220 +125,167 @@ interface ContentSeed {
   platform_fit: string[];
 }
 
-const SOURCE_ICONS: Record<string, React.ReactNode> = {
-  GitHub: <Github size={12} />,
-  Notion: <FileText size={12} />,
-  Figma: <Figma size={12} />,
-  VSCode: <Cpu size={12} />,
-  Browser: <Chrome size={12} />,
-  Terminal: <Cpu size={12} />,
-};
+const SAMPLE_SEEDS: ContentSeed[] = [
+  { id: "s1", source: "GitHub", title: "JWT auth with refresh token support shipped", summary: "You shipped JWT authentication with refresh token support — a security implementation junior developers struggle with and seniors love seeing documented.", platform_fit: ["LinkedIn", "Twitter"] },
+  { id: "s2", source: "Notion", title: "Q2 product roadmap updated with 8 features", summary: "You updated your product roadmap prioritized by real user feedback. A behind-the-scenes look at how solo founders make tough trade-offs.", platform_fit: ["LinkedIn", "Instagram"] },
+  { id: "s3", source: "Google Drive", title: "New dashboard UI design finalized", summary: "You designed a glassmorphism dashboard component. The decisions you made — contrast, blur depth, color hierarchy — are exactly what designers want documented.", platform_fit: ["Twitter", "Instagram"] },
+];
 
-const SOURCE_COLORS: Record<string, string> = {
-  GitHub: "#171717",
-  Notion: "#374151",
-  Figma: "#a259ff",
-  VSCode: "#0078d4",
-  Browser: "#4285f4",
-  Terminal: "#10b981",
-};
-
-function GlowOrb({ active }: { active: boolean }) {
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-      <motion.div
-        animate={active ? { scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] } : { opacity: 0 }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-24 -left-24 w-96 h-96 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)" }}
-      />
-      <motion.div
-        animate={active ? { scale: [1.2, 1, 1.2], opacity: [0.2, 0.5, 0.2] } : { opacity: 0 }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(236,72,153,0.25) 0%, transparent 70%)" }}
-      />
-    </div>
-  );
-}
-
-function SeedCard({ seed, index, onGenerate, onDismiss }: {
-  seed: ContentSeed;
-  index: number;
-  onGenerate: (seed: ContentSeed) => void;
-  onDismiss: (id: string) => void;
+function IntegrationCard({ integration, onToggle }: {
+  integration: typeof INTEGRATIONS[0];
+  onToggle: (id: string) => void;
 }) {
-  const color = SOURCE_COLORS[seed.source] || "#6366f1";
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, x: -20, scale: 0.95 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
-      className="relative rounded-2xl overflow-hidden group"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}
+      className="relative rounded-2xl p-4 cursor-pointer group transition-all"
       style={{
-        background: "rgba(255,255,255,0.08)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.1)",
+        background: "rgba(255,255,255,0.72)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        border: integration.connected
+          ? `1.5px solid ${integration.color}30`
+          : "1.5px solid rgba(0,0,0,0.07)",
+        boxShadow: "0 2px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)",
       }}
     >
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2.5">
-          <div className="flex items-center gap-2">
-            <div
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-white"
-              style={{ background: `${color}22`, border: `1px solid ${color}40` }}
-            >
-              <span style={{ color }}>{SOURCE_ICONS[seed.source] || <Cpu size={12} />}</span>
-              <span className="text-[10px] font-semibold" style={{ color }}>{seed.source}</span>
-            </div>
-            <div className="flex gap-1">
-              {seed.platform_fit?.map((p) => (
-                <span
-                  key={p}
-                  className="text-[9px] font-medium px-1.5 py-0.5 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}
-                >
-                  {p}
-                </span>
-              ))}
-            </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: integration.bg,
+              color: integration.color,
+              border: `1px solid ${integration.color}20`,
+            }}
+          >
+            {integration.logo}
           </div>
-          <button
-            onClick={() => onDismiss(seed.id)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.07)" }}
-          >
-            <X size={11} className="text-white/40" />
-          </button>
+          <div>
+            <p className="text-[13px] font-bold text-black/80">{integration.name}</p>
+            <p className="text-[11px] text-black/40 mt-0.5">{integration.desc}</p>
+          </div>
         </div>
 
-        <h3 className="text-[13px] font-semibold text-white/90 leading-tight mb-1.5">{seed.title}</h3>
-        <p className="text-[11px] text-white/50 leading-relaxed">{seed.summary}</p>
-
-        <div className="mt-3 flex items-center gap-2">
-          <motion.button
-            onClick={() => onGenerate(seed)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.4)" }}
-          >
-            <Sparkles size={11} />
-            Generate Content
-          </motion.button>
-          <span className="text-[10px] text-white/20">→ sends to Meta</span>
-        </div>
+        <motion.button
+          onClick={(e) => { e.stopPropagation(); onToggle(integration.id); }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all"
+          style={
+            integration.connected
+              ? { background: `${integration.color}15`, border: `1px solid ${integration.color}30` }
+              : { background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.08)" }
+          }
+        >
+          {integration.connected
+            ? <Check size={14} style={{ color: integration.color }} />
+            : <Plus size={14} className="text-black/35" />
+          }
+        </motion.button>
       </div>
+
+      {integration.connected && (
+        <div className="mt-3 flex items-center gap-1.5">
+          <motion.div
+            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.4, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: "#10b981" }}
+          />
+          <span className="text-[10px] font-semibold text-emerald-600">Connected · syncing now</span>
+        </div>
+      )}
     </motion.div>
   );
 }
 
-function HyperrealisticSwitch({ active, onToggle, isCapturing }: {
-  active: boolean; onToggle: () => void; isCapturing: boolean;
+function SeedCard({ seed, onGenerate, onDismiss }: {
+  seed: ContentSeed;
+  onGenerate: (seed: ContentSeed) => void;
+  onDismiss: (id: string) => void;
 }) {
-  const [pressed, setPressed] = useState(false);
+  const intg = INTEGRATIONS.find((i) => i.name === seed.source || i.id === seed.source.toLowerCase());
+  const color = intg?.color || "#6366f1";
+  const bg = intg?.bg || "#f5f5ff";
+
   return (
-    <div className="flex flex-col items-center gap-5 select-none">
-      <div className="relative">
-        <motion.div
-          animate={active ? {
-            boxShadow: [
-              "0 0 40px 10px rgba(99,102,241,0.4), 0 0 80px 30px rgba(99,102,241,0.15)",
-              "0 0 60px 20px rgba(99,102,241,0.6), 0 0 120px 50px rgba(99,102,241,0.25)",
-              "0 0 40px 10px rgba(99,102,241,0.4), 0 0 80px 30px rgba(99,102,241,0.15)",
-            ]
-          } : { boxShadow: "none" }}
-          transition={{ duration: 2.5, repeat: Infinity }}
-          className="rounded-full"
-          style={{ padding: 20 }}
-        >
-          <motion.button
-            onMouseDown={() => setPressed(true)}
-            onMouseUp={() => { setPressed(false); if (!isCapturing) onToggle(); }}
-            onMouseLeave={() => setPressed(false)}
-            onTouchStart={() => setPressed(true)}
-            onTouchEnd={() => { setPressed(false); if (!isCapturing) onToggle(); }}
-            disabled={isCapturing}
-            className="relative focus:outline-none cursor-pointer disabled:cursor-not-allowed"
-            style={{
-              width: 100, height: 100, borderRadius: "50%",
-              background: active
-                ? "radial-gradient(circle at 35% 35%, #818cf8, #6366f1 40%, #4338ca 75%, #312e81)"
-                : pressed
-                ? "radial-gradient(circle at 35% 35%, #d4d4d4, #b0b0b0 40%, #888 75%, #555)"
-                : "radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.04) 75%, transparent)",
-              boxShadow: active
-                ? "inset -3px -3px 10px rgba(0,0,0,0.4), inset 3px 3px 10px rgba(130,140,255,0.3), 0 6px 24px rgba(99,102,241,0.7), 0 0 0 2px rgba(99,102,241,0.5)"
-                : pressed
-                ? "inset 5px 5px 15px rgba(0,0,0,0.3), inset -2px -2px 6px rgba(255,255,255,0.1)"
-                : "inset -5px -5px 15px rgba(0,0,0,0.2), inset 5px 5px 15px rgba(255,255,255,0.12), 0 0 0 1px rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.15)",
-              transform: pressed ? "scale(0.96) translateY(2px)" : "scale(1) translateY(0)",
-              transition: "all 0.15s cubic-bezier(0.34,1.56,0.64,1)",
-            }}
-          >
-            {active && (
-              <>
-                <motion.div className="absolute inset-0 rounded-full" animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} style={{ background: "rgba(99,102,241,0.4)" }} />
-                <motion.div className="absolute inset-0 rounded-full" animate={{ scale: [1, 1.8, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity, delay: 0.4 }} style={{ background: "rgba(99,102,241,0.2)" }} />
-              </>
-            )}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {active ? <Eye size={32} className="text-white/90" style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.8))" }} /> : <EyeOff size={28} className="text-white/50" />}
+    <motion.div
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.96 }}
+      className="rounded-2xl p-4 group"
+      style={{
+        background: "rgba(255,255,255,0.68)",
+        backdropFilter: "blur(20px)",
+        border: "1.5px solid rgba(255,255,255,0.9)",
+        boxShadow: "0 2px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: bg, color }}>
+            {intg?.logo || <Zap size={14} />}
+          </div>
+          <div>
+            <span className="text-[11px] font-bold" style={{ color }}>{seed.source}</span>
+            <div className="flex gap-1 mt-0.5">
+              {seed.platform_fit?.map((p) => (
+                <span key={p} className="text-[9px] font-medium px-1.5 py-px rounded-full bg-black/5 text-black/35">{p}</span>
+              ))}
             </div>
-            <div className="absolute top-3 left-3 rounded-full pointer-events-none" style={{ width: 24, height: 24, background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 70%)" }} />
-          </motion.button>
-        </motion.div>
+          </div>
+        </div>
+        <button
+          onClick={() => onDismiss(seed.id)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg flex items-center justify-center bg-black/5 hover:bg-red-50"
+        >
+          <X size={11} className="text-black/30 hover:text-red-400" />
+        </button>
       </div>
 
-      <div className="rounded-2xl px-5 py-2.5 flex items-center gap-2.5"
-        style={{
-          background: active ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.05)",
-          border: active ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(255,255,255,0.08)",
-          backdropFilter: "blur(12px)",
-          transition: "all 0.4s ease",
-        }}>
-        <motion.div
-          animate={{ scale: active ? [1, 1.5, 1] : 1, opacity: active ? 1 : 0.3 }}
-          transition={{ duration: 1.4, repeat: active ? Infinity : 0 }}
-          className="w-2 h-2 rounded-full"
-          style={{ background: active ? "#6366f1" : "#666", boxShadow: active ? "0 0 10px rgba(99,102,241,0.9)" : "none" }}
-        />
-        <span className="text-xs font-bold uppercase tracking-[0.2em]"
-          style={{ color: active ? "#818cf8" : "rgba(255,255,255,0.25)", transition: "color 0.4s ease" }}>
-          {isCapturing ? "Capturing…" : active ? "Observer Active" : "Observer Off"}
-        </span>
-      </div>
-    </div>
+      <h3 className="text-[13px] font-semibold text-black/80 leading-snug mb-1">{seed.title}</h3>
+      <p className="text-[11px] text-black/45 leading-relaxed mb-3">{seed.summary}</p>
+
+      <motion.button
+        onClick={() => onGenerate(seed)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[11px] font-semibold text-white"
+        style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.35)" }}
+      >
+        <Sparkles size={11} />
+        Generate Content
+        <ArrowRight size={10} />
+      </motion.button>
+    </motion.div>
   );
 }
-
-const SAMPLE_SEEDS: ContentSeed[] = [
-  { id: "s1", source: "GitHub", title: "JWT auth with refresh token support shipped", summary: "You shipped JWT authentication with refresh token support for your SaaS — a security implementation that junior developers struggle with and seniors love to learn.", platform_fit: ["LinkedIn", "Twitter"] },
-  { id: "s2", source: "Notion", title: "Product roadmap for Q2 updated", summary: "You updated your product roadmap with 8 new features prioritized by user feedback. A behind-the-scenes look at how solo founders make tough trade-offs.", platform_fit: ["LinkedIn", "Instagram"] },
-  { id: "s3", source: "Figma", title: "New dashboard UI component designed", summary: "You designed a glassmorphism dashboard component. The design decisions you made — contrast, blur depth, color — are exactly what designers want to see documented.", platform_fit: ["Twitter", "Instagram"] },
-];
 
 export default function SkippyPage() {
   const { skippyActive, setSkippyActive, setAssistanceMsg, setSkippyContext } = useDashboardStore();
   const router = useRouter();
+  const [integrations, setIntegrations] = useState(INTEGRATIONS);
   const [seeds, setSeeds] = useState<ContentSeed[]>([]);
-  const [analysis, setAnalysis] = useState<Record<string, unknown> | null>(null);
+  const [showSample, setShowSample] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [showSample, setShowSample] = useState(false);
+
+  const connectedCount = integrations.filter((i) => i.connected).length;
+
+  const toggleIntegration = (id: string) => {
+    setIntegrations((prev) =>
+      prev.map((i) => i.id === id ? { ...i, connected: !i.connected } : i)
+    );
+  };
 
   const captureAndAnalyze = useCallback(async () => {
     setIsCapturing(true);
     setApiError(null);
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 } } as MediaStreamConstraints["video"],
-        audio: false,
-      });
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       const video = document.createElement("video");
       video.srcObject = stream;
       video.autoplay = true;
@@ -252,57 +307,29 @@ export default function SkippyPage() {
         body: JSON.stringify({ imageBase64: base64, mimeType: "image/jpeg" }),
       });
       const data = await res.json();
-
-      if (data.error) {
-        setApiError(data.error.includes("API key") ? "OpenRouter API key not configured. Add OPEN_ROUTER in Secrets." : data.error);
-        setSkippyActive(false);
-      } else if (data.analysis) {
-        setAnalysis(data.analysis);
-        setAssistanceMsg(data.analysis.signal || data.analysis.activity || "Screen analyzed");
-        setSkippyContext({
-          signal: data.analysis.signal,
-          activity: data.analysis.activity,
-          context: data.analysis.context,
-          apps: data.analysis.apps,
-          insights: data.analysis.insights,
-          focus_score: data.analysis.focus_score,
-        });
+      if (data.analysis) {
+        setSkippyContext(data.analysis);
         if (Array.isArray(data.analysis.content_seeds) && data.analysis.content_seeds.length > 0) {
           setSeeds(data.analysis.content_seeds);
-        } else {
-          setShowSample(true);
+          setShowSample(false);
         }
       }
     } catch (err: unknown) {
       const error = err as Error;
-      if (error.name === "NotAllowedError") {
-        setApiError("Screen access denied. Click the switch again and choose to share your screen.");
-        setSkippyActive(false);
-      } else {
-        setApiError("Capture failed. Please try again.");
-        setSkippyActive(false);
-      }
+      if (error.name !== "NotAllowedError") setApiError("Capture failed. Please try again.");
+      setSkippyActive(false);
     } finally {
       setIsCapturing(false);
     }
-  }, [setAssistanceMsg, setSkippyActive, setSkippyContext]);
+  }, [setSkippyActive, setSkippyContext]);
 
   const handleToggle = async () => {
     if (skippyActive) {
       setSkippyActive(false);
-      setAnalysis(null);
-      setApiError(null);
-      setSeeds([]);
-      setShowSample(false);
     } else {
       setSkippyActive(true);
       await captureAndAnalyze();
     }
-  };
-
-  const handleDismiss = (id: string) => {
-    setSeeds((prev) => prev.filter((s) => s.id !== id));
-    setShowSample(false);
   };
 
   const handleGenerate = (seed: ContentSeed) => {
@@ -311,164 +338,174 @@ export default function SkippyPage() {
   };
 
   const displaySeeds = showSample ? SAMPLE_SEEDS : seeds;
-  const hasFeed = displaySeeds.length > 0 || (analysis && !showSample);
 
   return (
     <div
-      className="relative min-h-full flex overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #0f0c29 0%, #1a1040 40%, #0d1b3e 70%, #0a0a1a 100%)",
-      }}
+      className="h-full flex overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #f5f0eb 0%, #ede8e3 40%, #f0ece7 100%)" }}
     >
-      {/* Ambient background orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #ec4899 0%, transparent 70%)", filter: "blur(50px)" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #8b5cf6 0%, transparent 70%)", filter: "blur(40px)" }} />
-      </div>
-
-      {/* Left panel — toggle + info */}
-      <div className="relative z-10 w-72 shrink-0 flex flex-col items-center justify-start pt-10 px-6 gap-8 border-r" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+      {/* Left — Integrations */}
+      <div className="w-[420px] shrink-0 flex flex-col overflow-y-auto border-r" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
         {/* Header */}
-        <div className="text-center space-y-1.5 w-full">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2))", border: "1px solid rgba(99,102,241,0.3)", backdropFilter: "blur(12px)" }}>
-              <Cpu size={13} className="text-indigo-400" />
+        <div className="px-6 pt-7 pb-5">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}
+              >
+                <span style={{ fontSize: 18 }}>👁</span>
+              </div>
+              <div>
+                <h1 className="text-[17px] font-bold text-black/80">Skippy</h1>
+                <p className="text-[11px] text-black/35">Observer Agent</p>
+              </div>
             </div>
-            <span className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.3em]">Observer Agent</span>
+
+            {/* Observer toggle */}
+            <motion.button
+              onClick={handleToggle}
+              disabled={isCapturing}
+              whileTap={{ scale: 0.96 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold transition-all"
+              style={
+                skippyActive
+                  ? { background: "rgba(99,102,241,0.12)", color: "#6366f1", border: "1.5px solid rgba(99,102,241,0.3)" }
+                  : { background: "rgba(0,0,0,0.06)", color: "rgba(0,0,0,0.45)", border: "1.5px solid rgba(0,0,0,0.08)" }
+              }
+            >
+              {isCapturing ? (
+                <><RefreshCw size={13} className="animate-spin" />Scanning…</>
+              ) : skippyActive ? (
+                <><Eye size={13} />Active</>
+              ) : (
+                <><EyeOff size={13} />Observe</>
+              )}
+            </motion.button>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Skippy</h1>
-          <p className="text-[11px] text-white/35 leading-relaxed">
-            Watches your workspace silently and extracts content seeds worth sharing on social media.
+
+          <p className="text-[12px] text-black/40 mt-4 leading-relaxed">
+            Connect your tools so Skippy can watch your work silently and extract content seeds worth sharing — without you having to document anything manually.
           </p>
+
+          {apiError && (
+            <div className="mt-3 px-3 py-2.5 rounded-xl text-xs text-red-500 bg-red-50 border border-red-100">
+              {apiError}
+            </div>
+          )}
         </div>
 
-        <HyperrealisticSwitch active={skippyActive} onToggle={handleToggle} isCapturing={isCapturing} />
-
-        {apiError && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="w-full px-4 py-3 rounded-2xl text-xs text-red-400 font-medium text-center"
-            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", backdropFilter: "blur(12px)" }}>
-            {apiError}
-          </motion.div>
-        )}
-
-        {isCapturing && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl"
-            style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", backdropFilter: "blur(12px)" }}>
-            <div className="flex gap-1">
-              {[0,1,2].map((i) => (
-                <motion.div key={i} animate={{ opacity: [0.3,1,0.3], y: [0,-3,0] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.18 }}
-                  className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              ))}
+        {/* Stats bar */}
+        <div className="px-6 mb-5">
+          <div
+            className="flex items-center gap-6 px-4 py-3 rounded-2xl"
+            style={{
+              background: "rgba(255,255,255,0.65)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.9)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+            }}
+          >
+            <div className="text-center">
+              <p className="text-lg font-bold text-black/75">{connectedCount}</p>
+              <p className="text-[10px] text-black/35">Connected</p>
             </div>
-            <span className="text-[11px] font-medium text-indigo-300">Analyzing your screen…</span>
-          </motion.div>
-        )}
+            <div className="h-8 w-px bg-black/08" />
+            <div className="text-center">
+              <p className="text-lg font-bold text-black/75">{integrations.length - connectedCount}</p>
+              <p className="text-[10px] text-black/35">Available</p>
+            </div>
+            <div className="h-8 w-px bg-black/08" />
+            <div className="text-center">
+              <p className="text-lg font-bold" style={{ color: "#6366f1" }}>{displaySeeds.length}</p>
+              <p className="text-[10px] text-black/35">Seeds ready</p>
+            </div>
+          </div>
+        </div>
 
-        {/* Analysis summary */}
-        <AnimatePresence>
-          {analysis && !isCapturing && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="w-full rounded-2xl p-4 space-y-2"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(20px) saturate(150%)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center gap-1.5 mb-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Live Analysis</span>
-                {typeof analysis.focus_score === "number" && (
-                  <span className="ml-auto text-[9px] font-semibold text-white/40">{analysis.focus_score as number}% focus</span>
-                )}
-              </div>
-              {analysis.signal && <p className="text-[12px] font-semibold text-white/80">{analysis.signal as string}</p>}
-              {analysis.activity && <p className="text-[11px] text-white/40 leading-relaxed">{analysis.activity as string}</p>}
-              {Array.isArray(analysis.apps) && (analysis.apps as string[]).length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {(analysis.apps as string[]).slice(0, 4).map((app: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 rounded-full text-[9px] font-medium" style={{ background: "rgba(99,102,241,0.15)", color: "#818cf8" }}>{app}</span>
-                  ))}
-                </div>
-              )}
+        {/* Section label */}
+        <div className="px-6 mb-3 flex items-center justify-between">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Integrations</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-1 text-[10px] font-semibold text-black/35 hover:text-black/60 transition-colors"
+          >
+            <Plus size={11} />
+            Request new
+          </motion.button>
+        </div>
+
+        {/* Integration grid */}
+        <div className="px-6 pb-6 grid grid-cols-1 gap-3">
+          {integrations.map((intg, i) => (
+            <motion.div key={intg.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <IntegrationCard integration={intg} onToggle={toggleIntegration} />
             </motion.div>
-          )}
-        </AnimatePresence>
+          ))}
+        </div>
 
-        {/* Privacy notice */}
-        <div className="mt-auto w-full flex items-start gap-2.5 px-4 py-3 rounded-2xl"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
-          <ShieldCheck size={12} className="text-white/20 mt-0.5 shrink-0" />
-          <p className="text-[10px] text-white/25 leading-relaxed">
-            Privacy-first. One screenshot, never video. PII blocked before leaving your device.
-          </p>
+        {/* Privacy */}
+        <div className="px-6 pb-6">
+          <div
+            className="flex items-center gap-2.5 px-4 py-3 rounded-2xl"
+            style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.8)" }}
+          >
+            <ShieldCheck size={13} className="text-black/25 shrink-0" />
+            <p className="text-[10px] text-black/35 leading-relaxed">
+              Privacy-first. Skippy reads your activity locally. One snapshot, never video. PII is blocked before leaving your device.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Right panel — content seeds feed */}
-      <div className="relative z-10 flex-1 flex flex-col min-w-0 p-6 gap-4 overflow-y-auto">
-        <div className="flex items-center justify-between mb-2">
+      {/* Right — Content Seeds Feed */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="px-6 pt-7 pb-4 flex items-center justify-between border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
           <div>
-            <h2 className="text-sm font-bold text-white/80">Content Seeds</h2>
-            <p className="text-[11px] text-white/30 mt-0.5">
-              {hasFeed ? `${displaySeeds.length} seed${displaySeeds.length !== 1 ? "s" : ""} ready — click Generate to send to Meta` : "Activate Skippy to generate content seeds from your workspace"}
+            <h2 className="text-[16px] font-bold text-black/75">Content Seeds</h2>
+            <p className="text-[11px] text-black/35 mt-0.5">
+              {showSample ? "Sample seeds — activate Skippy to generate from your workspace" : `${displaySeeds.length} seed${displaySeeds.length !== 1 ? "s" : ""} ready`}
             </p>
           </div>
           {showSample && (
-            <span className="text-[10px] px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(245,158,11,0.12)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.2)" }}>
-              Sample seeds
+            <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold"
+              style={{ background: "rgba(245,158,11,0.1)", color: "#d97706", border: "1px solid rgba(245,158,11,0.2)" }}>
+              Sample
             </span>
           )}
         </div>
 
-        {!hasFeed && !isCapturing && (
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center">
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto"
-              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)", backdropFilter: "blur(20px)" }}
-            >
-              <Eye size={36} className="text-indigo-400/50" />
-            </motion.div>
-            <div>
-              <p className="text-lg font-semibold text-white/40 mb-1">No seeds yet</p>
-              <p className="text-[12px] text-white/20 max-w-xs leading-relaxed">
-                Toggle Skippy to capture your screen. It will read your GitHub, Notion, Figma, VSCode activity and extract what&apos;s worth sharing.
-              </p>
+        <div className="flex-1 px-6 py-5 space-y-3">
+          <AnimatePresence mode="popLayout">
+            {displaySeeds.map((seed) => (
+              <SeedCard
+                key={seed.id}
+                seed={seed}
+                onGenerate={handleGenerate}
+                onDismiss={(id) => {
+                  if (showSample) setShowSample(false);
+                  else setSeeds((prev) => prev.filter((s) => s.id !== id));
+                }}
+              />
+            ))}
+          </AnimatePresence>
+
+          {displaySeeds.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                style={{ background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.12)" }}>
+                <Eye size={24} className="text-indigo-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-black/40">No seeds yet</p>
+                <p className="text-[11px] text-black/25 mt-1 max-w-xs leading-relaxed">
+                  Toggle Observer and share your screen to extract content seeds from your workspace.
+                </p>
+              </div>
             </div>
-            <button
-              onClick={() => setShowSample(true)}
-              className="text-[11px] text-indigo-400/60 hover:text-indigo-400 transition-colors underline underline-offset-2"
-            >
-              Preview sample seeds
-            </button>
-          </div>
-        )}
-
-        <AnimatePresence mode="popLayout">
-          {displaySeeds.map((seed, i) => (
-            <SeedCard key={seed.id} seed={seed} index={i} onGenerate={handleGenerate} onDismiss={handleDismiss} />
-          ))}
-        </AnimatePresence>
-
-        {displaySeeds.length === 0 && hasFeed && !isCapturing && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
-              <Zap size={20} className="text-emerald-400" />
-            </div>
-            <p className="text-sm font-semibold text-white/50">All seeds processed</p>
-            <p className="text-[11px] text-white/25">Activate Skippy again to capture new seeds</p>
-          </motion.div>
-        )}
-
-        {analysis && displaySeeds.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="mt-2 flex items-center gap-2 px-4 py-2.5 rounded-xl self-start"
-            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
-            <ArrowRight size={11} className="text-emerald-400" />
-            <span className="text-[10px] text-emerald-400 font-medium">Context live-shared with Snooks &amp; Meta</span>
-          </motion.div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
