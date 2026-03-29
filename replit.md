@@ -69,7 +69,50 @@ src/
 - `SMTP_PASS` — SMTP password (optional)
 - `SMTP_PORT` — SMTP port, default 587 (optional)
 
-## Running
+## Python Backend (FastAPI)
+
+Located in `backend/`. Full spec implemented:
+
+### New files added
+- `app/services/encryption_service.py` — Fernet AES-256 encrypt/decrypt for OAuth tokens
+- `app/models/integration.py` — OAuth integrations table (all 8 platforms)
+- `app/models/chat_sessions.py` — chat sessions per user/mode
+- `app/models/tune_samples.py` — voice learning sample store
+- `app/models/__init__.py` — exports all models
+- `app/schemas/integration.py` — Pydantic schemas for integrations
+- `app/api/integrations.py` — OAuth connect/callback/status/disconnect
+- `app/websocket.py` — WS /ws/main?token={jwt} with pub/sub forwarding
+- `app/tasks/skippy_tasks.py` — Celery: sync_all_users, sync_user, sync_integration
+- `app/tasks/publishing_tasks.py` — Celery: publish_scheduled_content (60s interval)
+
+### Updated files
+- `app/agents/skippy.py` — full JSON seed output (title, description, tags, content_angles)
+- `app/agents/snooks.py` — 5-suggestion output with best_day/best_time/reasoning
+- `app/agents/meta.py` — 3 variations + from-idea, from-trend, repurpose, refine + voice learning
+- `app/api/auth.py` — password validation, email verification token, logout blacklist, refresh
+- `app/api/skippy.py` — enhance, voice, screenshot, sync-now, seeds, dismiss
+- `app/api/snooks.py` — suggest (14d seeds + 30d analytics + top 10 trends), calendar, schedule, gaps
+- `app/api/meta.py` — generate, generate-from-idea, generate-from-trend, repurpose, refine, approve
+- `app/dependencies.py` — Redis token blacklist check on every protected route
+- `app/database.py` — handles both postgres:// and postgresql:// URL formats
+- `app/config.py` — ENCRYPTION_KEY + all OAuth client IDs/secrets
+- `app/tasks/celery_app.py` — beat schedule (sync every 2h, publish every 60s)
+- `app/main.py` — integrations router + WS /ws/main registered
+
+### OAuth Platforms supported
+github, notion, figma, google_drive, google_calendar, linkedin, twitter, instagram
+
+### Running the backend (manual, not wired to Replit workflow)
+```
+cd backend
+uvicorn app.main:app --reload --port 8000
+# Celery worker:
+celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+# Celery beat:
+celery -A app.tasks.celery_app.celery_app beat --loglevel=info
+```
+
+## Running (Next.js frontend)
 - Dev: `npm run dev` → `next dev -p 5000 -H 0.0.0.0`
 - The workflow "Start application" handles this automatically
 

@@ -5,8 +5,11 @@ from .config import settings
 # In a production Railway environment, the URL likely starts with 'postgres://'
 # asyncpg requires 'postgresql+asyncpg://'
 DATABASE_URL = settings.DATABASE_URL
+# Normalize the URL to use asyncpg driver
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 async_engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(

@@ -23,3 +23,5 @@ websockets
 pillow
 python-dotenv
 flower
+cryptography
+email-validator
