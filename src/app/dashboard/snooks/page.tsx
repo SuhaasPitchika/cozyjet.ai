@@ -2,143 +2,178 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, TrendingUp, CheckCircle2 } from "lucide-react";
+import {
+  Zap, TrendingUp, Calendar, Clock, AlertTriangle,
+  BarChart3, Sparkles, CheckCircle2, ChevronRight,
+} from "lucide-react";
 import { useDashboardStore } from "@/hooks/use-dashboard-store";
 
-interface TimelineEvent {
+interface ContentSuggestion {
   id: string;
-  time: string;
   title: string;
-  desc: string;
-  type: "deep" | "research" | "commit" | "design" | "break" | "ai";
-  duration: string;
-  score: number;
+  platform: string;
+  type: string;
+  rationale: string;
+  optimal_time: string;
+  estimated_reach: string;
+  seed_ref?: string;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  deep: "#3b82f6",
-  research: "#8b5cf6",
-  commit: "#10b981",
-  design: "#ec4899",
-  break: "#6b7280",
-  ai: "#f59e0b",
+interface TrendAlert {
+  topic: string;
+  relevance: string;
+  urgency: string;
+}
+
+interface SnooksData {
+  week_summary?: string;
+  suggestions?: ContentSuggestion[];
+  trend_alerts?: TrendAlert[];
+  calendar_health?: { score: number; gaps: string[]; recommendation: string };
+  posting_times?: Record<string, string>;
+}
+
+const PLATFORM_COLORS: Record<string, string> = {
+  LinkedIn: "#0077b5",
+  Twitter: "#1da1f2",
+  Instagram: "#e1306c",
+  All: "#6366f1",
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  deep: "⌨️",
-  research: "🔍",
-  commit: "🔗",
-  design: "🎨",
-  break: "☕",
-  ai: "🤖",
+const TYPE_COLORS: Record<string, string> = {
+  educational: "#3b82f6",
+  "behind-the-scenes": "#8b5cf6",
+  milestone: "#10b981",
+  tip: "#f59e0b",
+  story: "#ec4899",
+  trending: "#ef4444",
 };
+
+const REACH_CONFIG: Record<string, { label: string; color: string }> = {
+  Low: { label: "Low", color: "#6b7280" },
+  Medium: { label: "Medium", color: "#f59e0b" },
+  High: { label: "High", color: "#10b981" },
+  Viral: { label: "Viral 🔥", color: "#ef4444" },
+};
+
+const URGENCY_COLORS: Record<string, string> = {
+  "Act now": "#ef4444",
+  "This week": "#f59e0b",
+  Monitor: "#6b7280",
+};
+
+function GlassCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      className={`rounded-2xl ${className}`}
+      style={{
+        background: "rgba(255,255,255,0.06)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08)",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 function ScoreRing({ score }: { score: number }) {
-  const r = 26;
+  const r = 22;
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
+  const color = score >= 75 ? "#10b981" : score >= 50 ? "#6366f1" : "#ec4899";
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" className="shrink-0">
-      <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="5" />
+    <svg width="56" height="56" viewBox="0 0 56 56" className="shrink-0">
+      <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
       <motion.circle
-        cx="32" cy="32" r={r} fill="none"
-        stroke={score >= 75 ? "#10b981" : score >= 50 ? "#3b82f6" : "#ec4899"}
-        strokeWidth="5"
-        strokeLinecap="round"
+        cx="28" cy="28" r={r} fill="none" stroke={color}
+        strokeWidth="4" strokeLinecap="round"
         strokeDasharray={`${circ}`}
         initial={{ strokeDashoffset: circ }}
         animate={{ strokeDashoffset: circ - dash }}
         transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
-        style={{ transformOrigin: "32px 32px", transform: "rotate(-90deg)" }}
+        style={{ transformOrigin: "28px 28px", transform: "rotate(-90deg)" }}
       />
-      <text x="32" y="37" textAnchor="middle" fontSize="13" fontWeight="800" fill="rgba(0,0,0,0.7)">{score}</text>
+      <text x="28" y="33" textAnchor="middle" fontSize="12" fontWeight="800" fill="rgba(255,255,255,0.8)">{score}</text>
     </svg>
   );
 }
 
-function TimelineCard({ event, index }: { event: TimelineEvent; index: number }) {
-  const color = TYPE_COLORS[event.type];
+function SuggestionCard({ item, index }: { item: ContentSuggestion; index: number }) {
+  const platColor = PLATFORM_COLORS[item.platform] || "#6366f1";
+  const typeColor = TYPE_COLORS[item.type] || "#6366f1";
+  const reach = REACH_CONFIG[item.estimated_reach] || REACH_CONFIG.Medium;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.4 }}
-      className="flex gap-4 group"
+      transition={{ delay: index * 0.07, duration: 0.4 }}
     >
-      <div className="flex flex-col items-center">
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 shadow-sm"
-          style={{ background: `${color}14`, border: `1.5px solid ${color}30` }}
-        >
-          {TYPE_ICONS[event.type]}
-        </div>
-        <div className="w-px flex-1 mt-2" style={{ background: `${color}18` }} />
-      </div>
-      <div className="pb-6 flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <div>
-            <p className="text-sm font-semibold text-gray-800 leading-tight">{event.title}</p>
-            <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{event.desc}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${color}12`, color }}>
-              {event.score}%
+      <GlassCard className="p-4 hover:border-white/20 transition-colors cursor-default">
+        <div className="flex items-start gap-3">
+          <div className="flex flex-col items-center gap-2 pt-0.5">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-[10px] font-bold text-white"
+              style={{ background: `${platColor}20`, border: `1px solid ${platColor}40`, color: platColor }}
+            >
+              {item.platform === "LinkedIn" ? "in" : item.platform === "Twitter" ? "𝕏" : item.platform === "Instagram" ? "IG" : "✦"}
             </div>
-            <p className="text-[9px] text-gray-300 mt-1">{event.duration}</p>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="text-[13px] font-semibold text-white/85 leading-tight">{item.title}</h3>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: `${typeColor}18`, color: typeColor }}>
+                  {item.type}
+                </span>
+                <span className="text-[9px] font-bold" style={{ color: reach.color }}>{reach.label}</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-white/40 leading-relaxed mb-2.5">{item.rationale}</p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Clock size={10} className="text-white/25" />
+                <span className="text-[10px] text-white/35">{item.optimal_time}</span>
+              </div>
+              {item.seed_ref && (
+                <div className="flex items-center gap-1">
+                  <Sparkles size={10} className="text-indigo-400/50" />
+                  <span className="text-[10px] text-indigo-400/60">from Skippy</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ background: "rgba(0,0,0,0.05)" }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${event.score}%` }}
-            transition={{ delay: 0.4 + index * 0.08, duration: 0.8, ease: "easeOut" }}
-            className="h-full rounded-full"
-            style={{ background: `linear-gradient(90deg, ${color}80, ${color})` }}
-          />
-        </div>
-      </div>
+      </GlassCard>
     </motion.div>
   );
 }
 
-const SAMPLE_TIMELINE: TimelineEvent[] = [
-  { id: "1", time: "9:00 AM", title: "Deep work session — dashboard refactor", desc: "VSCode · /src/dashboard · 3 file saves · no context switches", type: "deep", duration: "47 min", score: 92 },
-  { id: "2", time: "9:52 AM", title: "API research & documentation reading", desc: "Browser · docs.openrouter.ai · API rate limits & vision endpoints", type: "research", duration: "28 min", score: 78 },
-  { id: "3", time: "10:25 AM", title: "Git commit pushed to main", desc: "feat: skippy toggle redesign with screen capture integration", type: "commit", duration: "5 min", score: 100 },
-  { id: "4", time: "10:30 AM", title: "Design system review — Figma", desc: "CozyJet design tokens, component library updates", type: "design", duration: "34 min", score: 85 },
-  { id: "5", time: "11:10 AM", title: "Short break", desc: "Away from screen · idle detected", type: "break", duration: "12 min", score: 30 },
-  { id: "6", time: "11:22 AM", title: "AI agent development — Snooks", desc: "Building productivity timeline generator · API integration", type: "ai", duration: "1h 8min", score: 96 },
-];
-
 export default function SnooksPage() {
   const { assistanceMsg, skippyContext } = useDashboardStore();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [streamingEvents, setStreamingEvents] = useState<TimelineEvent[]>([]);
-  const [totalScore, setTotalScore] = useState(0);
-  const [generated, setGenerated] = useState(false);
-  const [dateLabel, setDateLabel] = useState("Today");
+  const [data, setData] = useState<SnooksData | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"suggestions" | "trends" | "timing">("suggestions");
+  const [dateLabel, setDateLabel] = useState("This week");
 
   useEffect(() => {
     const d = new Date();
-    setDateLabel(d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }));
+    const end = new Date(d);
+    end.setDate(d.getDate() + 6);
+    const fmt = (dt: Date) => dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    setDateLabel(`${fmt(d)} – ${fmt(end)}`);
   }, []);
-
-  const stats = React.useMemo(() => {
-    if (!timeline.length) return null;
-    const deepWork = timeline.filter(e => e.type === "deep" || e.type === "ai" || e.type === "commit");
-    const commits = timeline.filter(e => e.type === "commit").length;
-    const avgScore = Math.round(timeline.reduce((s, e) => s + e.score, 0) / timeline.length);
-    return { sessions: deepWork.length, commits, avgScore };
-  }, [timeline]);
 
   const buildSkippyCtx = () => {
     if (skippyContext) {
       const parts = [];
       if (skippyContext.signal) parts.push(skippyContext.signal);
       if (skippyContext.activity) parts.push(skippyContext.activity);
-      if (skippyContext.insights) parts.push(skippyContext.insights);
       return parts.join(". ");
     }
     return assistanceMsg || "";
@@ -146,30 +181,19 @@ export default function SnooksPage() {
 
   const generate = async () => {
     setIsGenerating(true);
-    setTimeline([]);
-    setStreamingEvents([]);
-    setGenerated(false);
+    setData(null);
     setErrorMsg(null);
 
     const skippyCtx = buildSkippyCtx();
-
     const userPrompt = skippyCtx
-      ? `Based on Skippy's live observation of my workspace: "${skippyCtx}". Generate a realistic productivity timeline for today with exactly 6 events. Return ONLY a valid JSON array with no markdown, no explanation. Each event: { "id": "string", "time": "H:MM AM/PM", "title": "string", "desc": "string", "type": "deep|research|commit|design|break|ai", "duration": "string", "score": 0-100 }`
-      : `Generate a realistic productivity timeline for a developer working on an AI SaaS product today. Exactly 6 events, sequential times starting around 9 AM. Return ONLY a valid JSON array with no markdown. Each event: { "id": "string", "time": "H:MM AM/PM", "title": "string", "desc": "string", "type": "deep|research|commit|design|break|ai", "duration": "string", "score": 0-100 }`;
-
-    const userContext = skippyCtx
-      ? { workspace: skippyCtx, date: dateLabel }
-      : { role: "developer", project: "AI SaaS", date: dateLabel };
+      ? `Based on my workspace activity: "${skippyCtx}". Plan my content week for ${dateLabel}. Generate a complete content strategy with 6 post suggestions, trend alerts, and calendar health analysis.`
+      : `I am a solopreneur building an AI SaaS product. Plan my content week for ${dateLabel}. Generate a complete content strategy with 6 post suggestions for LinkedIn, Twitter, and Instagram, trend alerts relevant to my niche, and calendar health analysis. Make the suggestions specific, actionable, and high-quality.`;
 
     try {
       const res = await fetch("/api/ai/snooks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userPrompt,
-          userContext,
-          skippyContext: skippyCtx,
-        }),
+        body: JSON.stringify({ userPrompt, userContext: { date: dateLabel, role: "solopreneur", niche: "AI/SaaS" }, skippyContext: skippyCtx }),
       });
 
       if (!res.ok) {
@@ -177,230 +201,279 @@ export default function SnooksPage() {
         throw new Error(err.error || "API error");
       }
 
-      const data = await res.json();
+      const json = await res.json();
 
-      let events: TimelineEvent[] | null = null;
+      if (json.error) throw new Error(json.error);
 
-      if (data.responseText) {
-        const jsonMatch = data.responseText.match(/\[[\s\S]*?\]/);
-        if (jsonMatch) {
-          try { events = JSON.parse(jsonMatch[0]); } catch {}
-        }
-      }
+      const parsed: SnooksData = {
+        week_summary: json.week_summary || json.responseText || "",
+        suggestions: Array.isArray(json.suggestions) ? json.suggestions : [],
+        trend_alerts: Array.isArray(json.trend_alerts) ? json.trend_alerts : [],
+        calendar_health: json.calendar_health || null,
+        posting_times: json.posting_times || null,
+      };
 
-      if (!events && data.raw) {
-        const jsonMatch = data.raw.match(/\[[\s\S]*?\]/);
-        if (jsonMatch) {
-          try { events = JSON.parse(jsonMatch[0]); } catch {}
-        }
-      }
-
-      if (events && Array.isArray(events) && events.length > 0) {
-        for (let i = 0; i < events.length; i++) {
-          await new Promise(r => setTimeout(r, 180));
-          setStreamingEvents(prev => [...prev, events![i]]);
-        }
-        setTimeline(events);
-        const avg = Math.round(events.reduce((s, e) => s + (e.score || 0), 0) / events.length);
-        setTotalScore(avg);
-        setGenerated(true);
+      setData(parsed);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      if (message.includes("API key")) {
+        setErrorMsg("OPEN_ROUTER API key not configured. Add it in environment secrets.");
       } else {
-        setTimeline(SAMPLE_TIMELINE);
-        setTotalScore(81);
-        setGenerated(true);
-      }
-    } catch (err: any) {
-      if (err.message?.includes("API key")) {
-        setErrorMsg("OPEN_ROUTER API key not configured. Add it in environment variables.");
-      } else {
-        setTimeline(SAMPLE_TIMELINE);
-        setTotalScore(81);
-        setGenerated(true);
+        setErrorMsg(message || "Something went wrong. Please try again.");
       }
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const displayEvents = isGenerating ? streamingEvents : timeline;
+  const suggestions = data?.suggestions || [];
+  const trendAlerts = data?.trend_alerts || [];
+  const health = data?.calendar_health;
+  const postingTimes = data?.posting_times;
 
   return (
-    <div className="h-full flex flex-col" style={{ background: "#fafafa" }}>
-      <div className="px-8 py-5 border-b border-black/5 flex items-center justify-between shrink-0" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(12px)" }}>
+    <div
+      className="h-full flex flex-col overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #0a0a1a 0%, #0f0c29 35%, #1a1040 65%, #0d0d20 100%)" }}
+    >
+      {/* Ambient orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-10 right-20 w-72 h-72 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #8b5cf6 0%, transparent 70%)", filter: "blur(60px)" }} />
+        <div className="absolute bottom-10 left-10 w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(50px)" }} />
+      </div>
+
+      {/* Header */}
+      <div
+        className="relative z-10 px-8 py-5 border-b flex items-center justify-between shrink-0"
+        style={{ borderColor: "rgba(255,255,255,0.06)", backdropFilter: "blur(20px)", background: "rgba(255,255,255,0.03)" }}
+      >
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-            <span className="text-[11px] text-black/30 font-medium uppercase tracking-widest">Productivity Agent · Snooks</span>
+            <span className="text-[10px] text-white/25 font-semibold uppercase tracking-widest">Content Strategist · Snooks</span>
           </div>
-          <h1 className="text-lg font-semibold text-gray-900 tracking-tight">Productivity Timeline</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{dateLabel}</p>
+          <h1 className="text-lg font-bold text-white/85 tracking-tight">Weekly Strategy</h1>
+          <p className="text-[11px] text-white/30 mt-0.5">{dateLabel}</p>
         </div>
         <div className="flex items-center gap-3">
-          {generated && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => { setGenerated(false); setTimeline([]); setStreamingEvents([]); setErrorMsg(null); }}
-              className="text-xs text-black/30 hover:text-black/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-black/5"
-            >
+          {buildSkippyCtx() && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
+              <Zap size={10} className="text-indigo-400" />
+              <span className="text-[9px] text-indigo-400 font-medium">Skippy context</span>
+            </div>
+          )}
+          {data && (
+            <button onClick={() => setData(null)} className="text-[11px] text-white/20 hover:text-white/50 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
               Clear
-            </motion.button>
+            </button>
           )}
           <motion.button
             onClick={generate}
             disabled={isGenerating}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all"
-            style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 4px 16px rgba(124,58,237,0.4)" }}
           >
             {isGenerating ? (
-              <>
-                <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}>
-                  <Zap size={14} />
-                </motion.div>
-                <span>Generating...</span>
-              </>
+              <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}><Zap size={14} /></motion.div><span>Planning…</span></>
             ) : (
-              <><Zap size={14} /><span>{generated ? "Regenerate" : "Generate Timeline"}</span></>
+              <><Sparkles size={14} /><span>{data ? "Replan Week" : "Plan My Week"}</span></>
             )}
           </motion.button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-6">
+      <div className="relative z-10 flex-1 overflow-hidden flex flex-col">
+        {/* Error */}
         {errorMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 px-4 py-3 rounded-xl text-sm text-red-600 font-medium"
-            style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="mx-8 mt-4 px-4 py-3 rounded-xl text-sm text-red-400 font-medium"
+            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
             {errorMsg}
           </motion.div>
         )}
 
-        {!generated && !isGenerating && !errorMsg && (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-6">
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="w-20 h-20 rounded-3xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #7c3aed15, #6d28d915)", border: "1px solid rgba(124,58,237,0.15)" }}
-            >
-              <TrendingUp size={32} className="text-violet-400" />
+        {/* Empty state */}
+        {!data && !isGenerating && !errorMsg && (
+          <div className="flex-1 flex flex-col items-center justify-center gap-8 text-center px-8">
+            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto"
+              style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)", backdropFilter: "blur(20px)" }}>
+              <Calendar size={36} className="text-violet-400/60" />
             </motion.div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">Your day, mapped.</h2>
-              <p className="text-sm text-gray-400 max-w-xs leading-relaxed">
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-white/50">Your week, planned.</h2>
+              <p className="text-sm text-white/25 max-w-sm leading-relaxed">
                 {buildSkippyCtx()
-                  ? "Skippy has context from your screen. Generate your personalized timeline."
-                  : "Generate a productivity timeline powered by your Skippy observations."}
+                  ? "Skippy has workspace context. Snooks will build a personalised content week around your actual work."
+                  : "Snooks looks at what content you should be posting this week, when to post it, and what trending topics you can own."}
               </p>
               {buildSkippyCtx() && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 px-4 py-3 rounded-xl text-xs text-violet-600 font-medium"
-                  style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}
-                >
-                  📡 Skippy context: "{buildSkippyCtx().slice(0, 80)}{buildSkippyCtx().length > 80 ? "..." : ""}"
-                </motion.div>
+                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs text-violet-400 font-medium mt-2"
+                  style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}>
+                  📡 &quot;{buildSkippyCtx().slice(0, 70)}{buildSkippyCtx().length > 70 ? "…" : ""}&quot;
+                </div>
               )}
             </div>
-            <motion.button
-              onClick={generate}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
+            <motion.button onClick={generate} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
               className="flex items-center gap-2 px-7 py-3.5 rounded-2xl text-sm font-semibold text-white"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 8px 24px rgba(124,58,237,0.35)" }}
-            >
-              <Zap size={16} /> Generate My Timeline
+              style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4)" }}>
+              <Sparkles size={16} /> Plan My Content Week
             </motion.button>
           </div>
         )}
 
-        {(isGenerating || generated) && !errorMsg && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
-            {(generated && !isGenerating) && (
-              <div className="flex items-center gap-4 p-5 rounded-2xl mb-8" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                <ScoreRing score={totalScore} />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-800">
-                    {totalScore >= 80 ? "Exceptional focus day 🔥" : totalScore >= 60 ? "Solid productivity 💪" : "Room to improve 📈"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">Overall productivity score</p>
-                  {stats && (
-                    <div className="flex gap-4 mt-2">
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-gray-700">{stats.sessions}</p>
-                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Sessions</p>
-                      </div>
-                      <div className="w-px bg-black/6" />
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-gray-700">{stats.commits}</p>
-                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Commits</p>
-                      </div>
-                      <div className="w-px bg-black/6" />
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-gray-700">{stats.avgScore}%</p>
-                        <p className="text-[9px] text-gray-400 uppercase tracking-wide">Avg Focus</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {isGenerating && streamingEvents.length === 0 && (
-              <div className="flex flex-col gap-4">
-                {[0,1,2,3,4,5].map((i) => (
-                  <div key={i} className="flex gap-4 animate-pulse">
-                    <div className="w-9 h-9 rounded-full bg-black/5 shrink-0" />
-                    <div className="flex-1 space-y-2 pt-1">
-                      <div className="h-3 bg-black/5 rounded-full w-1/2" />
-                      <div className="h-2 bg-black/5 rounded-full w-3/4" />
-                      <div className="h-1 bg-black/5 rounded-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="relative">
-              <AnimatePresence>
-                {displayEvents.map((event, i) => (
-                  <TimelineCard key={event.id} event={event} index={i} />
-                ))}
-              </AnimatePresence>
-
-              {isGenerating && streamingEvents.length > 0 && (
-                <motion.div
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="flex gap-4 items-center py-2"
-                >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)" }}>
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-                      <Zap size={16} className="text-violet-400" />
-                    </motion.div>
-                  </div>
-                  <span className="text-xs text-gray-400 font-medium">Generating next event...</span>
-                </motion.div>
-              )}
-
-              {generated && !isGenerating && (
-                <div className="flex gap-4">
-                  <div className="w-9 flex justify-center">
-                    <div className="w-4 h-4 rounded-full border-2 border-black/10 flex items-center justify-center">
-                      <CheckCircle2 size={12} className="text-emerald-400" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-300 pb-2">End of tracked session</p>
-                </div>
-              )}
+        {/* Loading skeleton */}
+        {isGenerating && (
+          <div className="flex-1 px-8 py-6 space-y-4 overflow-auto">
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[0,1,2].map((i) => (
+                <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }} />
+              ))}
             </div>
-          </motion.div>
+            {[0,1,2,3,4,5].map((i) => (
+              <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }} />
+            ))}
+          </div>
+        )}
+
+        {/* Data view */}
+        {data && !isGenerating && (
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Week summary + stats */}
+            {(data.week_summary || health) && (
+              <div className="px-8 pt-5 pb-3 flex items-start gap-4">
+                {health && (
+                  <GlassCard className="flex items-center gap-3 p-3 shrink-0">
+                    <ScoreRing score={health.score} />
+                    <div>
+                      <p className="text-[11px] font-bold text-white/70">Calendar Health</p>
+                      <p className="text-[10px] text-white/35 mt-0.5 max-w-[140px] leading-relaxed">{health.recommendation}</p>
+                    </div>
+                  </GlassCard>
+                )}
+                {data.week_summary && (
+                  <GlassCard className="flex-1 p-3">
+                    <p className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-1">This Week&apos;s Strategy</p>
+                    <p className="text-[12px] text-white/60 leading-relaxed">{data.week_summary}</p>
+                  </GlassCard>
+                )}
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div className="px-8 py-2 flex gap-1 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              {(["suggestions", "trends", "timing"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all capitalize"
+                  style={activeTab === tab ? { background: "rgba(124,58,237,0.2)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" } : { color: "rgba(255,255,255,0.3)", border: "1px solid transparent" }}
+                >
+                  {tab === "suggestions" && <><BarChart3 size={12} /> Posts ({suggestions.length})</>}
+                  {tab === "trends" && <><TrendingUp size={12} /> Trends ({trendAlerts.length})</>}
+                  {tab === "timing" && <><Clock size={12} /> Best Times</>}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <div className="flex-1 overflow-auto px-8 py-5 space-y-3">
+              <AnimatePresence mode="wait">
+                {activeTab === "suggestions" && (
+                  <motion.div key="suggestions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                    {suggestions.map((item, i) => <SuggestionCard key={item.id || i} item={item} index={i} />)}
+                    {suggestions.length === 0 && <p className="text-white/25 text-sm text-center py-8">No suggestions generated.</p>}
+                    {health?.gaps && health.gaps.length > 0 && (
+                      <GlassCard className="p-3 mt-2">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <AlertTriangle size={11} className="text-amber-400" />
+                          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Calendar Gaps</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {health.gaps.map((gap, i) => (
+                            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(245,158,11,0.1)", color: "#fbbf24", border: "1px solid rgba(245,158,11,0.15)" }}>{gap}</span>
+                          ))}
+                        </div>
+                      </GlassCard>
+                    )}
+                  </motion.div>
+                )}
+
+                {activeTab === "trends" && (
+                  <motion.div key="trends" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                    {trendAlerts.map((alert, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+                        <GlassCard className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <TrendingUp size={12} className="text-pink-400" />
+                                <span className="text-[13px] font-semibold text-white/85">{alert.topic}</span>
+                              </div>
+                              <p className="text-[11px] text-white/40 leading-relaxed">{alert.relevance}</p>
+                            </div>
+                            <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${URGENCY_COLORS[alert.urgency] || "#6b7280"}18`, color: URGENCY_COLORS[alert.urgency] || "#6b7280", border: `1px solid ${URGENCY_COLORS[alert.urgency] || "#6b7280"}30` }}>
+                              {alert.urgency}
+                            </span>
+                          </div>
+                        </GlassCard>
+                      </motion.div>
+                    ))}
+                    {trendAlerts.length === 0 && <p className="text-white/25 text-sm text-center py-8">No trend alerts detected.</p>}
+                  </motion.div>
+                )}
+
+                {activeTab === "timing" && (
+                  <motion.div key="timing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                    {postingTimes ? (
+                      Object.entries(postingTimes).map(([platform, timing], i) => (
+                        <motion.div key={platform} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+                          <GlassCard className="p-4 flex items-center gap-4">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold text-white"
+                              style={{ background: `${PLATFORM_COLORS[platform] || "#6366f1"}20`, border: `1px solid ${PLATFORM_COLORS[platform] || "#6366f1"}40`, color: PLATFORM_COLORS[platform] || "#6366f1" }}
+                            >
+                              {platform === "LinkedIn" ? "in" : platform === "Twitter" ? "𝕏" : "IG"}
+                            </div>
+                            <div>
+                              <p className="text-[13px] font-semibold text-white/80">{platform}</p>
+                              <p className="text-[11px] text-white/35 mt-0.5">{timing}</p>
+                            </div>
+                            <ChevronRight size={14} className="ml-auto text-white/15" />
+                          </GlassCard>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="space-y-3">
+                        {[{ platform: "LinkedIn", time: "Best: Tuesday–Thursday 8–10am" }, { platform: "Twitter", time: "Best: Mon–Fri 9am, 12pm, 5pm" }, { platform: "Instagram", time: "Best: Tuesday–Friday 11am–1pm" }].map((pt, i) => (
+                          <GlassCard key={pt.platform} className="p-4 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-bold" style={{ background: `${PLATFORM_COLORS[pt.platform]}20`, color: PLATFORM_COLORS[pt.platform] }}>
+                              {pt.platform === "LinkedIn" ? "in" : pt.platform === "Twitter" ? "𝕏" : "IG"}
+                            </div>
+                            <div>
+                              <p className="text-[13px] font-semibold text-white/80">{pt.platform}</p>
+                              <p className="text-[11px] text-white/35">{pt.time}</p>
+                            </div>
+                          </GlassCard>
+                        ))}
+                      </div>
+                    )}
+                    <GlassCard className="p-4 mt-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 size={12} className="text-emerald-400" />
+                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Pro tip</span>
+                      </div>
+                      <p className="text-[11px] text-white/40 leading-relaxed">
+                        Post at the beginning of the optimal window, not the end. Early posts get more algorithm boost as the platform tests their reach.
+                      </p>
+                    </GlassCard>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         )}
       </div>
     </div>

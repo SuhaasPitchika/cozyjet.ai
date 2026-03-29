@@ -1,47 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import AgenticBackend from '@/backend/agent-engine';
+import { NextRequest, NextResponse } from "next/server";
+import { callOpenRouter, META_SYSTEM_PROMPT } from "@/backend/agent-engine";
 
 export async function POST(req: NextRequest) {
   try {
     const { messages, skippyContext } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'messages array is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "messages array is required" },
+        { status: 400 }
+      );
     }
 
-    const lastMessage = messages[messages.length - 1].content;
-    const history = messages.slice(0, -1).map((m: any) => ({
-      role: m.role === 'bot' ? 'assistant' : m.role,
-      content: m.content
-    }));
+    const systemContent = skippyContext
+      ? `${META_SYSTEM_PROMPT}\n\nSKIPPY CONTEXT (user's current workspace activity):\n${skippyContext}\n\nUse this context to make generated content feel authentically personal and specific.`
+      : META_SYSTEM_PROMPT;
 
-    const result = await AgenticBackend.processAgentTask(
-      {
-        id: 'snooks',
-        name: 'Snooks',
-        capabilities: ['marketing_strategy', 'content_creation'],
-        maxTokens: 2000,
-        temperature: 0.75
-      },
-      {
-        chatHistory: history,
-        skippyContext: skippyContext || ''
-      },
-      lastMessage
-    );
+    const openRouterMessages = [
+      { role: "system" as const, content: systemContent },
+      ...messages.map((m: { role: string; content: string }) => ({
+        role: (m.role === "bot" ? "assistant" : m.role) as
+          | "user"
+          | "assistant",
+        content: m.content,
+      })),
+    ];
 
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 502 });
+    const response = await callOpenRouter(openRouterMessages, {
+      maxTokens: 2500,
+      temperature: 0.8,
+    });
+
+    return NextResponse.json({ response });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+    console.error("Meta route error:", message);
+    if (message.includes("API key")) {
+      return NextResponse.json(
+        { error: "OPEN_ROUTER API key not configured. Add it in Secrets." },
+        { status: 502 }
+      );
     }
-
-    // Snooks returns JSON with responseText
-    const output = result.result.output;
-    const responseText = output.responseText || output.response || (typeof output === 'string' ? output : "Error generating response.");
-
-    return NextResponse.json({ response: responseText });
-  } catch (error) {
-    console.error('Meta route error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

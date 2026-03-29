@@ -66,20 +66,22 @@ const AGENTS = [
   {
     id: "skippy",
     name: "Skippy",
-    role: "Workspace Observer",
+    role: "Silent Observer",
     color: "#6366f1",
     status: "active",
-    statusLabel: "Watching 4 sources",
+    statusLabel: "Extracts content seeds",
     pulse: true,
+    href: "/dashboard/skippy",
   },
   {
     id: "snooks",
     name: "Snooks",
-    role: "Scheduling Agent",
+    role: "Content Strategist",
     color: "#8b5cf6",
     status: "idle",
-    statusLabel: "3 posts queued",
+    statusLabel: "Plans your content week",
     pulse: false,
+    href: "/dashboard/snooks",
   },
   {
     id: "meta",
@@ -87,8 +89,9 @@ const AGENTS = [
     role: "AI Copywriter",
     color: "#ec4899",
     status: "active",
-    statusLabel: "Ready to generate",
+    statusLabel: "3 variations · your voice",
     pulse: true,
+    href: "/dashboard/meta",
   },
 ];
 
