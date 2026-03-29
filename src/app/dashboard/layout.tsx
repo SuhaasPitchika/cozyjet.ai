@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
-  LogOut, Settings, Sliders, ChevronLeft,
+  LogOut, Settings, ChevronLeft, AlertTriangle, X, ExternalLink,
 } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -51,6 +51,65 @@ const NAV_ITEMS = [
   },
 ];
 
+function ApiKeyBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="overflow-hidden shrink-0"
+    >
+      <div
+        className="flex items-center gap-3 px-5 py-3"
+        style={{
+          background: "linear-gradient(90deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08))",
+          borderBottom: "1px solid rgba(245,158,11,0.2)",
+        }}
+      >
+        <div
+          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}
+        >
+          <AlertTriangle size={12} className="text-amber-500" />
+        </div>
+        <p className="flex-1 text-[11px] text-black/60 leading-relaxed">
+          <span className="font-bold text-amber-600">OpenRouter API key missing</span>
+          {" — AI features won't work. "}
+          Add{" "}
+          <code
+            className="px-1.5 py-0.5 rounded text-[10px] font-bold"
+            style={{ background: "rgba(0,0,0,0.08)", color: "#d97706" }}
+          >
+            OPEN_ROUTER
+          </code>
+          {" to Replit Secrets (padlock icon in sidebar), then restart."}
+        </p>
+        <a
+          href="https://openrouter.ai/keys"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold shrink-0 transition-all hover:opacity-80"
+          style={{
+            background: "rgba(245,158,11,0.15)",
+            color: "#d97706",
+            border: "1px solid rgba(245,158,11,0.25)",
+          }}
+        >
+          Get key
+          <ExternalLink size={10} />
+        </a>
+        <button
+          onClick={onDismiss}
+          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 hover:bg-black/8 transition-colors"
+        >
+          <X size={12} className="text-black/30" />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -58,9 +117,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const auth = useAuth();
   const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const isLoading = isUserLoading || isReplitLoading;
   const isAuthenticated = !!user || !!replitUser;
+
+  useEffect(() => {
+    fetch("/api/ai/status")
+      .then((r) => r.json())
+      .then((d) => { if (!d.openRouter) setApiKeyMissing(true); })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth");
@@ -79,6 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const displayName = user?.displayName || user?.email?.split("@")[0] || replitUser?.name || "User";
   const initials = displayName.slice(0, 2).toUpperCase();
   const sidebarWidth = collapsed ? 68 : 220;
+  const showBanner = apiKeyMissing && !bannerDismissed;
 
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ background: "#eeeef2" }}>
@@ -151,17 +220,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     paddingLeft: collapsed ? 0 : 12,
                     paddingRight: collapsed ? 0 : 12,
                     justifyContent: collapsed ? "center" : "flex-start",
-                    background: isActive
-                      ? `rgba(255,255,255,0.75)`
-                      : "transparent",
+                    background: isActive ? `rgba(255,255,255,0.75)` : "transparent",
                     backdropFilter: isActive ? "blur(20px)" : "none",
                     WebkitBackdropFilter: isActive ? "blur(20px)" : "none",
-                    border: isActive
-                      ? `1px solid rgba(255,255,255,0.9)`
-                      : "1px solid transparent",
-                    boxShadow: isActive
-                      ? `0 2px 12px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,1)`
-                      : "none",
+                    border: isActive ? `1px solid rgba(255,255,255,0.9)` : "1px solid transparent",
+                    boxShadow: isActive ? `0 2px 12px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,1)` : "none",
                   }}
                 >
                   {isActive && (
@@ -173,12 +236,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     />
                   )}
                   <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                    style={{
-                      background: isActive ? `${item.color}15` : "rgba(0,0,0,0.04)",
-                    }}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base relative"
+                    style={{ background: isActive ? `${item.color}15` : "rgba(0,0,0,0.04)" }}
                   >
                     <span style={{ fontSize: 16 }}>{item.emoji}</span>
+                    {/* Dot if API key missing and this is an AI nav item */}
+                    {apiKeyMissing && !bannerDismissed && item.label !== "Settings" && (
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border-2 border-white" />
+                    )}
                   </div>
 
                   <AnimatePresence>
@@ -268,6 +333,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ─── MAIN AREA ─── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* API key banner */}
+        <AnimatePresence>
+          {showBanner && <ApiKeyBanner onDismiss={() => setBannerDismissed(true)} />}
+        </AnimatePresence>
+
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
