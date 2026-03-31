@@ -5,110 +5,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import {
-  LogOut, Settings, ChevronLeft, AlertTriangle, X, ExternalLink,
-} from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
-  {
-    label: "Skippy",
-    href: "/dashboard/skippy",
-    color: "#6366f1",
-    desc: "Observer & Integrations",
-    emoji: "👁",
-  },
-  {
-    label: "Snooks",
-    href: "/dashboard/snooks",
-    color: "#7c3aed",
-    desc: "Content Strategist",
-    emoji: "📅",
-  },
-  {
-    label: "Meta",
-    href: "/dashboard/meta",
-    color: "#ec4899",
-    desc: "AI Copywriter",
-    emoji: "✍️",
-  },
-  {
-    label: "Tuning",
-    href: "/dashboard/tuning",
-    color: "#f59e0b",
-    desc: "Voice & API Config",
-    emoji: "🎛",
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    color: "#64748b",
-    desc: "Account & Preferences",
-    emoji: "⚙️",
-    icon: Settings,
-  },
+  { label: "SKIPPY", href: "/dashboard/skippy", color: "#6ee7f7", glow: "rgba(110,231,247,0.5)" },
+  { label: "SNOOKS", href: "/dashboard/snooks", color: "#b8a4ff", glow: "rgba(184,164,255,0.5)" },
+  { label: "META",   href: "/dashboard/meta",   color: "#ff9de2", glow: "rgba(255,157,226,0.5)" },
+  { label: "TUNING", href: "/dashboard/tuning", color: "#ffd97d", glow: "rgba(255,217,125,0.5)" },
+  { label: "SETTINGS", href: "/dashboard/settings", color: "#a0aec0", glow: "rgba(160,174,192,0.4)" },
 ];
-
-function ApiKeyBanner({ onDismiss }: { onDismiss: () => void }) {
-  return (
-    <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="overflow-hidden shrink-0"
-    >
-      <div
-        className="flex items-center gap-3 px-5 py-3"
-        style={{
-          background: "linear-gradient(90deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08))",
-          borderBottom: "1px solid rgba(245,158,11,0.2)",
-        }}
-      >
-        <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}
-        >
-          <AlertTriangle size={12} className="text-amber-500" />
-        </div>
-        <p className="flex-1 text-[11px] text-black/60 leading-relaxed">
-          <span className="font-bold text-amber-600">OpenRouter API key missing</span>
-          {" — AI features won't work. "}
-          Add{" "}
-          <code
-            className="px-1.5 py-0.5 rounded text-[10px] font-bold"
-            style={{ background: "rgba(0,0,0,0.08)", color: "#d97706" }}
-          >
-            OPEN_ROUTER
-          </code>
-          {" to Replit Secrets (padlock icon in sidebar), then restart."}
-        </p>
-        <a
-          href="https://openrouter.ai/keys"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold shrink-0 transition-all hover:opacity-80"
-          style={{
-            background: "rgba(245,158,11,0.15)",
-            color: "#d97706",
-            border: "1px solid rgba(245,158,11,0.25)",
-          }}
-        >
-          Get key
-          <ExternalLink size={10} />
-        </a>
-        <button
-          onClick={onDismiss}
-          className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 hover:bg-black/8 transition-colors"
-        >
-          <X size={12} className="text-black/30" />
-        </button>
-      </div>
-    </motion.div>
-  );
-}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -116,19 +24,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
-  const [collapsed, setCollapsed] = useState(false);
-  const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const isLoading = isUserLoading || isReplitLoading;
   const isAuthenticated = !!user || !!replitUser;
-
-  useEffect(() => {
-    fetch("/api/ai/status")
-      .then((r) => r.json())
-      .then((d) => { if (!d.openRouter) setApiKeyMissing(true); })
-      .catch(() => {});
-  }, []);
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth");
@@ -146,200 +44,109 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const displayName = user?.displayName || user?.email?.split("@")[0] || replitUser?.name || "User";
   const initials = displayName.slice(0, 2).toUpperCase();
-  const sidebarWidth = collapsed ? 68 : 220;
-  const showBanner = apiKeyMissing && !bannerDismissed;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#eeeef2" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0e0e14" }}>
       {/* ─── SIDEBAR ─── */}
-      <motion.aside
-        animate={{ width: sidebarWidth }}
-        transition={{ type: "spring", stiffness: 340, damping: 32 }}
-        className="relative shrink-0 flex flex-col z-40 overflow-hidden"
+      <aside
+        className="relative shrink-0 flex flex-col z-40"
         style={{
-          background: "rgba(255,255,255,0.45)",
-          backdropFilter: "blur(40px) saturate(200%)",
-          WebkitBackdropFilter: "blur(40px) saturate(200%)",
-          borderRight: "1px solid rgba(255,255,255,0.6)",
-          boxShadow: "2px 0 24px rgba(0,0,0,0.06), inset -1px 0 0 rgba(255,255,255,0.8)",
+          width: 72,
+          background: "rgba(255,255,255,0.04)",
+          backdropFilter: "blur(48px) saturate(180%)",
+          WebkitBackdropFilter: "blur(48px) saturate(180%)",
+          borderRight: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "2px 0 40px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.06)",
         }}
       >
-        {/* ── Logo ── */}
-        <div
-          className="flex items-center gap-3 px-4"
-          style={{ height: 64, borderBottom: "1px solid rgba(0,0,0,0.06)", flexShrink: 0 }}
-        >
-          <Link href="/" className="block flex-shrink-0">
+        {/* Logo */}
+        <div className="flex items-center justify-center py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <Link href="/">
             <motion.div
-              whileHover={{ scale: 1.06 }}
-              className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center"
-              style={{ boxShadow: "0 2px 10px rgba(99,102,241,0.22)" }}
+              whileHover={{ scale: 1.1, rotate: 3 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-9 h-9 rounded-2xl overflow-hidden flex items-center justify-center"
+              style={{ boxShadow: "0 0 20px rgba(110,231,247,0.3), 0 2px 8px rgba(0,0,0,0.4)" }}
             >
-              <Image src="/cozyjet-logo.png" alt="CozyJet" width={32} height={32} style={{ width: "auto", height: "auto" }} className="object-contain" />
+              <Image src="/cozyjet-logo.png" alt="CozyJet" width={36} height={36} className="object-contain" />
             </motion.div>
           </Link>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
-                transition={{ duration: 0.15 }}
-                className="overflow-hidden flex-1"
-              >
-                <p className="text-[13px] font-bold text-black/75 leading-none">CozyJet</p>
-                <p className="text-[10px] text-black/30 mt-0.5 font-medium">AI Studio</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <motion.button
-            onClick={() => setCollapsed(!collapsed)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center ml-auto"
-            style={{ background: "rgba(0,0,0,0.05)" }}
-          >
-            <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
-              <ChevronLeft size={13} className="text-black/35" />
-            </motion.div>
-          </motion.button>
         </div>
 
-        {/* ── Nav ── */}
-        <div className="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
+        {/* Nav Items */}
+        <div className="flex flex-col items-center gap-1 py-4 flex-1">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} className="w-full flex justify-center">
                 <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative flex items-center gap-3 rounded-2xl transition-all duration-150 cursor-pointer"
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
+                  className="relative flex flex-col items-center justify-center gap-1 cursor-pointer rounded-2xl transition-all"
                   style={{
-                    height: 48,
-                    paddingLeft: collapsed ? 0 : 12,
-                    paddingRight: collapsed ? 0 : 12,
-                    justifyContent: collapsed ? "center" : "flex-start",
-                    background: isActive ? `rgba(255,255,255,0.75)` : "transparent",
-                    backdropFilter: isActive ? "blur(20px)" : "none",
-                    WebkitBackdropFilter: isActive ? "blur(20px)" : "none",
-                    border: isActive ? `1px solid rgba(255,255,255,0.9)` : "1px solid transparent",
-                    boxShadow: isActive ? `0 2px 12px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,1)` : "none",
+                    width: 52,
+                    paddingTop: 8,
+                    paddingBottom: 8,
+                    background: isActive
+                      ? `rgba(255,255,255,0.08)`
+                      : "transparent",
+                    border: isActive
+                      ? `1px solid rgba(255,255,255,0.12)`
+                      : "1px solid transparent",
+                    boxShadow: isActive
+                      ? `0 0 16px ${item.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`
+                      : "none",
                   }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeNav"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full"
-                      style={{ height: 20, background: item.color }}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
+                      style={{ width: 3, height: 24, background: item.color, boxShadow: `0 0 8px ${item.color}` }}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base relative"
-                    style={{ background: isActive ? `${item.color}15` : "rgba(0,0,0,0.04)" }}
+                  <span
+                    className="font-pixel-thin"
+                    style={{
+                      fontSize: 9,
+                      letterSpacing: "0.12em",
+                      color: isActive ? item.color : "rgba(255,255,255,0.3)",
+                      textShadow: isActive ? `0 0 10px ${item.color}` : "none",
+                      writingMode: "vertical-rl",
+                      textOrientation: "mixed",
+                      transform: "rotate(180deg)",
+                    }}
                   >
-                    <span style={{ fontSize: 16 }}>{item.emoji}</span>
-                    {/* Dot if API key missing and this is an AI nav item */}
-                    {apiKeyMissing && !bannerDismissed && item.label !== "Settings" && (
-                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border-2 border-white" />
-                    )}
-                  </div>
-
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex-1 min-w-0"
-                      >
-                        <p
-                          className="text-[13px] font-semibold leading-none"
-                          style={{ color: isActive ? item.color : "rgba(0,0,0,0.6)" }}
-                        >
-                          {item.label}
-                        </p>
-                        <p
-                          className="text-[10px] leading-none mt-0.5"
-                          style={{ color: isActive ? `${item.color}80` : "rgba(0,0,0,0.28)" }}
-                        >
-                          {item.desc}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                    {item.label}
+                  </span>
                 </motion.div>
               </Link>
             );
           })}
         </div>
 
-        {/* ── Divider ── */}
-        <div style={{ height: 1, background: "rgba(0,0,0,0.06)", margin: "0 16px" }} />
-
-        {/* ── User footer ── */}
-        <div className="px-3 py-3 flex-shrink-0">
-          {!collapsed ? (
-            <div
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.55)",
-                border: "1px solid rgba(255,255,255,0.85)",
-                backdropFilter: "blur(20px)",
-              }}
-            >
-              <div
-                className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
-              >
-                <span className="text-[10px] font-bold text-white">{initials}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold text-black/70 leading-none truncate">{displayName}</p>
-                <span className="text-[9px] font-bold px-1.5 py-px rounded-full inline-block mt-0.5"
-                  style={{ background: "rgba(99,102,241,0.1)", color: "#6366f1" }}>Pro</span>
-              </div>
-              <motion.button
-                onClick={handleSignOut}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 group"
-                style={{ background: "rgba(0,0,0,0.04)" }}
-              >
-                <LogOut size={11} className="text-black/25 group-hover:text-red-400 transition-colors" />
-              </motion.button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer"
-                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
-              >
-                <span className="text-[10px] font-bold text-white">{initials}</span>
-              </div>
-              <motion.button
-                onClick={handleSignOut}
-                whileHover={{ scale: 1.1 }}
-                className="w-7 h-7 rounded-xl flex items-center justify-center group"
-                style={{ background: "rgba(0,0,0,0.04)" }}
-              >
-                <LogOut size={12} className="text-black/25 group-hover:text-red-400 transition-colors" />
-              </motion.button>
-            </div>
-          )}
+        {/* User */}
+        <div className="flex flex-col items-center py-4 gap-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #6ee7f7, #b8a4ff)" }}
+          >
+            <span className="font-pixel text-[8px] text-black">{initials}</span>
+          </div>
+          <motion.button
+            onClick={handleSignOut}
+            whileHover={{ scale: 1.1 }}
+            className="w-7 h-7 rounded-xl flex items-center justify-center group"
+            style={{ background: "rgba(255,255,255,0.05)" }}
+          >
+            <LogOut size={12} className="text-white/20 group-hover:text-red-400 transition-colors" />
+          </motion.button>
         </div>
-      </motion.aside>
+      </aside>
 
-      {/* ─── MAIN AREA ─── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* API key banner */}
-        <AnimatePresence>
-          {showBanner && <ApiKeyBanner onDismiss={() => setBannerDismissed(true)} />}
-        </AnimatePresence>
-
-        <main className="flex-1 overflow-auto">{children}</main>
-      </div>
+      {/* ─── MAIN ─── */}
+      <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
     </div>
   );
 }

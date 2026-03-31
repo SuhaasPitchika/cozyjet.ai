@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 import { ReplitAuthProvider } from "@/contexts/replit-auth-context";
 import Script from "next/script";
-import { Inter, Press_Start_2P, Space_Grotesk } from 'next/font/google';
+import { Inter, Press_Start_2P, Space_Grotesk, VT323 } from 'next/font/google';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -17,6 +17,13 @@ const pressStart2P = Press_Start_2P({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-pixel',
+});
+
+const vt323 = VT323({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-vt323',
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -98,7 +105,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${pressStart2P.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${pressStart2P.variable} ${vt323.variable} ${spaceGrotesk.variable}`}>
       <head>
         <link rel="canonical" href="https://cozyjet.ai" />
       </head>

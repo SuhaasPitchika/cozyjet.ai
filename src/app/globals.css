@@ -10,9 +10,9 @@
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
-    --primary: 220 10% 20%; 
+    --primary: 220 10% 20%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%; 
+    --secondary: 210 40% 96%;
     --secondary-foreground: 0 0% 10%;
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
@@ -28,57 +28,56 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(#e5e7eb 1.2px, transparent 0);
-    background-size: 20px 20px;
-  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; }
 }
 
-.glass {
-  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm;
+/* ─── Pixel Fonts ─── */
+.font-pixel {
+  font-family: var(--font-pixel), 'Courier New', monospace;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.font-pixel-thin {
+  font-family: var(--font-vt323), var(--font-pixel), 'Courier New', monospace;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
 }
 
-/* Neumorphic Utilities */
-.neumorphic-flat {
-  background: #fdfaf5;
-  box-shadow: 12px 12px 24px #d9d6d1, -12px -12px 24px #ffffff;
+/* ─── Mesh Graph (Snooks) ─── */
+.mesh-bg {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-.neumorphic-inset {
-  background: #fdfaf5;
-  box-shadow: inset 8px 8px 16px #d9d6d1, inset -8px -8px 16px #ffffff;
+/* ─── Moving Dot Blobs (Tuning bg) ─── */
+@keyframes dot-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(120px, -80px) scale(1.2); }
+  66%  { transform: translate(-60px, 140px) scale(0.8); }
+  100% { transform: translate(0, 0) scale(1); }
 }
+@keyframes dot-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-140px, 100px) scale(1.4); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes dot-drift-3 {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(80px, 160px); }
+  75%  { transform: translate(-100px, -60px); }
+  100% { transform: translate(0, 0); }
+}
+.dot-drift-1 { animation: dot-drift-1 18s ease-in-out infinite; }
+.dot-drift-2 { animation: dot-drift-2 24s ease-in-out infinite; }
+.dot-drift-3 { animation: dot-drift-3 20s ease-in-out infinite; }
 
-.neumorphic-button-active {
-  background: #fdfaf5;
-  box-shadow: 4px 4px 8px #d9d6d1, -4px -4px 8px #ffffff;
-}
-
-/* Moving Dots Animation */
-@keyframes move-dots {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 32px 32px;
-  }
-}
-
-.animate-move-dots {
-  animation: move-dots 4s linear infinite;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 3px;
-}
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-::-webkit-scrollbar-thumb {
-  @apply bg-black/5 rounded-full hover:bg-black/10 transition-colors;
-}
+/* ─── Custom Scrollbar ─── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
