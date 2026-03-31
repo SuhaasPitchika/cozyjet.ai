@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Youtube, Twitter, Mail, Instagram, Linkedin } from "lucide-react";
 
@@ -31,99 +31,78 @@ const TiktokIcon = ({ className, style }: { className?: string; style?: React.CS
 const PIXEL = "var(--font-pixel), 'Press Start 2P', 'Courier New', monospace";
 
 const ALL_NODES = [
-  {
-    icon: Youtube,     label: "YouTube",   color: "#FF0000",
-    tag: "SCRIPTS",
-    noteTitle: "VIDEO SCRIPTS",
-    noteLines: ["Hook + full script", "Title & SEO", "Retention loops"],
-  },
-  {
-    icon: Twitter,     label: "X",         color: "#1DA1F2",
-    tag: "TWEETS",
-    noteTitle: "VIRAL HOOKS",
-    noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"],
-  },
-  {
-    icon: RedditIcon,  label: "Reddit",    color: "#FF4500",
-    tag: "AUDIENCE MARKETING",
-    noteTitle: "AUDIENCE MKT",
-    noteLines: ["Community-native", "Upvote psychology", "No-promo tone"],
-  },
-  {
-    icon: TiktokIcon,  label: "TikTok",    color: "#000000",
-    tag: "SHORT-FORM",
-    noteTitle: "SHORT FORM",
-    noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"],
-  },
-  {
-    icon: ThreadsIcon, label: "Threads",   color: "#111111",
-    tag: "ORGANIC COMMUNITY BUILDING",
-    noteTitle: "MICRO STORIES",
-    noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"],
-  },
-  {
-    icon: Mail,        label: "Gmail",     color: "#EA4335",
-    tag: "COLD EMAILING",
-    noteTitle: "HIGH-CR EMAIL",
-    noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"],
-  },
-  {
-    icon: Instagram,   label: "Instagram", color: "#E4405F",
-    tag: "REELS & POSTS",
-    noteTitle: "VISUAL POSTS",
-    noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"],
-  },
-  {
-    icon: SlackIcon,   label: "Slack",     color: "#4A154B",
-    tag: "PRO BUSINESS MESSAGES",
-    noteTitle: "PRO MESSAGES",
-    noteLines: ["Team digests", "Launch announcements", "Newsletter"],
-  },
-  {
-    icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2",
-    tag: "PROFESSIONAL BLOGS",
-    noteTitle: "AUTHORITY BLOGS",
-    noteLines: ["Thought leadership", "Data stories", "Pro hooks"],
-  },
+  { icon: Youtube,     label: "YouTube",   color: "#FF0000", tag: "SCRIPTS",                  noteTitle: "VIDEO SCRIPTS",    noteLines: ["Hook + full script", "Title & SEO", "Retention loops"] },
+  { icon: Twitter,     label: "X",         color: "#1DA1F2", tag: "TWEETS",                   noteTitle: "VIRAL HOOKS",      noteLines: ["8–12 tweet threads", "Engagement bait", "Viral formatting"] },
+  { icon: RedditIcon,  label: "Reddit",    color: "#FF4500", tag: "AUDIENCE MARKETING",        noteTitle: "AUDIENCE MKT",     noteLines: ["Community-native", "Upvote psychology", "No-promo tone"] },
+  { icon: TiktokIcon,  label: "TikTok",    color: "#000000", tag: "SHORT-FORM",               noteTitle: "SHORT FORM",       noteLines: ["Trending hooks", "60-sec scripts", "Retention cuts"] },
+  { icon: ThreadsIcon, label: "Threads",   color: "#111111", tag: "ORGANIC COMMUNITY",        noteTitle: "MICRO STORIES",    noteLines: ["Micro-narratives", "Knowledge drops", "Reply bait"] },
+  { icon: Mail,        label: "Gmail",     color: "#EA4335", tag: "COLD EMAILING",            noteTitle: "HIGH-CR EMAIL",    noteLines: ["Subject A/B lines", "Cold sequences", "High-CR funnels"] },
+  { icon: Instagram,   label: "Instagram", color: "#E4405F", tag: "REELS & POSTS",            noteTitle: "VISUAL POSTS",     noteLines: ["Story captions", "Hashtag clusters", "Reel scripts"] },
+  { icon: SlackIcon,   label: "Slack",     color: "#4A154B", tag: "PRO BUSINESS MESSAGES",    noteTitle: "PRO MESSAGES",     noteLines: ["Team digests", "Launch announcements", "Newsletter"] },
+  { icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2", tag: "PROFESSIONAL BLOGS",       noteTitle: "AUTHORITY BLOGS",  noteLines: ["Thought leadership", "Data stories", "Pro hooks"] },
 ];
 
+/* ─── Typing subtitle ─── */
 const SUBTITLES = [
-  "Turn your work into viral content — automatically.",
-  "Three AI agents. One studio. Zero extra effort.",
-  "From idea to Twitter thread in seconds.",
-  "Your co-pilot for content, growth & deep work.",
-  "Built for solopreneurs who ship fast and market smarter.",
+  "Three AI agents watch your work and turn it into viral content — automatically.",
+  "Skippy observes. Snooks strategises. Meta writes. You just ship.",
+  "From a GitHub commit to a LinkedIn post in seconds — without lifting a finger.",
+  "Your personal marketing studio. Powered by AI. Built for solopreneurs.",
+  "Stop context-switching between building and marketing. Let the agents handle it.",
 ];
 
-function AnimatedSubtitle() {
+function TypingSubtitle() {
   const [idx, setIdx] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    const t = setInterval(() => setIdx((p) => (p + 1) % SUBTITLES.length), 3200);
-    return () => clearInterval(t);
-  }, []);
+    const full = SUBTITLES[idx];
+    if (!isDeleting) {
+      if (displayed.length < full.length) {
+        timeoutRef.current = setTimeout(() => setDisplayed(full.slice(0, displayed.length + 1)), 36);
+      } else {
+        timeoutRef.current = setTimeout(() => setIsDeleting(true), 2800);
+      }
+    } else {
+      if (displayed.length > 0) {
+        timeoutRef.current = setTimeout(() => setDisplayed(d => d.slice(0, -1)), 16);
+      } else {
+        setIsDeleting(false);
+        setIdx(i => (i + 1) % SUBTITLES.length);
+      }
+    }
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, [displayed, isDeleting, idx]);
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.p
-        key={idx}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.45, ease: "easeInOut" }}
+    <p
+      style={{
+        fontFamily: PIXEL,
+        fontSize: 13,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        textAlign: "center",
+        color: "rgba(255,255,255,0.90)",
+        minHeight: "1.8em",
+        textShadow: "0 0 18px rgba(96,165,250,0.8), 0 0 40px rgba(96,165,250,0.5), 0 2px 4px rgba(0,0,0,0.9)",
+        lineHeight: 2,
+      }}
+    >
+      {displayed}
+      <span
         style={{
-          fontFamily: PIXEL,
-          fontSize: 17,
-          textTransform: "uppercase",
-          letterSpacing: "0.10em",
-          textAlign: "center",
-          color: "rgba(255,255,255,0.95)",
-          minHeight: "1.6em",
-          textShadow: "0 0 18px rgba(96,165,250,1), 0 0 40px rgba(96,165,250,0.7), 0 0 70px rgba(59,130,246,0.5), 0 2px 4px rgba(0,0,0,0.9)",
-          lineHeight: 2,
+          display: "inline-block",
+          width: 2,
+          height: "1em",
+          background: "rgba(255,255,255,0.8)",
+          marginLeft: 3,
+          verticalAlign: "middle",
+          animation: "blink 0.75s step-end infinite",
         }}
-      >
-        {SUBTITLES[idx]}
-      </motion.p>
-    </AnimatePresence>
+      />
+    </p>
   );
 }
 
@@ -170,73 +149,10 @@ function ArchSVG() {
       <path d={pathD} fill="none" stroke="url(#hArchLine)" strokeWidth="2.5" />
       {NODE_PTS.map((pt, i) => {
         if (i === HUB_IDX) return null;
-        return (
-          <line key={i} x1={HUB_PT.x} y1={HUB_PT.y} x2={pt.x} y2={pt.y}
-            stroke="rgba(255,255,255,0.14)" strokeWidth="1" strokeDasharray="5 5" />
-        );
+        return <line key={i} x1={HUB_PT.x} y1={HUB_PT.y} x2={pt.x} y2={pt.y} stroke="rgba(255,255,255,0.14)" strokeWidth="1" strokeDasharray="5 5" />;
       })}
       <circle cx={HUB_PT.x} cy={HUB_PT.y} r="38" fill="url(#hubGlow)" />
     </svg>
-  );
-}
-
-function HoverTooltip({ node, visible }: { node: typeof ALL_NODES[0]; visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: 6, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 4, scale: 0.92 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="absolute z-50 pointer-events-none"
-          style={{ bottom: "calc(100% + 14px)", left: "50%", transform: "translateX(-50%)", minWidth: 140 }}
-        >
-          <div style={{
-            background: "#000",
-            border: "2px solid rgba(255,255,255,0.18)",
-            borderRadius: 2,
-            padding: "10px 12px",
-            boxShadow: "4px 4px 0px rgba(255,255,255,0.08), 0 0 20px rgba(0,0,0,0.8)",
-          }}>
-            <div style={{
-              fontFamily: PIXEL,
-              fontSize: 7,
-              color: node.color,
-              letterSpacing: "0.1em",
-              marginBottom: 8,
-              textTransform: "uppercase",
-            }}>
-              {node.noteTitle}
-            </div>
-            {node.noteLines.map((line, i) => (
-              <div key={i} style={{
-                fontFamily: PIXEL,
-                fontSize: 6,
-                color: "rgba(255,255,255,0.75)",
-                letterSpacing: "0.06em",
-                lineHeight: 2,
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-              }}>
-                <span style={{ color: node.color, fontSize: 8 }}>›</span> {line}
-              </div>
-            ))}
-          </div>
-          <div style={{
-            position: "absolute",
-            bottom: -8,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 0, height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: "8px solid #000",
-          }} />
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
 
@@ -248,10 +164,7 @@ function StickyNoteTag({ tag, isAbove }: { tag: string; isAbove: boolean }) {
     >
       {!isAbove && <div style={{ width: 1, height: 18, borderLeft: "2px dashed rgba(255,255,255,0.35)" }} />}
       <motion.div
-        animate={{
-          rotate: isAbove ? [-1.5, 1, -1.5] : [1.5, -1, 1.5],
-          y: [0, -2, 0],
-        }}
+        animate={{ rotate: isAbove ? [-1.5, 1, -1.5] : [1.5, -1, 1.5], y: [0, -2, 0] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         style={{
           background: "linear-gradient(160deg, #fffde7 0%, #fff9c4 60%, #fff176 100%)",
@@ -284,78 +197,19 @@ function OrganicMarketingCloud() {
       className="absolute z-30"
       style={{ left: "-2%", top: "10%", rotate: "-4deg" }}
     >
-      <motion.div
-        animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            border: "3px solid #000",
-            boxShadow: "6px 6px 0px #000",
-            padding: "18px 26px",
-            borderRadius: 4,
-            position: "relative",
-            minWidth: 260,
-          }}
-        >
-          <div style={{
-            fontFamily: PIXEL,
-            fontSize: 10,
-            color: "#000",
-            letterSpacing: "0.06em",
-            lineHeight: 2.2,
-            textTransform: "uppercase",
-          }}>
+      <motion.div animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
+        <div style={{ background: "#fff", border: "3px solid #000", boxShadow: "6px 6px 0px #000", padding: "18px 26px", borderRadius: 4, position: "relative", minWidth: 260 }}>
+          <div style={{ fontFamily: PIXEL, fontSize: 10, color: "#000", letterSpacing: "0.06em", lineHeight: 2.2, textTransform: "uppercase" }}>
             ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
           </div>
-          <div style={{
-            marginTop: 12,
-            fontFamily: PIXEL,
-            fontSize: 8,
-            color: "#0a66c2",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            borderTop: "2px solid #000",
-            paddingTop: 10,
-          }}>
+          <div style={{ marginTop: 12, fontFamily: PIXEL, fontSize: 8, color: "#0a66c2", letterSpacing: "0.12em", textTransform: "uppercase", borderTop: "2px solid #000", paddingTop: 10 }}>
             ↓ USE IT FOR ↓
           </div>
-
-          <div style={{
-            position: "absolute",
-            bottom: -16,
-            right: "25%",
-            width: 0, height: 0,
-            borderLeft: "12px solid transparent",
-            borderRight: "12px solid transparent",
-            borderTop: "16px solid #000",
-          }} />
-          <div style={{
-            position: "absolute",
-            bottom: -11,
-            right: "calc(25% + 3px)",
-            width: 0, height: 0,
-            borderLeft: "9px solid transparent",
-            borderRight: "9px solid transparent",
-            borderTop: "12px solid #fff",
-          }} />
+          <div style={{ position: "absolute", bottom: -16, right: "25%", width: 0, height: 0, borderLeft: "12px solid transparent", borderRight: "12px solid transparent", borderTop: "16px solid #000" }} />
+          <div style={{ position: "absolute", bottom: -11, right: "calc(25% + 3px)", width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", borderTop: "12px solid #fff" }} />
         </div>
-
-        {[
-          { size: 18, bottom: -28, right: "18%", rotate: "8deg" },
-          { size: 13, bottom: -40, right: "12%", rotate: "12deg" },
-          { size: 9,  bottom: -50, right: "7%",  rotate: "15deg" },
-        ].map((d, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            width: d.size, height: d.size,
-            bottom: d.bottom, right: d.right,
-            background: "#fff",
-            border: "2px solid #000",
-            borderRadius: 1,
-            transform: `rotate(${d.rotate})`,
-          }} />
+        {[{ size: 18, bottom: -28, right: "18%", rotate: "8deg" }, { size: 13, bottom: -40, right: "12%", rotate: "12deg" }, { size: 9, bottom: -50, right: "7%", rotate: "15deg" }].map((d, i) => (
+          <div key={i} style={{ position: "absolute", width: d.size, height: d.size, bottom: d.bottom, right: d.right, background: "#fff", border: "2px solid #000", borderRadius: 1, transform: `rotate(${d.rotate})` }} />
         ))}
       </motion.div>
     </motion.div>
@@ -378,6 +232,11 @@ export function Hero() {
         backgroundRepeat: "no-repeat",
       }}
     >
+      <style>{`
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      `}</style>
+
+      {/* Title */}
       <div className="text-center max-w-4xl mx-auto z-10 px-4 mt-6">
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
@@ -387,7 +246,7 @@ export function Hero() {
             fontFamily: PIXEL,
             fontSize: "clamp(22px, 3.6vw, 46px)",
             fontWeight: 700,
-            marginBottom: "1.2rem",
+            marginBottom: "0.6rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
             lineHeight: 1.7,
@@ -397,37 +256,28 @@ export function Hero() {
         >
           AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
+
+        {/* Subtitle — just below title, before arch */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          style={{ marginBottom: "0.3rem" }}
+        >
+          <TypingSubtitle />
+        </motion.div>
       </div>
 
+      {/* Arch + nodes */}
       <motion.div
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-20"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-8"
         style={{ height: `${VH}px` }}
       >
         <OrganicMarketingCloud />
         <ArchSVG />
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 0.6 }}
-          style={{
-            position: "absolute",
-            bottom: -95,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 30,
-            minHeight: "2.8em",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          <AnimatedSubtitle />
-        </motion.div>
 
         {ALL_NODES.map((node, i) => {
           const pt    = NODE_PTS[i];
@@ -440,14 +290,8 @@ export function Hero() {
               key={node.label}
               initial={{ opacity: 0, scale: 0.4 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: 0.5 + Math.abs(i - HUB_IDX) * 0.06,
-                duration: 0.45,
-                type: "spring",
-                stiffness: 300,
-                damping: 22,
-              }}
-              className="absolute flex flex-col items-center group"
+              transition={{ delay: 0.5 + Math.abs(i - HUB_IDX) * 0.06, duration: 0.45, type: "spring", stiffness: 300, damping: 22 }}
+              className="absolute flex flex-col items-center"
               style={{
                 left: `${pt.xPct}%`,
                 top: `${pt.yPct}%`,
@@ -457,27 +301,21 @@ export function Hero() {
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
             >
-              <HoverTooltip node={node} visible={isHovered} />
               <StickyNoteTag tag={node.tag} isAbove={isAbove} />
 
               <motion.div
-                whileHover={{ scale: 1.18, y: -4 }}
-                transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                animate={isHovered ? { scale: 1.15, y: -3 } : { scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 380, damping: 20 }}
                 className="cursor-pointer relative z-30 flex items-center justify-center"
                 style={{
                   width: isHub ? "88px" : "72px",
                   height: isHub ? "88px" : "72px",
-                  background: isHub
-                    ? "linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)"
-                    : "#ffffff",
+                  background: isHub ? "linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)" : "#ffffff",
                   border: "2.5px solid #000",
-                  boxShadow: isHovered
-                    ? `5px 5px 0px #000, 0 0 24px ${node.color}99`
-                    : isHub
-                      ? "5px 5px 0px #000, 0 0 22px rgba(59,130,246,0.45)"
-                      : "4px 4px 0px #000",
+                  boxShadow: isHub
+                    ? "5px 5px 0px #000, 0 0 22px rgba(59,130,246,0.45)"
+                    : "4px 4px 0px #000",
                   borderRadius: "4px",
-                  transition: "box-shadow 0.15s",
                 }}
               >
                 <node.icon

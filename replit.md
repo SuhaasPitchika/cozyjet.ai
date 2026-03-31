@@ -29,12 +29,12 @@ src/
       auth/
         send-verification/ # Email OTP generation & sending
     dashboard/
-      layout.tsx        # Minimal glassmorphism sidebar: Skippy / Snooks / Meta / Tuning / Settings
-      skippy/           # Integration hub (GitHub, Notion, Figma, Google Drive, Google Calendar, etc.) + content seeds feed
-      snooks/           # Chat interface with AI memory, inline calendar sidebar, growth/virality advisor
-      meta/             # Chat copywriter interface, 3 variations, platform tabs, voice prefs
-      tuning/           # Chat interface for voice calibration, API model config, humanizer
-      settings/         # Account & preferences
+      layout.tsx        # Expandable/collapsible sidebar — creamy skin bg (#f5ede0), horizontal labels (VT323), shadow-only active state
+      skippy/           # Integration hub with glassmorphism pill bar (light yellow tint), real app icons (GitHub/Notion/Figma/GDrive/GCal/Linear/Slack/VSCode), glassmorphism popup, sticky-note seed cards (draggable, 5-6 lines, 3D shadow, swipeable)
+      snooks/           # Chat with auto-note detection ("auto" keyword → calendar), mesh-grid bg, bigger calendar text, yellow pins
+      meta/             # Chat with mesh-grid bg (same as snooks), solid black textarea, white text
+      tuning/           # Chat with pixelated dot pattern bg (dark pixel field), solid black textarea, white text
+      settings/         # Dots-animated bg, centered layout, account+logout+delete-account only, API keys modal popup
     auth/               # Email + code verification flow (6-digit OTP)
   components/
     layout/

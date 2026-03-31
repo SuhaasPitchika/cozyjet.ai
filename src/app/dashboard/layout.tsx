@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, ChevronLeft } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
-  { label: "SKIPPY", href: "/dashboard/skippy", color: "#6ee7f7", glow: "rgba(110,231,247,0.5)" },
-  { label: "SNOOKS", href: "/dashboard/snooks", color: "#b8a4ff", glow: "rgba(184,164,255,0.5)" },
-  { label: "META",   href: "/dashboard/meta",   color: "#ff9de2", glow: "rgba(255,157,226,0.5)" },
-  { label: "TUNING", href: "/dashboard/tuning", color: "#ffd97d", glow: "rgba(255,217,125,0.5)" },
-  { label: "SETTINGS", href: "/dashboard/settings", color: "#a0aec0", glow: "rgba(160,174,192,0.4)" },
+  { label: "Skippy",   href: "/dashboard/skippy",   abbr: "SK" },
+  { label: "Snooks",   href: "/dashboard/snooks",   abbr: "SN" },
+  { label: "Meta",     href: "/dashboard/meta",     abbr: "ME" },
+  { label: "Tuning",   href: "/dashboard/tuning",   abbr: "TU" },
+  { label: "Settings", href: "/dashboard/settings", abbr: "ST" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
+  const [collapsed, setCollapsed] = useState(false);
 
   const isLoading = isUserLoading || isReplitLoading;
   const isAuthenticated = !!user || !!replitUser;
@@ -45,105 +46,156 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const displayName = user?.displayName || user?.email?.split("@")[0] || replitUser?.name || "User";
   const initials = displayName.slice(0, 2).toUpperCase();
 
+  const sidebarW = collapsed ? 64 : 200;
+
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0e0e14" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#f0ece6" }}>
       {/* ─── SIDEBAR ─── */}
-      <aside
-        className="relative shrink-0 flex flex-col z-40"
+      <motion.aside
+        animate={{ width: sidebarW }}
+        transition={{ type: "spring", stiffness: 340, damping: 32 }}
+        className="relative shrink-0 flex flex-col z-40 overflow-hidden"
         style={{
-          width: 72,
-          background: "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(48px) saturate(180%)",
-          WebkitBackdropFilter: "blur(48px) saturate(180%)",
-          borderRight: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "2px 0 40px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.06)",
+          background: "linear-gradient(180deg, #f5ede0 0%, #ede3d4 100%)",
+          borderRight: "1px solid rgba(0,0,0,0.09)",
+          boxShadow: "2px 0 16px rgba(0,0,0,0.06)",
         }}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-center py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <Link href="/">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 3 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-9 h-9 rounded-2xl overflow-hidden flex items-center justify-center"
-              style={{ boxShadow: "0 0 20px rgba(110,231,247,0.3), 0 2px 8px rgba(0,0,0,0.4)" }}
-            >
-              <Image src="/cozyjet-logo.png" alt="CozyJet" width={36} height={36} className="object-contain" />
+        {/* Logo row */}
+        <div
+          className="flex items-center gap-2.5 px-3 flex-shrink-0"
+          style={{ height: 60, borderBottom: "1px solid rgba(0,0,0,0.07)" }}
+        >
+          <Link href="/" className="flex-shrink-0">
+            <motion.div whileHover={{ scale: 1.06 }} className="w-8 h-8 rounded-xl overflow-hidden">
+              <Image src="/cozyjet-logo.png" alt="CozyJet" width={32} height={32} className="object-contain" />
             </motion.div>
           </Link>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -6 }}
+                transition={{ duration: 0.15 }}
+                className="flex-1 min-w-0 overflow-hidden"
+              >
+                <p className="font-pixel text-black/70 leading-none truncate" style={{ fontSize: 9 }}>CozyJet</p>
+                <p className="font-pixel-thin text-black/35 mt-0.5 truncate" style={{ fontSize: 12 }}>AI Studio</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.button
+            onClick={() => setCollapsed(c => !c)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center ml-auto"
+            style={{ background: "rgba(0,0,0,0.06)" }}
+          >
+            <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
+              <ChevronLeft size={13} className="text-black/40" />
+            </motion.div>
+          </motion.button>
         </div>
 
-        {/* Nav Items */}
-        <div className="flex flex-col items-center gap-1 py-4 flex-1">
+        {/* Nav items */}
+        <div className="flex flex-col gap-0.5 px-2 py-3 flex-1">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
-              <Link key={item.href} href={item.href} className="w-full flex justify-center">
+              <Link key={item.href} href={item.href}>
                 <motion.div
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
-                  className="relative flex flex-col items-center justify-center gap-1 cursor-pointer rounded-2xl transition-all"
+                  whileTap={{ scale: 0.97 }}
+                  className="relative flex items-center rounded-xl cursor-pointer transition-all"
                   style={{
-                    width: 52,
-                    paddingTop: 8,
-                    paddingBottom: 8,
-                    background: isActive
-                      ? `rgba(255,255,255,0.08)`
-                      : "transparent",
-                    border: isActive
-                      ? `1px solid rgba(255,255,255,0.12)`
-                      : "1px solid transparent",
-                    boxShadow: isActive
-                      ? `0 0 16px ${item.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`
-                      : "none",
+                    height: 44,
+                    paddingLeft: collapsed ? 0 : 12,
+                    paddingRight: collapsed ? 0 : 12,
+                    justifyContent: collapsed ? "center" : "flex-start",
+                    background: isActive ? "rgba(0,0,0,0.07)" : "transparent",
+                    boxShadow: isActive ? "inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)" : "none",
                   }}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
-                      style={{ width: 3, height: 24, background: item.color, boxShadow: `0 0 8px ${item.color}` }}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
+                  {/* Abbr circle when collapsed */}
+                  {collapsed ? (
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: isActive ? "rgba(0,0,0,0.09)" : "rgba(0,0,0,0.04)" }}
+                    >
+                      <span className="font-pixel text-black/60" style={{ fontSize: 7 }}>{item.abbr}</span>
+                    </div>
+                  ) : (
+                    <>
+                      {isActive && (
+                        <div
+                          className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
+                          style={{ width: 3, height: 20, background: "rgba(0,0,0,0.3)" }}
+                        />
+                      )}
+                      <span
+                        className="font-pixel-thin truncate"
+                        style={{
+                          fontSize: 18,
+                          color: isActive ? "rgba(0,0,0,0.8)" : "rgba(0,0,0,0.45)",
+                          fontWeight: isActive ? 600 : 400,
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                    </>
                   )}
-                  <span
-                    className="font-pixel-thin"
-                    style={{
-                      fontSize: 9,
-                      letterSpacing: "0.12em",
-                      color: isActive ? item.color : "rgba(255,255,255,0.3)",
-                      textShadow: isActive ? `0 0 10px ${item.color}` : "none",
-                      writingMode: "vertical-rl",
-                      textOrientation: "mixed",
-                      transform: "rotate(180deg)",
-                    }}
-                  >
-                    {item.label}
-                  </span>
                 </motion.div>
               </Link>
             );
           })}
         </div>
 
-        {/* User */}
-        <div className="flex flex-col items-center py-4 gap-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #6ee7f7, #b8a4ff)" }}
-          >
-            <span className="font-pixel text-[8px] text-black">{initials}</span>
-          </div>
-          <motion.button
-            onClick={handleSignOut}
-            whileHover={{ scale: 1.1 }}
-            className="w-7 h-7 rounded-xl flex items-center justify-center group"
-            style={{ background: "rgba(255,255,255,0.05)" }}
-          >
-            <LogOut size={12} className="text-white/20 group-hover:text-red-400 transition-colors" />
-          </motion.button>
+        {/* Divider */}
+        <div style={{ height: 1, background: "rgba(0,0,0,0.07)", margin: "0 12px" }} />
+
+        {/* User footer */}
+        <div className="px-2 py-3 flex-shrink-0">
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.12)" }}
+              >
+                <span className="font-pixel text-black/60" style={{ fontSize: 8 }}>{initials}</span>
+              </div>
+              <motion.button
+                onClick={handleSignOut}
+                whileHover={{ scale: 1.1 }}
+                className="w-7 h-7 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.05)" }}
+              >
+                <LogOut size={12} className="text-black/30 hover:text-red-400 transition-colors" />
+              </motion.button>
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
+              style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.7)" }}
+            >
+              <div
+                className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(0,0,0,0.12)" }}
+              >
+                <span className="font-pixel text-black/60" style={{ fontSize: 8 }}>{initials}</span>
+              </div>
+              <p className="font-pixel-thin text-black/60 flex-1 truncate" style={{ fontSize: 14 }}>{displayName}</p>
+              <motion.button
+                onClick={handleSignOut}
+                whileHover={{ scale: 1.1 }}
+                className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(0,0,0,0.04)" }}
+              >
+                <LogOut size={11} className="text-black/25 hover:text-red-400 transition-colors" />
+              </motion.button>
+            </div>
+          )}
         </div>
-      </aside>
+      </motion.aside>
 
       {/* ─── MAIN ─── */}
       <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
