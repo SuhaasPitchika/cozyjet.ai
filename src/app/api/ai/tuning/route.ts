@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     console.error("Tuning route error:", message);
     if (message.includes("API key")) {
       return NextResponse.json(
-        { error: "OPEN_ROUTER API key not configured. Add it in Secrets." },
+        { error: "OPENAI_API_KEY not configured. Add it in Secrets." },
         { status: 502 }
       );
     }

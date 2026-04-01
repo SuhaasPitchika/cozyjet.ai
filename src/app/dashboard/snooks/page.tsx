@@ -2,13 +2,50 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Mic, Paperclip, ChevronLeft, ChevronRight, X, Plus } from "lucide-react";
+import { Send, Loader2, Mic, Paperclip, ChevronLeft, ChevronRight, X, Plus, MessageSquare, Trash2, Volume2, VolumeX } from "lucide-react";
 
 interface ChatMsg {
   id: string;
   role: "user" | "bot";
   content: string;
   timestamp: Date;
+}
+
+interface Session {
+  id: string;
+  name: string;
+  createdAt: string;
+  messages: ChatMsg[];
+}
+
+const SNOOKS_SESSIONS_KEY = "snooks_sessions";
+
+function generateSnooksName(firstMsg: string): string {
+  const lower = firstMsg.toLowerCase();
+  const topics: Record<string, string> = {
+    linkedin: "💼 LinkedIn Strategy", twitter: "🐦 Twitter Plan", instagram: "📸 Instagram Plan",
+    content: "📋 Content Strategy", calendar: "📅 Content Calendar", schedule: "📅 Scheduling Plan",
+    week: "📆 Weekly Strategy", month: "🗓 Monthly Plan", post: "✍️ Post Strategy",
+    thread: "🧵 Thread Plan", auto: "⚡ Auto Schedule", trend: "📈 Trend Analysis",
+    competitor: "🔍 Competitor Research", audience: "👥 Audience Strategy",
+  };
+  const found = Object.keys(topics).find(k => lower.includes(k));
+  if (found) return topics[found];
+  return `🧠 ${firstMsg.slice(0, 28)}${firstMsg.length > 28 ? "…" : ""}`;
+}
+
+function loadSnooksSessions(): Session[] {
+  try {
+    const raw = localStorage.getItem(SNOOKS_SESSIONS_KEY);
+    if (!raw) return [];
+    return (JSON.parse(raw) as Session[]).map(s => ({
+      ...s, messages: s.messages.map(m => ({ ...m, timestamp: new Date(m.timestamp) })),
+    }));
+  } catch { return []; }
+}
+
+function saveSnooksSessions(sessions: Session[]): void {
+  try { localStorage.setItem(SNOOKS_SESSIONS_KEY, JSON.stringify(sessions)); } catch {}
 }
 
 interface CalNote {
@@ -155,58 +192,131 @@ export default function SnooksPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [notes, setNotes] = useState<CalNote[]>(INITIAL_NOTES);
-  const [messages, setMessages] = useState<ChatMsg[]>([
-    {
-      id: "init",
-      role: "bot",
-      content: "I'm Snooks — your content strategist. Tell me what you've been building, or say 'auto' to schedule something directly to your calendar. I'll handle the strategy.",
-      timestamp: new Date(),
-    },
-  ]);
+  const INIT_MSG: ChatMsg = { id: "init", role: "bot", content: "I'm Snooks — your content strategist. Tell me what you've been building, or say 'auto' to schedule something directly to your calendar. I'll handle the strategy.", timestamp: new Date() };
+  const [messages, setMessages] = useState<ChatMsg[]>([INIT_MSG]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [activeNote, setActiveNote] = useState<CalNote | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => { setSessions(loadSnooksSessions()); }, []);
 
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); };
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  const persistSession = useCallback((msgs: ChatMsg[], sid: string) => {
+    const real = msgs.filter(m => m.id !== "init");
+    if (real.length === 0) return;
+    setSessions(prev => {
+      const exists = prev.find(s => s.id === sid);
+      let next: Session[];
+      if (exists) {
+        next = prev.map(s => s.id === sid ? { ...s, messages: msgs } : s);
+      } else {
+        const first = real.find(m => m.role === "user");
+        next = [{ id: sid, name: first ? generateSnooksName(first.content) : "Strategy Session", createdAt: new Date().toISOString(), messages: msgs }, ...prev];
+      }
+      saveSnooksSessions(next);
+      return next;
+    });
+  }, []);
+
+  const startNewChat = () => {
+    if (messages.length > 1 && activeSessionId) persistSession(messages, activeSessionId);
+    setActiveSessionId(Date.now().toString());
+    setMessages([INIT_MSG]);
+    setInput("");
+  };
+
+  const loadSession = (s: Session) => {
+    if (messages.length > 1 && activeSessionId) persistSession(messages, activeSessionId);
+    setActiveSessionId(s.id);
+    setMessages(s.messages);
+    setInput("");
+  };
+
+  const deleteSession = (e: React.MouseEvent, sid: string) => {
+    e.stopPropagation();
+    setSessions(prev => { const n = prev.filter(s => s.id !== sid); saveSnooksSessions(n); return n; });
+    if (activeSessionId === sid) { setActiveSessionId(null); setMessages([INIT_MSG]); }
+  };
+
+  const fmtDate = (s: string) => {
+    const d = new Date(s), now = new Date(), diff = now.getTime() - d.getTime();
+    if (diff < 86400000) return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    if (diff < 604800000) return d.toLocaleDateString("en-US", { weekday: "short" });
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const handleSpeak = async (msg: ChatMsg) => {
+    if (speakingId === msg.id) {
+      audioRef.current?.pause(); audioRef.current = null;
+      window.speechSynthesis?.cancel(); setSpeakingId(null); return;
+    }
+    audioRef.current?.pause(); audioRef.current = null;
+    window.speechSynthesis?.cancel(); setSpeakingId(msg.id);
+    try {
+      const res = await fetch("/api/ai/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: msg.content }) });
+      if (res.ok) {
+        const blob = await res.blob(); const url = URL.createObjectURL(blob);
+        const audio = new Audio(url); audioRef.current = audio;
+        audio.onended = () => { setSpeakingId(null); URL.revokeObjectURL(url); };
+        audio.onerror = () => { setSpeakingId(null); URL.revokeObjectURL(url); };
+        await audio.play(); return;
+      }
+    } catch {}
+    if ("speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(msg.content);
+      u.onend = () => setSpeakingId(null); u.onerror = () => setSpeakingId(null);
+      window.speechSynthesis.speak(u);
+    } else { setSpeakingId(null); }
+  };
+
   const send = useCallback(async (text?: string) => {
     const msg = (text || input).trim();
     if (!msg) return;
     setInput("");
+    const sid = activeSessionId || Date.now().toString();
+    if (!activeSessionId) setActiveSessionId(sid);
     const userMsg: ChatMsg = { id: Date.now().toString(), role: "user", content: msg, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
+    const next = [...messages, userMsg];
+    setMessages(next);
 
     if (isAutoRequest(msg)) {
       const day = Math.floor(Math.random() * 28) + 1;
       const newNote = extractNoteFromMessage(msg, day);
       setNotes(prev => [...prev.filter(n => n.day !== day), newNote]);
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(), role: "bot",
-        content: `Done! I've auto-scheduled "${newNote.title}" to day ${day} of your calendar. You'll see a green pin on that date.`,
-        timestamp: new Date(),
-      }]);
+      const botMsg: ChatMsg = { id: (Date.now() + 1).toString(), role: "bot", content: `Done! I've auto-scheduled "${newNote.title}" to day ${day} of your calendar. You'll see a green pin on that date.`, timestamp: new Date() };
+      const all = [...next, botMsg];
+      setMessages(all); persistSession(all, sid);
       return;
     }
 
     setLoading(true);
     try {
+      const history = messages.filter(m => m.id !== "init").map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content }));
       const res = await fetch("/api/ai/snooks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg, history: [] }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...history, { role: "user", content: msg }] }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "bot", content: data.reply || data.message || "Got it — let me think about that.", timestamp: new Date() }]);
+      const botMsg: ChatMsg = { id: (Date.now() + 1).toString(), role: "bot", content: data.reply || data.response || data.message || "Got it — let me think about that.", timestamp: new Date() };
+      const all = [...next, botMsg];
+      setMessages(all); persistSession(all, sid);
     } catch {
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "bot", content: "I'm having trouble connecting right now. Try again in a moment.", timestamp: new Date() }]);
+      const err: ChatMsg = { id: (Date.now() + 1).toString(), role: "bot", content: "I'm having trouble connecting right now. Try again in a moment.", timestamp: new Date() };
+      const all = [...next, err];
+      setMessages(all); persistSession(all, sid);
     } finally { setLoading(false); }
-  }, [input]);
+  }, [input, messages, activeSessionId, persistSession]);
 
   const handleVoice = () => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {

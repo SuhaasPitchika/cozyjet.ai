@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'idea and platforms are required' }, { status: 400 });
     }
 
-    const apiKey = process.env.OPEN_ROUTER;
-    if (!apiKey) return NextResponse.json({ error: 'OPEN_ROUTER API key not configured. Add it in Secrets.' }, { status: 502 });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return NextResponse.json({ error: 'OPENAI_API_KEY not configured. Add it in Secrets.' }, { status: 502 });
 
     const platformInstructions = platforms.map((p) => {
       const guide = PLATFORM_GUIDES[p];

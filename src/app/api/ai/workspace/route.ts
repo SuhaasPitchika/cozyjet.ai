@@ -11,9 +11,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'integration and rawContent are required' }, { status: 400 });
     }
 
-    const apiKey = process.env.OPEN_ROUTER;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'OPEN_ROUTER API key not configured. Add it in Secrets.' }, { status: 502 });
+      return NextResponse.json({ error: 'OPENAI_API_KEY not configured. Add it in Secrets.' }, { status: 502 });
     }
 
     const blocklist: string[] = Array.isArray(privacyBlocklist) ? privacyBlocklist : [];

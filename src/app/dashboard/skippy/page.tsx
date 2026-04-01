@@ -346,13 +346,13 @@ function StickyNote({
             <div className="flex flex-col">
               <span
                 className="font-pixel-thin text-black/75"
-                style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3 }}
+                style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.3 }}
               >
                 {intg?.name}
               </span>
               <span
                 className="font-pixel-thin text-black/40"
-                style={{ fontSize: 12, lineHeight: 1.3 }}
+                style={{ fontSize: 16, lineHeight: 1.3 }}
               >
                 {seed.date}
               </span>

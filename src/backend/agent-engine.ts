@@ -21,10 +21,10 @@ export async function callOpenRouter(
     jsonMode?: boolean;
   } = {}
 ): Promise<string> {
-  const apiKey = process.env.OPEN_ROUTER;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "OPEN_ROUTER API key not configured. Add it in your environment secrets."
+      "OPENAI_API_KEY not configured. Add it in your environment secrets."
     );
   }
 

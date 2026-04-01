@@ -205,8 +205,8 @@ function OrganicMarketingCloud() {
     >
       <motion.div animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
         <div style={{ background: "#fff", border: "3px solid #000", boxShadow: "6px 6px 0px #000", padding: "18px 26px", borderRadius: 4, position: "relative", minWidth: 260 }}>
-          <div style={{ fontFamily: PIXEL, fontSize: 10, color: "#000", letterSpacing: "0.06em", lineHeight: 2.2, textTransform: "uppercase" }}>
-            ORGANIC<br/>MARKETING<br/>THROUGH<br/>SOCIAL MEDIA
+          <div style={{ fontFamily: PIXEL, fontSize: 11, color: "#000", letterSpacing: "0.04em", lineHeight: 2.4, textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            ORGANIC MARKETING<br/>THROUGH SOCIAL MEDIA
           </div>
           <div style={{ marginTop: 12, fontFamily: PIXEL, fontSize: 8, color: "#0a66c2", letterSpacing: "0.12em", textTransform: "uppercase", borderTop: "2px solid #000", paddingTop: 10 }}>
             ↓ USE IT FOR ↓
@@ -261,7 +261,7 @@ export function Hero() {
             textAlign: "center",
           }}
         >
-          FULL STACK AI MARKETING AGENT<br />&amp; SOCIAL MEDIA MANAGER
+          FULL STACK AI<br />SOCIAL MEDIA MANAGER
         </motion.h1>
 
         {/* Subtitle — centred, tight to timeline */}

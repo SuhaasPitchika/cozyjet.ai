@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     console.error("Screen analyze error:", message);
     if (message.includes("API key")) {
       return NextResponse.json(
-        { error: "OPEN_ROUTER API key not configured. Add OPEN_ROUTER in Secrets." },
+        { error: "OPENAI_API_KEY not configured. Add OPEN_ROUTER in Secrets." },
         { status: 502 }
       );
     }
