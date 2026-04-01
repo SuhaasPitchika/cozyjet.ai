@@ -76,17 +76,27 @@ export default function MetaPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden mesh-bg">
 
-      {/* Top bar */}
+      {/* Liquid glass top bar */}
       <div
-        className="flex items-center justify-center gap-3 py-4 flex-shrink-0"
-        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}
+        className="flex items-center justify-center gap-3 py-4 flex-shrink-0 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(255,255,255,0.65) 0%, rgba(255,245,250,0.55) 40%, rgba(255,255,255,0.6) 100%)",
+          backdropFilter: "blur(32px) saturate(180%) brightness(108%)",
+          WebkitBackdropFilter: "blur(32px) saturate(180%) brightness(108%)",
+          borderBottom: "1px solid rgba(255,255,255,0.7)",
+          boxShadow: "0 1px 0 rgba(255,255,255,0.9), 0 4px 24px rgba(244,63,94,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
+        }}
       >
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #f43f5e, #f97316)" }}>
-          <span className="font-pixel text-white" style={{ fontSize: 8 }}>ME</span>
-        </div>
-        <div className="text-center">
-          <h1 className="font-pixel text-black/80 leading-none" style={{ fontSize: 11 }}>META</h1>
-          <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 14 }}>AI Copywriter — give me a seed or idea</p>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%, rgba(255,200,220,0.15) 100%)", mixBlendMode: "screen" }} />
+        <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height: 1.5, background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0))" }} />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.9), rgba(249,115,22,0.9))", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px rgba(244,63,94,0.3), inset 0 1px 0 rgba(255,255,255,0.4)" }}>
+            <span className="font-pixel text-white" style={{ fontSize: 8 }}>ME</span>
+          </div>
+          <div className="text-center">
+            <h1 className="font-pixel text-black/70 leading-none" style={{ fontSize: 11 }}>META</h1>
+            <p className="font-pixel-thin text-black/40 mt-0.5" style={{ fontSize: 14 }}>AI Copywriter — give me a seed or idea</p>
+          </div>
         </div>
       </div>
 

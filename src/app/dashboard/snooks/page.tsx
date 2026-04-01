@@ -115,6 +115,42 @@ function CalendarGrid({ year, month, notes, onNoteClick }: {
   );
 }
 
+/* ─── Liquid glass top bar ─── */
+function LiquidGlassBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex items-center justify-center gap-3 py-4 flex-shrink-0 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.65) 0%, rgba(240,248,255,0.55) 40%, rgba(255,255,255,0.6) 100%)",
+        backdropFilter: "blur(32px) saturate(180%) brightness(108%)",
+        WebkitBackdropFilter: "blur(32px) saturate(180%) brightness(108%)",
+        borderBottom: "1px solid rgba(255,255,255,0.7)",
+        boxShadow: "0 1px 0 rgba(255,255,255,0.9), 0 4px 24px rgba(180,220,255,0.18), inset 0 1px 0 rgba(255,255,255,0.95)",
+      }}
+    >
+      {/* Glass shimmer layer */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%, rgba(200,230,255,0.2) 100%)",
+          mixBlendMode: "screen",
+        }}
+      />
+      {/* Subtle refraction strip */}
+      <div
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: 1.5,
+          background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0))",
+        }}
+      />
+      <div className="relative z-10 flex items-center gap-3">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function SnooksPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -146,7 +182,6 @@ export default function SnooksPage() {
     const userMsg: ChatMsg = { id: Date.now().toString(), role: "user", content: msg, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
 
-    // Auto-schedule detection
     if (isAutoRequest(msg)) {
       const day = Math.floor(Math.random() * 28) + 1;
       const newNote = extractNoteFromMessage(msg, day);
@@ -188,19 +223,16 @@ export default function SnooksPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ background: "#fafafa" }}>
-      {/* ─── Top bar ─── */}
-      <div
-        className="flex items-center justify-center gap-3 py-4 flex-shrink-0"
-        style={{ borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.9)" }}
-      >
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #b8a4ff, #6ee7f7)" }}>
+      {/* ─── Liquid glass top bar ─── */}
+      <LiquidGlassBar>
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(184,164,255,0.9), rgba(110,231,247,0.9))", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px rgba(147,197,253,0.4), inset 0 1px 0 rgba(255,255,255,0.5)" }}>
           <span className="font-pixel text-white" style={{ fontSize: 8 }}>SN</span>
         </div>
         <div className="text-center">
-          <h1 className="font-pixel text-black/80 leading-none" style={{ fontSize: 11 }}>SNOOKS</h1>
-          <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 14 }}>Content Strategist · say "auto" to schedule</p>
+          <h1 className="font-pixel text-black/70 leading-none" style={{ fontSize: 11 }}>SNOOKS</h1>
+          <p className="font-pixel-thin text-black/40 mt-0.5" style={{ fontSize: 14 }}>Content Strategist · say "auto" to schedule</p>
         </div>
-      </div>
+      </LiquidGlassBar>
 
       {/* ─── Body ─── */}
       <div className="flex-1 flex overflow-hidden">

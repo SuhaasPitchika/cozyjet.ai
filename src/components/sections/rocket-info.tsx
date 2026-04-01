@@ -116,14 +116,18 @@ export function RocketInfo() {
     offset: ["start start", "end end"],
   });
 
+  /* Background starts pure white, transitions as user scrolls */
   const bgColor = useTransform(
     scrollYProgress,
-    [0, 0.33, 0.66, 1],
-    ["#ffffff", "#eef6fd", "#c8e8fa", "#9ed4f0"]
+    [0, 0.12, 0.4, 0.7, 1],
+    ["#ffffff", "#ffffff", "#eef6fd", "#c8e8fa", "#9ed4f0"]
   );
 
   const cloudY = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
   const cloudScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
+
+  /* White flash overlay that fades out as user starts scrolling */
+  const flashOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
   const clipPath = useTransform(
     scrollYProgress,
@@ -139,6 +143,13 @@ export function RocketInfo() {
         style={{ backgroundColor: bgColor }}
         className="sticky top-0 h-screen w-full pointer-events-none z-0 overflow-hidden"
       >
+        {/* Full white flash overlay — visible at top, fades as scrolling begins */}
+        <motion.div
+          style={{ opacity: flashOpacity, backgroundColor: "#ffffff" }}
+          className="absolute inset-0 z-10"
+          aria-hidden="true"
+        />
+
         <motion.div style={{ y: cloudY, scale: cloudScale }} className="absolute inset-0">
           <div
             className="absolute top-[8%] left-[12%] w-[55vw] h-[55vw] rounded-full"

@@ -1,143 +1,119 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, Trash2, X, Eye, EyeOff, Key, Lock } from "lucide-react";
+import { User, LogOut, Trash2, X, MessageSquare, ChevronRight } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
 import { signOut, deleteUser } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
-/* ─── Animated grey dots background ─── */
+/* ─── Animated dots — move upward, slightly bigger ─── */
 function DotsBg() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<number>(0);
+  const dotsRef = useRef<{ x: number; y: number; opacity: number; speed: number }[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const SPACING = 28;
+    let cols = 0, rows = 0;
+
+    const buildGrid = () => {
+      cols = Math.ceil(canvas.width / SPACING) + 1;
+      rows = Math.ceil(canvas.height / SPACING) + 2;
+      dotsRef.current = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          dotsRef.current.push({
+            x: c * SPACING,
+            y: r * SPACING,
+            opacity: 0.1 + Math.random() * 0.15,
+            speed: 0.18 + Math.random() * 0.22,
+          });
+        }
+      }
+    };
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      buildGrid();
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const totalH = () => (Math.ceil(canvas.height / SPACING) + 2) * SPACING;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const th = totalH();
+      for (const d of dotsRef.current) {
+        d.y -= d.speed;
+        if (d.y < -SPACING) d.y += th;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${d.opacity})`;
+        ctx.fill();
+      }
+      frameRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      ro.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.12) 1.5px, transparent 1.5px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0 }}
+    />
   );
 }
 
-/* ─── API Keys Modal ─── */
-const API_KEYS = [
-  { id: "openrouter", label: "OpenRouter API Key", placeholder: "sk-or-v1-...", hint: "Powers all three AI agents — Skippy, Meta, Snooks" },
-  { id: "firebase_key", label: "Firebase Web API Key", placeholder: "AIza...", hint: "Firebase client-side authentication" },
-  { id: "firebase_project", label: "Firebase Project ID", placeholder: "your-project-id", hint: "Firebase project identifier" },
-  { id: "gemini", label: "Google Gemini API Key", placeholder: "AIza...", hint: "Used by Genkit AI flows" },
-  { id: "github_client", label: "GitHub OAuth Client ID", placeholder: "Ov23...", hint: "For GitHub integration in Skippy" },
-  { id: "notion_key", label: "Notion Integration Key", placeholder: "secret_...", hint: "For Notion workspace sync" },
-];
-
-function ApiKeysModal({ onClose }: { onClose: () => void }) {
-  const [keys, setKeys] = useState<Record<string, string>>({});
-  const [shown, setShown] = useState<Record<string, boolean>>({});
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
+/* ─── Liquid glass options card ─── */
+function LiquidGlassCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-50"
-        style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)" }}
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.93, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.93, y: 20 }}
-        transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="fixed z-50 overflow-hidden"
+    <div
+      className={`relative overflow-hidden ${className ?? ""}`}
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(245,250,255,0.82) 50%, rgba(255,255,255,0.85) 100%)",
+        backdropFilter: "blur(48px) saturate(200%) brightness(105%)",
+        WebkitBackdropFilter: "blur(48px) saturate(200%) brightness(105%)",
+        border: "1.5px solid rgba(255,255,255,0.9)",
+        borderRadius: 20,
+        boxShadow: "0 8px 32px rgba(180,210,240,0.18), 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(200,220,240,0.2)",
+      }}
+    >
+      {/* Shimmer */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          width: 480, maxHeight: "80vh",
-          background: "#ffffff",
-          borderRadius: 20,
-          boxShadow: "0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.9)",
-          border: "1px solid rgba(0,0,0,0.07)",
+          background: "linear-gradient(120deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(200,230,255,0.15) 100%)",
+          borderRadius: "inherit",
         }}
-      >
-        {/* Header */}
-        <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#fef3c7", border: "1px solid rgba(252,211,77,0.3)" }}>
-              <Lock size={16} className="text-amber-500" />
-            </div>
-            <div>
-              <h2 className="font-pixel text-black/80" style={{ fontSize: 9 }}>SECRET KEYS</h2>
-              <p className="font-pixel-thin text-black/40 mt-0.5" style={{ fontSize: 13 }}>Enter your API keys to power CozyJet</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.04)" }}>
-            <X size={14} className="text-black/40" />
-          </button>
-        </div>
-
-        {/* Keys */}
-        <div className="overflow-y-auto px-6 py-5 flex flex-col gap-4" style={{ maxHeight: "calc(80vh - 140px)" }}>
-          {API_KEYS.map(k => (
-            <div key={k.id}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="font-pixel-thin text-black/70" style={{ fontSize: 15, fontWeight: 600 }}>{k.label}</span>
-              </div>
-              <p className="font-pixel-thin text-black/35 mb-2" style={{ fontSize: 13 }}>{k.hint}</p>
-              <div
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                style={{ background: "#f8f9fa", border: "1.5px solid rgba(0,0,0,0.09)" }}
-              >
-                <Key size={12} className="text-black/25 flex-shrink-0" />
-                <input
-                  type={shown[k.id] ? "text" : "password"}
-                  value={keys[k.id] || ""}
-                  onChange={e => setKeys(prev => ({ ...prev, [k.id]: e.target.value }))}
-                  placeholder={k.placeholder}
-                  className="flex-1 bg-transparent outline-none font-pixel-thin text-black/70 placeholder:text-black/20"
-                  style={{ fontSize: 14 }}
-                />
-                <button
-                  onClick={() => setShown(prev => ({ ...prev, [k.id]: !prev[k.id] }))}
-                  className="flex-shrink-0 p-1"
-                >
-                  {shown[k.id]
-                    ? <EyeOff size={13} className="text-black/30" />
-                    : <Eye size={13} className="text-black/30" />}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 flex items-center gap-3" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-          <motion.button
-            onClick={handleSave}
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            className="flex-1 py-3 rounded-xl font-pixel-thin"
-            style={{
-              background: saved ? "#22c55e" : "#1a1a2e",
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: 600,
-              transition: "background 0.2s",
-            }}
-          >
-            {saved ? "✓ Saved" : "Save Keys"}
-          </motion.button>
-          <button onClick={onClose} className="px-5 py-3 rounded-xl font-pixel-thin text-black/50" style={{ fontSize: 16, background: "rgba(0,0,0,0.04)" }}>
-            Cancel
-          </button>
-        </div>
-      </motion.div>
-    </>
+      />
+      {/* Top edge highlight */}
+      <div
+        className="absolute top-0 left-4 right-4 pointer-events-none"
+        style={{
+          height: 1,
+          background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0))",
+        }}
+      />
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -153,9 +129,12 @@ function ConfirmDeleteModal({ onClose, onConfirm }: { onClose: () => void; onCon
         className="fixed z-50 p-6"
         style={{
           top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          width: 380, background: "#fff", borderRadius: 20,
+          width: 380,
+          background: "rgba(255,255,255,0.97)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          borderRadius: 20,
           boxShadow: "0 24px 64px rgba(0,0,0,0.2)",
-          border: "1px solid rgba(0,0,0,0.07)",
+          border: "1.5px solid rgba(255,255,255,0.9)",
         }}
       >
         <div className="text-center mb-5">
@@ -199,6 +178,76 @@ function ConfirmDeleteModal({ onClose, onConfirm }: { onClose: () => void; onCon
   );
 }
 
+/* ─── Feedback Modal ─── */
+function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const [text, setText] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const handleSend = () => {
+    if (!text.trim()) return;
+    setSent(true);
+    setTimeout(() => { setSent(false); onClose(); }, 1800);
+  };
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
+        className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)" }} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: 20 }}
+        className="fixed z-50 overflow-hidden"
+        style={{
+          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          width: 420,
+          background: "rgba(255,255,255,0.97)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          borderRadius: 20,
+          boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
+          border: "1.5px solid rgba(255,255,255,0.9)",
+        }}
+      >
+        <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
+              <MessageSquare size={16} className="text-indigo-500" />
+            </div>
+            <div>
+              <h2 className="font-pixel text-black/80" style={{ fontSize: 9 }}>SEND FEEDBACK</h2>
+              <p className="font-pixel-thin text-black/40 mt-0.5" style={{ fontSize: 13 }}>Help us improve CozyJet</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.04)" }}>
+            <X size={14} className="text-black/40" />
+          </button>
+        </div>
+        <div className="px-6 py-5">
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            rows={5}
+            placeholder="Share your thoughts, report a bug, or suggest a feature..."
+            className="w-full px-4 py-3 rounded-xl font-pixel-thin text-black/70 outline-none resize-none"
+            style={{ fontSize: 15, background: "#f8f9fa", border: "1.5px solid rgba(0,0,0,0.09)" }}
+          />
+        </div>
+        <div className="px-6 pb-5 flex gap-3">
+          <motion.button
+            onClick={handleSend}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="flex-1 py-3 rounded-xl font-pixel-thin text-white"
+            style={{ fontSize: 16, fontWeight: 600, background: sent ? "#22c55e" : "#6366f1", transition: "background 0.2s" }}
+          >
+            {sent ? "✓ Sent!" : "Send Feedback"}
+          </motion.button>
+          <button onClick={onClose} className="px-5 py-3 rounded-xl font-pixel-thin text-black/50" style={{ fontSize: 16, background: "rgba(0,0,0,0.04)" }}>
+            Cancel
+          </button>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
 export default function SettingsPage() {
   const { user } = useUser();
   const auth = useAuth();
@@ -210,8 +259,8 @@ export default function SettingsPage() {
   const email = user?.email || replitUser?.name || "—";
   const initials = displayName.slice(0, 2).toUpperCase();
 
-  const [showApiKeys, setShowApiKeys] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -231,10 +280,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div
-      className="h-full overflow-y-auto relative"
-      style={{ background: "#f5f5f5" }}
-    >
+    <div className="h-full overflow-y-auto relative" style={{ background: "#f5f6f8" }}>
       <DotsBg />
 
       <div className="relative z-10 flex flex-col items-center px-6 py-10 min-h-full">
@@ -246,87 +292,82 @@ export default function SettingsPage() {
 
         <div className="w-full max-w-md flex flex-col gap-4">
 
-          {/* Account card */}
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}
-          >
-            <div className="px-5 py-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          {/* Account card — liquid glass */}
+          <LiquidGlassCard>
+            <div className="px-5 py-3" style={{ borderBottom: "1px solid rgba(200,220,240,0.3)" }}>
               <span className="font-pixel text-black/40" style={{ fontSize: 8, letterSpacing: "0.15em" }}>ACCOUNT</span>
             </div>
 
             {/* Avatar + name row */}
-            <div className="px-5 py-4 flex items-center gap-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+            <div className="px-5 py-4 flex items-center gap-4" style={{ borderBottom: "1px solid rgba(200,220,240,0.2)" }}>
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #6ee7f7, #b8a4ff)" }}
+                className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #6ee7f7, #b8a4ff)", boxShadow: "0 4px 16px rgba(110,231,247,0.3)" }}
               >
-                <span className="font-pixel text-white" style={{ fontSize: 10 }}>{initials}</span>
+                <span className="font-pixel text-white" style={{ fontSize: 12 }}>{initials}</span>
               </div>
-              <div>
-                <p className="font-pixel-thin text-black/80" style={{ fontSize: 17, fontWeight: 600 }}>{displayName}</p>
-                <p className="font-pixel-thin text-black/40" style={{ fontSize: 14 }}>{email}</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-pixel-thin text-black/80 truncate" style={{ fontSize: 18, fontWeight: 700 }}>{displayName}</p>
+                <p className="font-pixel-thin text-black/40 truncate" style={{ fontSize: 14 }}>{email}</p>
               </div>
-              <div className="ml-auto">
-                <span
-                  className="font-pixel-thin px-3 py-1.5 rounded-full"
-                  style={{ fontSize: 13, background: "rgba(110,231,247,0.12)", color: "#0ea5e9", border: "1px solid rgba(110,231,247,0.25)" }}
-                >
-                  Pro
-                </span>
-              </div>
+              <span
+                className="font-pixel-thin px-3 py-1.5 rounded-full flex-shrink-0"
+                style={{ fontSize: 13, background: "rgba(110,231,247,0.12)", color: "#0ea5e9", border: "1px solid rgba(110,231,247,0.25)" }}
+              >
+                Pro
+              </span>
             </div>
-
-            {/* API Keys row */}
-            <motion.button
-              onClick={() => setShowApiKeys(true)}
-              whileHover={{ background: "rgba(0,0,0,0.02)" }}
-              className="w-full px-5 py-4 flex items-center gap-3 transition-colors"
-              style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#fef3c7", border: "1px solid rgba(252,211,77,0.3)" }}>
-                <Key size={14} className="text-amber-500" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-pixel-thin text-black/75" style={{ fontSize: 16, fontWeight: 600 }}>API Keys</p>
-                <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 13 }}>Connect your OpenRouter, Firebase & other keys</p>
-              </div>
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(0,0,0,0.05)" }}>
-                <span className="text-black/30 text-sm">›</span>
-              </div>
-            </motion.button>
 
             {/* Logout row */}
             <motion.button
               onClick={handleLogout}
-              whileHover={{ background: "rgba(0,0,0,0.02)" }}
+              whileHover={{ background: "rgba(0,0,0,0.015)" }}
               className="w-full px-5 py-4 flex items-center gap-3 transition-colors"
-              style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}
+              style={{ borderBottom: "1px solid rgba(200,220,240,0.2)" }}
             >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.05)" }}>
-                <LogOut size={14} className="text-black/40" />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                <LogOut size={15} className="text-black/40" />
               </div>
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <p className="font-pixel-thin text-black/75" style={{ fontSize: 16, fontWeight: 600 }}>Log Out</p>
                 <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 13 }}>Sign out of your CozyJet account</p>
               </div>
+              <ChevronRight size={14} className="text-black/25" />
             </motion.button>
 
             {/* Delete account row */}
             <motion.button
               onClick={() => setShowDelete(true)}
-              whileHover={{ background: "rgba(239,68,68,0.03)" }}
+              whileHover={{ background: "rgba(239,68,68,0.025)" }}
+              className="w-full px-5 py-4 flex items-center gap-3 transition-colors"
+              style={{ borderBottom: "1px solid rgba(200,220,240,0.2)" }}
+            >
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.12)" }}>
+                <Trash2 size={15} className="text-red-400" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-pixel-thin text-red-400" style={{ fontSize: 16, fontWeight: 600 }}>Delete Account</p>
+                <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 13 }}>Permanently removes all data and credentials</p>
+              </div>
+              <ChevronRight size={14} className="text-red-300" />
+            </motion.button>
+
+            {/* Feedback row */}
+            <motion.button
+              onClick={() => setShowFeedback(true)}
+              whileHover={{ background: "rgba(0,0,0,0.015)" }}
               className="w-full px-5 py-4 flex items-center gap-3 transition-colors"
             >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)" }}>
-                <Trash2 size={14} className="text-red-400" />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)" }}>
+                <MessageSquare size={15} className="text-indigo-400" />
               </div>
-              <div className="text-left">
-                <p className="font-pixel-thin text-red-400" style={{ fontSize: 16, fontWeight: 600 }}>Delete Account</p>
-                <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 13 }}>Permanently removes all data and login credentials</p>
+              <div className="text-left flex-1">
+                <p className="font-pixel-thin text-black/75" style={{ fontSize: 16, fontWeight: 600 }}>Send Feedback</p>
+                <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 13 }}>Suggestions, bugs, or ideas for CozyJet</p>
               </div>
+              <ChevronRight size={14} className="text-black/25" />
             </motion.button>
-          </div>
+          </LiquidGlassCard>
 
           {/* Footer */}
           <div className="text-center pt-2 pb-4">
@@ -337,10 +378,10 @@ export default function SettingsPage() {
 
       {/* Modals */}
       <AnimatePresence>
-        {showApiKeys && <ApiKeysModal onClose={() => setShowApiKeys(false)} />}
+        {showDelete && <ConfirmDeleteModal onClose={() => setShowDelete(false)} onConfirm={handleDeleteAccount} />}
       </AnimatePresence>
       <AnimatePresence>
-        {showDelete && <ConfirmDeleteModal onClose={() => setShowDelete(false)} onConfirm={handleDeleteAccount} />}
+        {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       </AnimatePresence>
     </div>
   );

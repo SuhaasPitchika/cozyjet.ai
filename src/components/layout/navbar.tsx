@@ -13,22 +13,27 @@ export function Navbar() {
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-white/30 backdrop-blur-2xl border border-white/50 max-w-4xl w-full h-20 flex items-center justify-between px-8 rounded-full shadow-[0_12px_48px_0_rgba(186,230,253,0.25)] ring-1 ring-white/40"
+        className="bg-white/30 backdrop-blur-2xl border border-white/50 max-w-4xl w-full h-24 flex items-center justify-between px-8 rounded-full shadow-[0_12px_48px_0_rgba(186,230,253,0.25)] ring-1 ring-white/40"
       >
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+          <div className="relative w-24 h-24 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
             <Image
               src="/cozyjet-logo.png"
               alt="CozyJet Logo"
-              width={80}
-              height={80}
+              width={96}
+              height={96}
               className="object-contain"
-              style={{ width: "80px", height: "80px" }}
+              style={{ width: "96px", height: "96px" }}
             />
           </div>
-          <span className="font-pixel text-lg font-bold tracking-tighter text-black uppercase">
-            CozyJet
-          </span>
+          <div className="flex flex-col">
+            <span className="font-pixel text-xl font-bold tracking-tighter text-black uppercase leading-tight">
+              CozyJet
+            </span>
+            <span className="font-pixel-thin text-black/50 tracking-widest" style={{ fontSize: 11 }}>
+              AI STUDIO
+            </span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-6">

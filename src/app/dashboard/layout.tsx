@@ -64,11 +64,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo row */}
         <div
           className="flex items-center gap-2.5 px-3 flex-shrink-0"
-          style={{ height: 60, borderBottom: "1px solid rgba(0,0,0,0.07)" }}
+          style={{ height: 72, borderBottom: "1px solid rgba(0,0,0,0.07)" }}
         >
           <Link href="/" className="flex-shrink-0">
-            <motion.div whileHover={{ scale: 1.06 }} className="w-8 h-8 rounded-xl overflow-hidden">
-              <Image src="/cozyjet-logo.png" alt="CozyJet" width={32} height={32} className="object-contain" />
+            <motion.div whileHover={{ scale: 1.06 }} className="w-11 h-11 rounded-xl overflow-hidden">
+              <Image src="/cozyjet-logo.png" alt="CozyJet" width={44} height={44} className="object-contain" />
             </motion.div>
           </Link>
           <AnimatePresence>
@@ -80,8 +80,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 transition={{ duration: 0.15 }}
                 className="flex-1 min-w-0 overflow-hidden"
               >
-                <p className="font-pixel text-black/70 leading-none truncate" style={{ fontSize: 9 }}>CozyJet</p>
-                <p className="font-pixel-thin text-black/35 mt-0.5 truncate" style={{ fontSize: 12 }}>AI Studio</p>
+                <p className="font-pixel text-black/75 leading-none truncate" style={{ fontSize: 12 }}>CozyJet</p>
+                <p className="font-pixel-thin text-black/40 mt-0.5 truncate" style={{ fontSize: 13 }}>AI Studio</p>
               </motion.div>
             )}
           </AnimatePresence>

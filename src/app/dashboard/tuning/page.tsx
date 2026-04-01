@@ -11,40 +11,112 @@ interface ChatMsg {
   timestamp: Date;
 }
 
-function PixelDotBg() {
+/* ─── Architectural grid + liquid gradient background ─── */
+function ArchitecturalBg() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ background: "#0b1120" }}>
-      {/* Dense pixel dot field - mimicking the reference images */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Base: white + light blue liquid gradient */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: [
-            "radial-gradient(circle, rgba(100,220,255,0.55) 1px, transparent 1px)",
-            "radial-gradient(circle, rgba(255,80,180,0.45) 1px, transparent 1px)",
-            "radial-gradient(circle, rgba(255,220,60,0.35) 1px, transparent 1px)",
-            "radial-gradient(circle, rgba(80,200,255,0.3) 1px, transparent 1px)",
-          ].join(", "),
-          backgroundSize: "12px 12px, 17px 17px, 23px 23px, 7px 7px",
-          backgroundPosition: "0 0, 6px 9px, 11px 5px, 3px 3px",
+          background: "linear-gradient(135deg, #f8fbff 0%, #eaf4ff 25%, #f0f8ff 50%, #e6f2ff 75%, #f5f9ff 100%)",
         }}
       />
-      {/* Dark fade overlay — lightest at the middle, dark at edges */}
+
+      {/* Liquid gradient blobs */}
+      <div
+        className="absolute"
+        style={{
+          top: "8%", left: "15%",
+          width: "55vw", height: "55vw",
+          background: "radial-gradient(ellipse at center, rgba(186,224,255,0.45) 0%, rgba(220,240,255,0.25) 45%, transparent 70%)",
+          filter: "blur(60px)",
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          bottom: "10%", right: "10%",
+          width: "45vw", height: "45vw",
+          background: "radial-gradient(ellipse at center, rgba(147,210,255,0.35) 0%, rgba(200,230,255,0.2) 45%, transparent 70%)",
+          filter: "blur(80px)",
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          top: "40%", right: "25%",
+          width: "30vw", height: "30vw",
+          background: "radial-gradient(ellipse at center, rgba(200,230,255,0.3) 0%, transparent 65%)",
+          filter: "blur(40px)",
+        }}
+      />
+
+      {/* Architectural square grid — grey lines */}
       <div
         className="absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at 50% 60%, rgba(11,17,32,0) 0%, rgba(11,17,32,0.5) 55%, rgba(11,17,32,0.92) 100%)",
+          backgroundImage: `
+            linear-gradient(rgba(160,185,220,0.18) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(160,185,220,0.18) 1px, transparent 1px)
+          `,
+          backgroundSize: "40px 40px",
         }}
       />
-      {/* Strong bottom dark band */}
+
+      {/* Finer sub-grid */}
       <div
-        className="absolute bottom-0 left-0 right-0"
-        style={{ height: "35%", background: "linear-gradient(to top, #0b1120 0%, transparent 100%)" }}
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(160,185,220,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(160,185,220,0.07) 1px, transparent 1px)
+          `,
+          backgroundSize: "8px 8px",
+        }}
       />
-      {/* Top dark band */}
+
+      {/* Subtle vignette — edges slightly darker */}
       <div
-        className="absolute top-0 left-0 right-0"
-        style={{ height: "25%", background: "linear-gradient(to bottom, #0b1120 0%, transparent 100%)" }}
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(180,210,240,0.12) 100%)",
+        }}
       />
+    </div>
+  );
+}
+
+/* ─── Liquid glass top bar ─── */
+function LiquidGlassBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="relative z-10 flex items-center justify-center gap-3 py-4 flex-shrink-0 overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(225,240,255,0.62) 40%, rgba(255,255,255,0.68) 100%)",
+        backdropFilter: "blur(40px) saturate(200%) brightness(106%)",
+        WebkitBackdropFilter: "blur(40px) saturate(200%) brightness(106%)",
+        borderBottom: "1px solid rgba(200,225,255,0.6)",
+        boxShadow: "0 1px 0 rgba(255,255,255,0.9), 0 4px 24px rgba(160,210,255,0.15), inset 0 1px 0 rgba(255,255,255,0.95)",
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 50%, rgba(200,230,255,0.25) 100%)",
+          mixBlendMode: "screen",
+        }}
+      />
+      <div
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: 1.5,
+          background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0))",
+        }}
+      />
+      <div className="relative z-10 flex items-center gap-3">
+        {children}
+      </div>
     </div>
   );
 }
@@ -118,22 +190,26 @@ export default function TuningPage() {
   const fmt = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
   return (
-    <div className="h-full flex flex-col overflow-hidden relative" style={{ background: "#0b1120" }}>
-      <PixelDotBg />
+    <div className="h-full flex flex-col overflow-hidden relative">
+      <ArchitecturalBg />
 
-      {/* Top bar */}
-      <div
-        className="relative z-10 flex items-center justify-center gap-3 py-4 flex-shrink-0"
-        style={{ background: "rgba(11,17,32,0.75)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-      >
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #ffd97d, #ff9de2)" }}>
+      {/* Liquid glass top bar */}
+      <LiquidGlassBar>
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,217,125,0.9), rgba(255,157,226,0.9))",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 2px 8px rgba(255,180,100,0.3), inset 0 1px 0 rgba(255,255,255,0.5)",
+          }}
+        >
           <span className="font-pixel text-black/70" style={{ fontSize: 8 }}>TN</span>
         </div>
         <div className="text-center">
-          <h1 className="font-pixel text-white/90 leading-none" style={{ fontSize: 11 }}>TUNING</h1>
-          <p className="font-pixel-thin text-white/30 mt-0.5" style={{ fontSize: 14 }}>Voice Calibration Engine</p>
+          <h1 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>TUNING</h1>
+          <p className="font-pixel-thin text-black/45 mt-0.5" style={{ fontSize: 14 }}>Voice Calibration Engine</p>
         </div>
-      </div>
+      </LiquidGlassBar>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 relative z-10">
@@ -149,27 +225,31 @@ export default function TuningPage() {
               style={
                 msg.role === "user"
                   ? {
-                      background: "#ffffff",
-                      boxShadow: "0 4px 20px rgba(255,255,255,0.08)",
+                      background: "rgba(255,255,255,0.92)",
+                      backdropFilter: "blur(20px)",
+                      boxShadow: "0 4px 20px rgba(160,210,255,0.2), 0 1px 4px rgba(0,0,0,0.06)",
+                      border: "1px solid rgba(200,230,255,0.6)",
                       borderBottomRightRadius: 8,
                     }
                   : {
-                      background: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.10)",
-                      backdropFilter: "blur(16px)",
+                      background: "rgba(255,255,255,0.55)",
+                      border: "1px solid rgba(200,225,255,0.5)",
+                      backdropFilter: "blur(24px)",
+                      WebkitBackdropFilter: "blur(24px)",
+                      boxShadow: "0 2px 12px rgba(160,210,255,0.12)",
                       borderBottomLeftRadius: 8,
                     }
               }
             >
               <p
                 className="font-pixel-thin leading-relaxed whitespace-pre-wrap"
-                style={{ fontSize: 17, color: msg.role === "user" ? "#0b1120" : "rgba(255,255,255,0.82)" }}
+                style={{ fontSize: 17, color: "rgba(20,40,80,0.82)" }}
               >
                 {msg.content}
               </p>
               <p
                 className="font-pixel-thin mt-1.5"
-                style={{ fontSize: 12, color: msg.role === "user" ? "rgba(11,17,32,0.35)" : "rgba(255,255,255,0.22)" }}
+                style={{ fontSize: 12, color: "rgba(60,100,160,0.4)" }}
               >
                 {fmt(msg.timestamp)}
               </p>
@@ -179,8 +259,8 @@ export default function TuningPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}>
-              <Loader2 size={14} className="animate-spin text-white/25" />
+            <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.55)", border: "1px solid rgba(200,225,255,0.5)", backdropFilter: "blur(24px)" }}>
+              <Loader2 size={14} className="animate-spin" style={{ color: "rgba(100,160,220,0.6)" }} />
             </div>
           </div>
         )}
@@ -190,19 +270,29 @@ export default function TuningPage() {
       {/* Input bar */}
       <div
         className="relative z-10 px-6 pb-6 pt-3 flex-shrink-0"
-        style={{ background: "rgba(11,17,32,0.8)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        style={{
+          background: "rgba(240,248,255,0.7)",
+          backdropFilter: "blur(32px) saturate(180%)",
+          WebkitBackdropFilter: "blur(32px) saturate(180%)",
+          borderTop: "1px solid rgba(200,225,255,0.5)",
+        }}
       >
         <div
           className="relative rounded-3xl overflow-hidden"
-          style={{ background: "#000000", boxShadow: "0 4px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)" }}
+          style={{
+            background: "rgba(255,255,255,0.88)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 4px 24px rgba(160,210,255,0.2), 0 1px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(200,230,255,0.5)",
+            border: "1px solid rgba(255,255,255,0.9)",
+          }}
         >
           <div className="flex items-end gap-2 px-4 py-3">
             <input type="file" ref={fileRef} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors mb-0.5"
+              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-blue-50 transition-colors mb-0.5"
             >
-              <Paperclip size={15} className="text-white/25" />
+              <Paperclip size={15} style={{ color: "rgba(100,150,200,0.5)" }} />
             </button>
 
             <textarea
@@ -212,15 +302,15 @@ export default function TuningPage() {
               onChange={handleTextareaChange}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Paste text to humanise, or describe your voice..."
-              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-white/20"
-              style={{ fontSize: 17, lineHeight: 1.5, minHeight: 28, maxHeight: 160, color: "#ffffff" }}
+              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-blue-300/60"
+              style={{ fontSize: 17, lineHeight: 1.5, minHeight: 28, maxHeight: 160, color: "rgba(20,40,80,0.8)" }}
             />
 
             <button
               onClick={handleVoice}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors mb-0.5"
+              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-blue-50 transition-colors mb-0.5"
             >
-              <Mic size={15} className={listening ? "text-red-400 animate-pulse" : "text-white/25"} />
+              <Mic size={15} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(100,150,200,0.5)" }} />
             </button>
 
             <motion.button
@@ -229,12 +319,14 @@ export default function TuningPage() {
               disabled={!input.trim() || loading}
               className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
               style={{
-                background: input.trim() && !loading ? "#ffffff" : "rgba(255,255,255,0.07)",
-                boxShadow: input.trim() && !loading ? "0 2px 10px rgba(255,255,255,0.12)" : "none",
+                background: input.trim() && !loading
+                  ? "linear-gradient(135deg, #4facfe, #00f2fe)"
+                  : "rgba(180,210,240,0.3)",
+                boxShadow: input.trim() && !loading ? "0 2px 12px rgba(79,172,254,0.4)" : "none",
                 transition: "all 0.2s",
               }}
             >
-              <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#0b1120" : "rgba(255,255,255,0.18)" }} />
+              <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#fff" : "rgba(100,150,200,0.4)" }} />
             </motion.button>
           </div>
         </div>

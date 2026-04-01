@@ -42,67 +42,73 @@ const ALL_NODES = [
   { icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2", tag: "PROFESSIONAL BLOGS",       noteTitle: "AUTHORITY BLOGS",  noteLines: ["Thought leadership", "Data stories", "Pro hooks"] },
 ];
 
-/* ─── Typing subtitle ─── */
-const SUBTITLES = [
-  "Three AI agents watch your work and turn it into viral content — automatically.",
-  "Skippy observes. Snooks strategises. Meta writes. You just ship.",
-  "From a GitHub commit to a LinkedIn post in seconds — without lifting a finger.",
-  "Your personal marketing studio. Powered by AI. Built for solopreneurs.",
-  "Stop context-switching between building and marketing. Let the agents handle it.",
-];
+/* ─── Typing subtitle — types on entry from left side only, fades, then types again slowly ─── */
+const SUBTITLE = "Three AI agents watch your work and turn it into viral content — automatically.";
+
+type TypingPhase = "typing" | "hold" | "fading" | "waiting";
 
 function TypingSubtitle() {
-  const [idx, setIdx] = useState(0);
   const [displayed, setDisplayed] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [phase, setPhase] = useState<TypingPhase>("typing");
+  const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const full = SUBTITLES[idx];
-    if (!isDeleting) {
-      if (displayed.length < full.length) {
-        timeoutRef.current = setTimeout(() => setDisplayed(full.slice(0, displayed.length + 1)), 36);
+    if (phase === "typing") {
+      if (displayed.length < SUBTITLE.length) {
+        const speed = displayed.length === 0 ? 60 : 40;
+        timeoutRef.current = setTimeout(
+          () => setDisplayed(SUBTITLE.slice(0, displayed.length + 1)),
+          speed
+        );
       } else {
-        timeoutRef.current = setTimeout(() => setIsDeleting(true), 2800);
+        timeoutRef.current = setTimeout(() => setPhase("hold"), 3200);
       }
-    } else {
-      if (displayed.length > 0) {
-        timeoutRef.current = setTimeout(() => setDisplayed(d => d.slice(0, -1)), 16);
-      } else {
-        setIsDeleting(false);
-        setIdx(i => (i + 1) % SUBTITLES.length);
-      }
+    } else if (phase === "hold") {
+      setVisible(false);
+      timeoutRef.current = setTimeout(() => setPhase("fading"), 900);
+    } else if (phase === "fading") {
+      setDisplayed("");
+      timeoutRef.current = setTimeout(() => setPhase("waiting"), 400);
+    } else if (phase === "waiting") {
+      setVisible(true);
+      timeoutRef.current = setTimeout(() => setPhase("typing"), 1200);
     }
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-  }, [displayed, isDeleting, idx]);
+  }, [displayed, phase]);
 
   return (
-    <p
+    <motion.p
+      animate={{ opacity: visible ? 1 : 0 }}
+      transition={{ duration: 0.7, ease: "easeInOut" }}
       style={{
         fontFamily: PIXEL,
         fontSize: 13,
         textTransform: "uppercase",
         letterSpacing: "0.08em",
-        textAlign: "center",
+        textAlign: "left",
         color: "rgba(255,255,255,0.90)",
         minHeight: "1.8em",
         textShadow: "0 0 18px rgba(96,165,250,0.8), 0 0 40px rgba(96,165,250,0.5), 0 2px 4px rgba(0,0,0,0.9)",
         lineHeight: 2,
+        maxWidth: 600,
       }}
     >
       {displayed}
-      <span
-        style={{
-          display: "inline-block",
-          width: 2,
-          height: "1em",
-          background: "rgba(255,255,255,0.8)",
-          marginLeft: 3,
-          verticalAlign: "middle",
-          animation: "blink 0.75s step-end infinite",
-        }}
-      />
-    </p>
+      {phase === "typing" && (
+        <span
+          style={{
+            display: "inline-block",
+            width: 2,
+            height: "1em",
+            background: "rgba(255,255,255,0.8)",
+            marginLeft: 3,
+            verticalAlign: "middle",
+            animation: "blink 0.75s step-end infinite",
+          }}
+        />
+      )}
+    </motion.p>
   );
 }
 
@@ -236,8 +242,8 @@ export function Hero() {
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
 
-      {/* Title */}
-      <div className="text-center max-w-4xl mx-auto z-10 px-4 mt-6">
+      {/* Title + Subtitle left-aligned container */}
+      <div className="w-full max-w-6xl mx-auto z-10 px-8 mt-6">
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
@@ -252,12 +258,13 @@ export function Hero() {
             lineHeight: 1.7,
             color: "#ffffff",
             textShadow: "0 2px 0 rgba(0,0,0,0.9), 0 4px 32px rgba(0,0,0,0.8), 0 8px 48px rgba(0,0,0,0.5)",
+            textAlign: "left",
           }}
         >
           AI AGENTIC<br />MARKETING STUDIO
         </motion.h1>
 
-        {/* Subtitle — just below title, before arch */}
+        {/* Subtitle — left side only, entry typing, fade, retype slowly */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

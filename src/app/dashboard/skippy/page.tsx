@@ -1,50 +1,42 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, X, Check, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
 /* ─── App integrations ─── */
 const INTEGRATIONS = [
   {
     id: "github", name: "GitHub",
-    bg: "linear-gradient(135deg,#f0f0f0,#ffffff)",
     logo: <svg viewBox="0 0 24 24" fill="#171717" className="w-full h-full"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>,
   },
   {
     id: "notion", name: "Notion",
-    bg: "linear-gradient(135deg,#f7f6f3,#ffffff)",
     logo: <svg viewBox="0 0 24 24" fill="#000" className="w-full h-full"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.887.747-.933z"/></svg>,
   },
   {
     id: "figma", name: "Figma",
-    bg: "linear-gradient(135deg,#faf5ff,#f0e8ff)",
     logo: <svg viewBox="0 0 24 24" fill="none" className="w-full h-full"><path d="M8 24c2.208 0 4-1.792 4-4v-4H8c-2.208 0-4 1.792-4 4s1.792 4 4 4z" fill="#0ACF83"/><path d="M4 12c0-2.208 1.792-4 4-4h4v8H8c-2.208 0-4-1.792-4-4z" fill="#A259FF"/><path d="M4 4c0-2.208 1.792-4 4-4h4v8H8C5.792 8 4 6.208 4 4z" fill="#F24E1E"/><path d="M12 0h4c2.208 0 4 1.792 4 4s-1.792 4-4 4h-4V0z" fill="#FF7262"/><path d="M20 12c0 2.208-1.792 4-4 4s-4-1.792-4-4 1.792-4 4-4 4 1.792 4 4z" fill="#1ABCFE"/></svg>,
   },
   {
     id: "gdrive", name: "Google Drive",
-    bg: "linear-gradient(135deg,#f0f7ff,#e8f4ff)",
-    logo: <svg viewBox="0 0 24 24" className="w-full h-full"><path d="M4.433 22.396l2.266-3.925H22.5l-2.267 3.925z" fill="#4285F4"/><path d="M8.428 15.471L6.16 12.008 14.255 1.5h4.534z" fill="#0F9D58"/><path d="M1.5 19.471l2.267-3.925L8 8.075 1.5 19.471z" fill="#FFCD40"/><path d="M4.433 22.396l2.266-3.925h12l2.267 3.925z" fill="#1967D2"/></svg>,
+    logo: <svg viewBox="0 0 87.3 78" className="w-full h-full"><path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5zm40.1-23.8H27.5l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h38.6l-10.2-25zm-13.75 0L46.7 19.3 33.0 43.05zm0 0" fill="#0066DA"/><path d="M46.7 19.3L33.0 43.05h27.4l13.75-23.75zm27.4 23.75H60.4l-13.7 23.8h13.7zm0 0" fill="#00AC47"/><path d="M46.7 19.3l-13.7 23.75L46.7 19.3zm27.4 0H46.7l13.7 23.75zm0 0" fill="#EA4335"/><path d="M32.95 43.05h27.4L46.7 19.3zm0 0" fill="#FFBA00"/><path d="M1.1 66.85C.4 68.25 0 69.8 0 71.35c0 4.55 3.7 8.25 8.25 8.25 1.55 0 3.1-.4 4.5-1.2l3.85-6.65L1.1 66.85zm0 0" fill="#00832D"/><path d="M73.75 19.3H46.7l13.7 23.75 13.7-23.75zm0 0" fill="#2684FC"/><path d="M86.2 66.85l-25.8-44.8-13.7 23.75 13.7 21.05 10.2-25c0 0 0 0 0 0 0-1.55.4-3.1 1.2-4.5l3.85 6.65 1.2 4.5h-5.4L86.2 66.85c.8-1.4 1.2-2.95 1.2-4.5 0-1.55-.4-3.1-1.2-4.5zm0 0" fill="#4285F4"/></svg>,
   },
   {
     id: "gcal", name: "Google Calendar",
-    bg: "linear-gradient(135deg,#f0f5ff,#e8eeff)",
-    logo: <svg viewBox="0 0 24 24" className="w-full h-full"><rect x="3" y="4" width="18" height="18" rx="2" fill="#fff" stroke="#4285F4" strokeWidth="1.5"/><path d="M3 9h18" stroke="#4285F4" strokeWidth="1.5"/><path d="M8 2v4M16 2v4" stroke="#4285F4" strokeWidth="1.5" strokeLinecap="round"/><text x="12" y="18" textAnchor="middle" fill="#EA4335" fontSize="7" fontWeight="bold">31</text><text x="12" y="14" textAnchor="middle" fill="#4285F4" fontSize="5">CAL</text></svg>,
+    logo: <svg viewBox="0 0 48 48" className="w-full h-full"><rect x="6" y="6" width="36" height="36" rx="4" fill="#fff"/><path d="M6 18h36v-8a4 4 0 00-4-4H10a4 4 0 00-4 4v8z" fill="#1a73e8"/><path d="M6 18h36v4H6z" fill="#1a73e8"/><text x="24" y="36" textAnchor="middle" fill="#1a73e8" fontSize="14" fontWeight="bold">31</text><rect x="16" y="6" width="4" height="6" rx="2" fill="#1a73e8"/><rect x="28" y="6" width="4" height="6" rx="2" fill="#1a73e8"/></svg>,
   },
   {
     id: "linear", name: "Linear",
-    bg: "linear-gradient(135deg,#f2f3ff,#ebebff)",
-    logo: <svg viewBox="0 0 24 24" fill="#5E6AD2" className="w-full h-full"><path d="M3.533 7.773a8.44 8.44 0 009.694 9.694l-9.694-9.694zM2.8 6.067l15.133 15.133a8.5 8.5 0 01-4.93 1.8L2.8 6.067zm18.4 10.733l-14.1-14.1A8.44 8.44 0 0121.2 16.8zM6.067 2.8l16.2 16.2a8.44 8.44 0 00-16.2-16.2z"/></svg>,
+    logo: <svg viewBox="0 0 100 100" fill="none" className="w-full h-full"><defs><linearGradient id="lin-g" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stopColor="#5E6AD2"/><stop offset="1" stopColor="#8B5CF6"/></linearGradient></defs><circle cx="50" cy="50" r="50" fill="url(#lin-g)"/><path d="M17 64.5L35.5 83c16.5-3 30-13 37-27L17 64.5zm-2.8-4.5L56 18.8C44.5 15.5 32 18 22.5 26L14.2 60zm50.6 21.5C78 74 85 62.5 85 50c0-4-.7-7.8-2-11.2L45 78.8c2.6.8 5.3 1.2 8.1 1.3l11.7 1.7zm7.5-58C68 15 59.5 13 50.8 14L19 45.5c-1.3 4-1.5 8.3-.5 12.5L72.3 23z" fill="#fff"/></svg>,
   },
   {
     id: "slack", name: "Slack",
-    bg: "linear-gradient(135deg,#fdf5ff,#f5e8ff)",
-    logo: <svg viewBox="0 0 24 24" className="w-full h-full"><path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52z" fill="#E01E5A"/><path d="M6.313 15.165a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.834 24a2.528 2.528 0 01-2.521-2.522v-6.313z" fill="#E01E5A"/><path d="M8.834 5.042a2.528 2.528 0 01-2.521-2.52A2.528 2.528 0 018.834 0a2.528 2.528 0 012.521 2.522v2.52H8.834z" fill="#36C5F0"/><path d="M8.834 6.313a2.528 2.528 0 012.521 2.521 2.528 2.528 0 01-2.521 2.521H2.522A2.528 2.528 0 010 8.834a2.528 2.528 0 012.522-2.521h6.312z" fill="#36C5F0"/><path d="M18.956 8.834a2.528 2.528 0 012.522-2.521A2.528 2.528 0 0124 8.834a2.528 2.528 0 01-2.522 2.521h-2.522V8.834z" fill="#2EB67D"/><path d="M17.688 8.834a2.528 2.528 0 01-2.523 2.521 2.527 2.527 0 01-2.52-2.521V2.522A2.527 2.527 0 0115.165 0a2.528 2.528 0 012.523 2.522v6.312z" fill="#2EB67D"/><path d="M15.165 18.956a2.528 2.528 0 012.523 2.522A2.528 2.528 0 0115.165 24a2.527 2.527 0 01-2.52-2.522v-2.522h2.52z" fill="#ECB22E"/><path d="M15.165 17.688a2.527 2.527 0 01-2.52-2.523 2.526 2.526 0 012.52-2.52h6.313A2.527 2.527 0 0124 15.165a2.528 2.528 0 01-2.522 2.523h-6.313z" fill="#ECB22E"/></svg>,
+    logo: <svg viewBox="0 0 54 54" className="w-full h-full"><path d="M19.712.133a5.381 5.381 0 00-5.376 5.387 5.381 5.381 0 005.376 5.386h5.376V5.52A5.381 5.381 0 0019.712.133m0 14.365H5.376A5.381 5.381 0 000 19.884a5.381 5.381 0 005.376 5.386h14.336a5.381 5.381 0 005.376-5.386 5.381 5.381 0 00-5.376-5.386" fill="#36C5F0"/><path d="M53.76 19.884a5.381 5.381 0 00-5.376-5.386 5.381 5.381 0 00-5.376 5.386v5.386h5.376a5.381 5.381 0 005.376-5.386m-14.336 0V5.52A5.381 5.381 0 0034.048.133a5.381 5.381 0 00-5.376 5.387v14.364a5.381 5.381 0 005.376 5.386 5.381 5.381 0 005.376-5.386" fill="#2EB67D"/><path d="M34.048 54a5.381 5.381 0 005.376-5.387 5.381 5.381 0 00-5.376-5.386h-5.376v5.386A5.381 5.381 0 0034.048 54m0-14.365h14.336a5.381 5.381 0 005.376-5.386 5.381 5.381 0 00-5.376-5.386H34.048a5.381 5.381 0 00-5.376 5.386 5.381 5.381 0 005.376 5.386" fill="#ECB22E"/><path d="M0 34.249a5.381 5.381 0 005.376 5.386 5.381 5.381 0 005.376-5.386v-5.386H5.376A5.381 5.381 0 000 34.249m14.336 0v14.364A5.381 5.381 0 0019.712 54a5.381 5.381 0 005.376-5.387V34.249a5.381 5.381 0 00-5.376-5.386 5.381 5.381 0 00-5.376 5.386" fill="#E01E5A"/></svg>,
   },
   {
     id: "vscode", name: "VS Code",
-    bg: "linear-gradient(135deg,#f0f7ff,#e3f0ff)",
-    logo: <svg viewBox="0 0 24 24" fill="#0078d4" className="w-full h-full"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 00-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 00-1.276.057L.327 7.261A1 1 0 00.326 8.74L3.899 12 .326 15.26a1 1 0 00.001 1.479L1.65 17.94a.999.999 0 001.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 001.704.29l4.942-2.377A1.5 1.5 0 0024 20.06V3.939a1.5 1.5 0 00-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>,
+    logo: <svg viewBox="0 0 100 100" fill="none" className="w-full h-full"><defs><linearGradient id="vsc-g" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stopColor="#0078d4"/><stop offset="1" stopColor="#28c7f7"/></linearGradient></defs><rect width="100" height="100" rx="16" fill="url(#vsc-g)"/><path d="M72.4 16.5L54.2 34.8 38.7 21.4 29 26.3l21.9 23.7L29 73.7l9.7 4.9 15.5-13.4 18.2 18.3 9.6-4.6V21.1l-9.6-4.6zM72 65.4L55.9 50 72 34.6v30.8z" fill="white"/></svg>,
   },
 ];
 
@@ -111,93 +103,375 @@ const SEED_DATA = [
   },
 ];
 
-const NOTE_COLORS = [
-  { bg: "#fff9c4", border: "#f0e060", shadow: "rgba(240,200,0,0.3)" },
-  { bg: "#fff3e0", border: "#ffcc80", shadow: "rgba(255,160,0,0.25)" },
-  { bg: "#e8f5e9", border: "#a5d6a7", shadow: "rgba(76,175,80,0.2)" },
-  { bg: "#fce4ec", border: "#f48fb1", shadow: "rgba(233,30,99,0.2)" },
-  { bg: "#e3f2fd", border: "#90caf9", shadow: "rgba(33,150,243,0.2)" },
-];
+/* ─── Cursor-following dot background (only dots near cursor visible) ─── */
+function CursorDotsBg() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: -999, y: -999 });
+  const frameRef = useRef<number>(0);
 
-function AppCircle({ intg }: { intg: typeof INTEGRATIONS[0] }) {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const SPACING = 26;
+    let cols = 0, rows = 0;
+    const dots: { x: number; y: number }[] = [];
+
+    const buildGrid = () => {
+      cols = Math.ceil(canvas.width / SPACING) + 1;
+      rows = Math.ceil(canvas.height / SPACING) + 1;
+      dots.length = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          dots.push({ x: c * SPACING, y: r * SPACING });
+        }
+      }
+    };
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      buildGrid();
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const RADIUS = 130;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+      for (const d of dots) {
+        const dx = d.x - mx;
+        const dy = d.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < RADIUS) {
+          const alpha = (1 - dist / RADIUS) * 0.55;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(160,160,160,${alpha})`;
+          ctx.fill();
+        }
+      }
+      frameRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    const onMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+    const onLeave = () => { mouseRef.current = { x: -999, y: -999 }; };
+    canvas.parentElement?.addEventListener("mousemove", onMove);
+    canvas.parentElement?.addEventListener("mouseleave", onLeave);
+
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      ro.disconnect();
+      canvas.parentElement?.removeEventListener("mousemove", onMove);
+      canvas.parentElement?.removeEventListener("mouseleave", onLeave);
+    };
+  }, []);
+
   return (
-    <motion.div
-      whileHover={{ scale: 1.12, y: -2 }}
-      className="flex-shrink-0 rounded-2xl flex items-center justify-center cursor-pointer"
-      title={intg.name}
-      style={{
-        width: 38, height: 38,
-        background: intg.bg,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
-        border: "1px solid rgba(255,255,255,0.7)",
-        padding: 8,
-      }}
-    >
-      {intg.logo}
-    </motion.div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0 }}
+    />
   );
 }
 
-function StickyNote({ seed, colorIdx }: { seed: typeof SEED_DATA[0]; colorIdx: number }) {
-  const intg = INTEGRATIONS.find(i => i.id === seed.source);
-  const col = NOTE_COLORS[colorIdx % NOTE_COLORS.length];
-  const rot = (colorIdx % 3 === 0 ? -1.2 : colorIdx % 3 === 1 ? 1.0 : -0.5);
+/* ─── Stacked integration circles bar ─── */
+function StackedIntegrationCircles({ connectedIds }: { connectedIds: string[] }) {
+  const connected = connectedIds
+    .map(id => INTEGRATIONS.find(i => i.id === id))
+    .filter(Boolean) as typeof INTEGRATIONS;
+
+  const SIZE = 36;
+  const OVERLAP = 12;
+  const totalWidth = connected.length > 0 ? SIZE + (connected.length - 1) * (SIZE - OVERLAP) : 0;
 
   return (
-    <motion.div
-      animate={{ y: [0, -3, 0], rotate: [rot, rot + 0.3, rot] }}
-      transition={{ duration: 4 + colorIdx * 0.5, repeat: Infinity, ease: "easeInOut" }}
-      className="w-full h-full flex flex-col"
+    <div className="flex items-center" style={{ width: totalWidth, height: SIZE, position: "relative" }}>
+      {connected.map((intg, idx) => (
+        <motion.div
+          key={intg.id}
+          whileHover={{ zIndex: 50, y: -4, scale: 1.12 }}
+          title={intg.name}
+          style={{
+            position: "absolute",
+            left: idx * (SIZE - OVERLAP),
+            width: SIZE,
+            height: SIZE,
+            borderRadius: "50%",
+            background: "#fff",
+            border: "2.5px solid rgba(255,255,255,0.9)",
+            zIndex: connected.length - idx,
+            overflow: "hidden",
+            padding: 7,
+            cursor: "pointer",
+            boxSizing: "border-box",
+          }}
+          className="flex items-center justify-center"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            {intg.logo}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Hyper-realistic sticky note with bottom-corner curl ─── */
+function StickyNote({
+  seed,
+  onEdit,
+}: {
+  seed: typeof SEED_DATA[0];
+  onEdit: (seed: typeof SEED_DATA[0]) => void;
+}) {
+  const intg = INTEGRATIONS.find(i => i.id === seed.source);
+
+  return (
+    <div
+      className="w-full h-full flex flex-col relative select-none"
       style={{
-        background: col.bg,
-        border: `1.5px solid ${col.border}`,
-        borderRadius: 4,
-        boxShadow: `4px 6px 18px ${col.shadow}, 2px 2px 0 rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9)`,
-        transform: `rotate(${rot}deg)`,
-        padding: "18px 20px 14px",
+        background: "linear-gradient(160deg, #fff9c4 0%, #fff176 50%, #ffee58 100%)",
+        borderRadius: "3px 3px 3px 3px",
+        boxShadow: `
+          0 1px 2px rgba(0,0,0,0.12),
+          0 4px 12px rgba(200,160,0,0.22),
+          6px 8px 24px rgba(180,140,0,0.18),
+          0 0 0 1px rgba(220,180,0,0.25)
+        `,
+        padding: "22px 22px 32px",
+        overflow: "hidden",
       }}
     >
-      {/* Pin dot */}
+      {/* Ruled lines */}
+      {Array.from({ length: 14 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{
+            top: 70 + i * 32,
+            height: 1,
+            background: "rgba(100,80,0,0.08)",
+          }}
+        />
+      ))}
+
+      {/* Red margin line */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-black/20 z-10"
-        style={{ background: "#ef4444", boxShadow: "1px 1px 3px rgba(0,0,0,0.25)" }}
+        className="absolute top-0 bottom-0 pointer-events-none"
+        style={{ left: 48, width: 1, background: "rgba(220,60,60,0.18)" }}
       />
-      {/* Source + date header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {intg && (
-            <div style={{ width: 20, height: 20, flexShrink: 0, padding: 3, background: "rgba(255,255,255,0.6)", borderRadius: 4 }}>
-              {intg.logo}
-            </div>
-          )}
-          <span className="font-pixel-thin text-black/50" style={{ fontSize: 12 }}>{intg?.name}</span>
+
+      {/* Pin */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: "50%",
+          background: "radial-gradient(circle at 35% 30%, #ff7070, #c0392b)",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.4)",
+          border: "1.5px solid rgba(0,0,0,0.15)",
+        }}
+      />
+
+      {/* Edit button */}
+      <button
+        onClick={() => onEdit(seed)}
+        className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all hover:bg-black/8"
+        style={{
+          background: "rgba(0,0,0,0.06)",
+          border: "1px solid rgba(0,0,0,0.1)",
+        }}
+        title="Edit note"
+      >
+        <Pencil size={11} style={{ color: "rgba(0,0,0,0.45)" }} />
+        <span className="font-pixel-thin" style={{ fontSize: 10, color: "rgba(0,0,0,0.45)" }}>Edit</span>
+      </button>
+
+      {/* Header: source icon + name + date */}
+      <div className="flex items-center gap-3 mb-4 mt-3">
+        {intg && (
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              flexShrink: 0,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.7)",
+              padding: 6,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+              border: "1px solid rgba(255,255,255,0.9)",
+            }}
+          >
+            {intg.logo}
+          </div>
+        )}
+        <div className="flex flex-col">
+          <span
+            className="font-pixel-thin text-black/70"
+            style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}
+          >
+            {intg?.name}
+          </span>
+          <span
+            className="font-pixel-thin text-black/40"
+            style={{ fontSize: 12, lineHeight: 1.3 }}
+          >
+            {seed.date}
+          </span>
         </div>
-        <span
-          className="font-pixel-thin text-black/40 px-2 py-0.5 rounded"
-          style={{ fontSize: 11, background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.07)" }}
-        >
-          {seed.date}
-        </span>
       </div>
 
       {/* Title */}
       <h3
-        className="font-pixel-thin text-black/80 mb-2 leading-snug"
-        style={{ fontSize: 17, fontWeight: 600 }}
+        className="font-pixel-thin text-black/85 mb-4 leading-snug"
+        style={{ fontSize: 20, fontWeight: 700 }}
       >
         {seed.title}
       </h3>
 
-      {/* Lines — like handwritten notes */}
-      <div className="flex-1 flex flex-col justify-around">
+      {/* Lines */}
+      <div className="flex-1 flex flex-col gap-2">
         {seed.lines.map((line, i) => (
-          <div key={i} className="flex items-start gap-1.5 py-0.5" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
-            <span className="font-pixel-thin text-black/25 flex-shrink-0 mt-0.5" style={{ fontSize: 11 }}>›</span>
-            <span className="font-pixel-thin text-black/65 leading-snug" style={{ fontSize: 14 }}>{line}</span>
+          <div key={i} className="flex items-start gap-2">
+            <span className="font-pixel-thin text-black/30 flex-shrink-0 mt-0.5" style={{ fontSize: 13 }}>›</span>
+            <span className="font-pixel-thin text-black/70 leading-snug" style={{ fontSize: 15 }}>{line}</span>
           </div>
         ))}
       </div>
-    </motion.div>
+
+      {/* Bottom curl — realistic page curl effect */}
+      <div
+        className="absolute bottom-0 right-0 pointer-events-none"
+        style={{
+          width: 48,
+          height: 48,
+          background: `
+            radial-gradient(circle at 100% 100%, transparent 48px, rgba(180,140,0,0.22) 48px, rgba(180,140,0,0.22) 50px, transparent 50px),
+            linear-gradient(225deg, #fff9a0 0%, #e8c800 55%, #c8a800 100%)
+          `,
+          borderTopLeftRadius: "50%",
+          boxShadow: "-3px -3px 8px rgba(0,0,0,0.18)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 pointer-events-none"
+        style={{
+          width: 48,
+          height: 48,
+          background: "linear-gradient(225deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 55%)",
+          borderTopLeftRadius: "50%",
+        }}
+      />
+    </div>
+  );
+}
+
+/* ─── Edit modal for notes ─── */
+function EditNoteModal({
+  seed,
+  onClose,
+  onSave,
+}: {
+  seed: typeof SEED_DATA[0];
+  onClose: () => void;
+  onSave: (updated: typeof SEED_DATA[0]) => void;
+}) {
+  const [title, setTitle] = useState(seed.title);
+  const [lines, setLines] = useState<string[]>([...seed.lines]);
+
+  const updateLine = (idx: number, val: string) => {
+    const next = [...lines];
+    next[idx] = val;
+    setLines(next);
+  };
+
+  const handleSave = () => {
+    onSave({ ...seed, title, lines });
+    onClose();
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50"
+        style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(6px)" }}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: -30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: -30 }}
+        className="fixed z-50 overflow-hidden"
+        style={{
+          top: 48, left: "50%", transform: "translateX(-50%)",
+          width: 480, maxHeight: "80vh",
+          background: "rgba(255,255,255,0.97)",
+          backdropFilter: "blur(48px) saturate(180%)",
+          WebkitBackdropFilter: "blur(48px) saturate(180%)",
+          border: "1.5px solid rgba(255,255,255,0.9)",
+          borderRadius: 20,
+          boxShadow: "0 32px 80px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,1)",
+        }}
+      >
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          <h3 className="font-pixel text-black/80" style={{ fontSize: 9 }}>EDIT NOTE</h3>
+          <button onClick={onClose} className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.05)" }}>
+            <X size={13} className="text-black/40" />
+          </button>
+        </div>
+        <div className="px-6 py-4 overflow-y-auto flex flex-col gap-4" style={{ maxHeight: "calc(80vh - 120px)" }}>
+          <div>
+            <p className="font-pixel-thin text-black/50 mb-1.5" style={{ fontSize: 13, letterSpacing: "0.08em" }}>TITLE</p>
+            <input
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl font-pixel-thin text-black/80 outline-none"
+              style={{ fontSize: 16, background: "#f8f8f8", border: "1.5px solid rgba(0,0,0,0.09)" }}
+            />
+          </div>
+          {lines.map((line, i) => (
+            <div key={i}>
+              <p className="font-pixel-thin text-black/40 mb-1" style={{ fontSize: 12 }}>LINE {i + 1}</p>
+              <textarea
+                value={line}
+                onChange={e => updateLine(i, e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl font-pixel-thin text-black/70 outline-none resize-none"
+                style={{ fontSize: 14, background: "#f8f8f8", border: "1.5px solid rgba(0,0,0,0.09)" }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="px-6 py-4 flex gap-3" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+          <motion.button
+            onClick={handleSave}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="flex-1 py-3 rounded-xl font-pixel-thin text-white"
+            style={{ fontSize: 16, fontWeight: 600, background: "#1a1a2e" }}
+          >
+            Save Changes
+          </motion.button>
+          <button onClick={onClose} className="px-5 py-3 rounded-xl font-pixel-thin text-black/50" style={{ fontSize: 16, background: "rgba(0,0,0,0.04)" }}>
+            Cancel
+          </button>
+        </div>
+      </motion.div>
+    </>
   );
 }
 
@@ -206,9 +480,11 @@ export default function SkippyPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [seedData, setSeedData] = useState(SEED_DATA);
+  const [editingSeed, setEditingSeed] = useState<typeof SEED_DATA[0] | null>(null);
   const dragStartX = useRef(0);
 
-  const goTo = (idx: number) => setCurrentSlide(Math.max(0, Math.min(SEED_DATA.length - 1, idx)));
+  const goTo = (idx: number) => setCurrentSlide(Math.max(0, Math.min(seedData.length - 1, idx)));
 
   const onPointerDown = (e: React.PointerEvent) => {
     setIsDragging(false);
@@ -223,14 +499,18 @@ export default function SkippyPage() {
     }
   };
 
+  const handleSaveEdit = (updated: typeof SEED_DATA[0]) => {
+    setSeedData(prev => prev.map(s => s.id === updated.id ? updated : s));
+  };
+
   return (
-    <div
-      className="h-full flex overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #ddf4f8 0%, #e8f4f0 50%, #f0f8e8 100%)" }}
-    >
+    <div className="h-full flex overflow-hidden relative" style={{ background: "#ffffff" }}>
+      {/* Cursor-following dot background */}
+      <CursorDotsBg />
+
       {/* ─── LEFT 1/4 ─── */}
       <div
-        className="flex flex-col overflow-y-auto flex-shrink-0"
+        className="flex flex-col overflow-y-auto flex-shrink-0 relative z-10"
         style={{ width: "26%", minWidth: 230, borderRight: "1px solid rgba(0,0,0,0.07)" }}
       >
         <div className="px-5 pt-6 pb-2">
@@ -240,35 +520,30 @@ export default function SkippyPage() {
           </p>
         </div>
 
-        {/* Integration pill bar */}
+        {/* Integration pill bar with stacked circles */}
         <div className="px-4 py-3">
           <div
-            className="flex items-center gap-2 px-3 py-2.5 relative"
+            className="flex items-center gap-3 px-4 py-3 relative"
             style={{
-              background: "linear-gradient(135deg, rgba(255,248,220,0.85), rgba(255,255,255,0.7))",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1.5px solid rgba(255,220,100,0.4)",
+              background: "rgba(255,255,255,0.7)",
+              backdropFilter: "blur(24px) saturate(180%)",
+              WebkitBackdropFilter: "blur(24px) saturate(180%)",
+              border: "1.5px solid rgba(255,255,255,0.8)",
               borderRadius: 999,
-              boxShadow: "0 4px 20px rgba(255,200,50,0.15), inset 0 1px 0 rgba(255,255,255,0.9)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.03)",
             }}
           >
-            <div className="flex items-center gap-1.5 flex-1 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-              {connected.map(id => {
-                const intg = INTEGRATIONS.find(i => i.id === id);
-                if (!intg) return null;
-                return <AppCircle key={id} intg={intg} />;
-              })}
-            </div>
+            <StackedIntegrationCircles connectedIds={connected} />
+            <div className="flex-1" />
             <motion.button
               onClick={() => setShowPopup(true)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ml-1"
+              className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
               style={{
-                background: "rgba(255,255,255,0.8)",
-                border: "1.5px solid rgba(255,220,100,0.5)",
-                boxShadow: "0 2px 8px rgba(255,200,50,0.15)",
+                background: "rgba(255,255,255,0.9)",
+                border: "1.5px solid rgba(0,0,0,0.1)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               }}
             >
               <Plus size={16} className="text-black/50" />
@@ -292,13 +567,26 @@ export default function SkippyPage() {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-2xl"
                   style={{
-                    background: intg.bg,
-                    border: "1px solid rgba(255,255,255,0.8)",
+                    background: "rgba(255,255,255,0.8)",
+                    border: "1px solid rgba(0,0,0,0.06)",
                     backdropFilter: "blur(8px)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                   }}
                 >
-                  <div style={{ width: 22, height: 22, flexShrink: 0 }}>{intg.logo}</div>
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      flexShrink: 0,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      padding: 4,
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                      border: "1px solid rgba(0,0,0,0.07)",
+                    }}
+                  >
+                    {intg.logo}
+                  </div>
                   <span className="font-pixel-thin text-black/65 flex-1" style={{ fontSize: 15 }}>{intg.name}</span>
                   <motion.div
                     animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
@@ -314,7 +602,7 @@ export default function SkippyPage() {
       </div>
 
       {/* ─── RIGHT 3/4 ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         <div
           className="px-7 pt-6 pb-4 flex items-center justify-between flex-shrink-0"
           style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
@@ -322,10 +610,9 @@ export default function SkippyPage() {
           <div>
             <h2 className="font-pixel text-black/70" style={{ fontSize: 10 }}>CONTENT SEEDS</h2>
             <p className="font-pixel-thin text-black/40 mt-0.5" style={{ fontSize: 14 }}>
-              Drag left or right to browse · {SEED_DATA.length} seeds ready
+              Drag left or right to browse · {seedData.length} seeds ready
             </p>
           </div>
-          {/* Slide indicator */}
           <div className="flex items-center gap-3">
             <motion.button
               onClick={() => goTo(currentSlide - 1)}
@@ -336,13 +623,13 @@ export default function SkippyPage() {
             >
               <ChevronLeft size={14} className="text-black/50" />
             </motion.button>
-            <span className="font-pixel-thin text-black/40" style={{ fontSize: 14 }}>{currentSlide + 1} / {SEED_DATA.length}</span>
+            <span className="font-pixel-thin text-black/40" style={{ fontSize: 14 }}>{currentSlide + 1} / {seedData.length}</span>
             <motion.button
               onClick={() => goTo(currentSlide + 1)}
               whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-              disabled={currentSlide === SEED_DATA.length - 1}
+              disabled={currentSlide === seedData.length - 1}
               className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.9)", opacity: currentSlide === SEED_DATA.length - 1 ? 0.3 : 1 }}
+              style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.9)", opacity: currentSlide === seedData.length - 1 ? 0.3 : 1 }}
             >
               <ChevronRight size={14} className="text-black/50" />
             </motion.button>
@@ -359,14 +646,14 @@ export default function SkippyPage() {
           {currentSlide > 0 && (
             <div
               className="absolute left-2 top-1/2 -translate-y-1/2 opacity-20"
-              style={{ width: 40, height: "60%", background: NOTE_COLORS[(currentSlide - 1) % NOTE_COLORS.length].bg, borderRadius: 4, transform: "translateY(-50%) rotate(-3deg)" }}
+              style={{ width: 40, height: "60%", background: "#fff9c4", borderRadius: 4, transform: "translateY(-50%) rotate(-3deg)" }}
             />
           )}
           {/* Next peek */}
-          {currentSlide < SEED_DATA.length - 1 && (
+          {currentSlide < seedData.length - 1 && (
             <div
               className="absolute right-2 top-1/2 -translate-y-1/2 opacity-20"
-              style={{ width: 40, height: "60%", background: NOTE_COLORS[(currentSlide + 1) % NOTE_COLORS.length].bg, borderRadius: 4, transform: "translateY(-50%) rotate(3deg)" }}
+              style={{ width: 40, height: "60%", background: "#fff9c4", borderRadius: 4, transform: "translateY(-50%) rotate(3deg)" }}
             />
           )}
 
@@ -380,13 +667,16 @@ export default function SkippyPage() {
               className="relative"
               style={{ width: "min(480px, 90%)", height: "min(520px, 90vh)", cursor: "grab" }}
             >
-              <StickyNote seed={SEED_DATA[currentSlide]} colorIdx={currentSlide} />
+              <StickyNote
+                seed={seedData[currentSlide]}
+                onEdit={setEditingSeed}
+              />
             </motion.div>
           </AnimatePresence>
 
           {/* Dot nav */}
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
-            {SEED_DATA.map((_, i) => (
+            {seedData.map((_, i) => (
               <motion.button
                 key={i}
                 onClick={() => goTo(i)}
@@ -399,7 +689,7 @@ export default function SkippyPage() {
         </div>
       </div>
 
-      {/* ─── Integration popup ─── */}
+      {/* ─── Integration popup — top centre ─── */}
       <AnimatePresence>
         {showPopup && (
           <>
@@ -410,19 +700,22 @@ export default function SkippyPage() {
               style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 16 }}
+              initial={{ opacity: 0, scale: 0.94, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 16 }}
+              exit={{ opacity: 0, scale: 0.94, y: -20 }}
               className="fixed z-50 overflow-hidden"
               style={{
-                top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-                width: 400, maxHeight: "75vh",
-                background: "rgba(255,255,255,0.92)",
-                backdropFilter: "blur(48px) saturate(200%)",
-                WebkitBackdropFilter: "blur(48px) saturate(200%)",
+                top: 40,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 460,
+                maxHeight: "80vh",
+                background: "rgba(255,255,255,0.96)",
+                backdropFilter: "blur(60px) saturate(200%)",
+                WebkitBackdropFilter: "blur(60px) saturate(200%)",
                 border: "1.5px solid rgba(255,255,255,0.95)",
                 borderRadius: 24,
-                boxShadow: "0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1)",
+                boxShadow: "0 32px 80px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,1)",
               }}
             >
               <div className="px-6 pt-5 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
@@ -435,7 +728,7 @@ export default function SkippyPage() {
                 </button>
               </div>
 
-              <div className="px-4 py-3 overflow-y-auto" style={{ maxHeight: "calc(75vh - 80px)" }}>
+              <div className="px-4 py-3 overflow-y-auto" style={{ maxHeight: "calc(80vh - 80px)" }}>
                 <div className="grid grid-cols-2 gap-3">
                   {INTEGRATIONS.map(intg => {
                     const isConn = connected.includes(intg.id);
@@ -445,20 +738,38 @@ export default function SkippyPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => setConnected(prev => isConn ? prev.filter(id => id !== intg.id) : [...prev, intg.id])}
-                        className="relative flex flex-col items-center gap-2 p-4 rounded-2xl text-center transition-all"
+                        className="relative flex items-center gap-3 p-4 rounded-2xl text-left transition-all"
                         style={{
-                          background: intg.bg,
-                          border: isConn ? "2px solid rgba(34,197,94,0.5)" : "1.5px solid rgba(255,255,255,0.7)",
-                          boxShadow: "0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
+                          background: isConn ? "rgba(34,197,94,0.06)" : "rgba(248,248,248,0.8)",
+                          border: isConn ? "2px solid rgba(34,197,94,0.4)" : "1.5px solid rgba(0,0,0,0.07)",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                         }}
                       >
                         {isConn && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "#22c55e" }}>
+                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "#22c55e" }}>
                             <Check size={10} className="text-white" />
                           </div>
                         )}
-                        <div style={{ width: 36, height: 36 }}>{intg.logo}</div>
-                        <span className="font-pixel-thin text-black/65" style={{ fontSize: 13 }}>{intg.name}</span>
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: "#fff",
+                            flexShrink: 0,
+                            padding: 8,
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                            border: "1px solid rgba(0,0,0,0.06)",
+                          }}
+                        >
+                          {intg.logo}
+                        </div>
+                        <div>
+                          <p className="font-pixel-thin text-black/80" style={{ fontSize: 15, fontWeight: 600 }}>{intg.name}</p>
+                          <p className="font-pixel-thin text-black/35 mt-0.5" style={{ fontSize: 12 }}>
+                            {isConn ? "Connected" : "Click to connect"}
+                          </p>
+                        </div>
                       </motion.button>
                     );
                   })}
@@ -466,6 +777,17 @@ export default function SkippyPage() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit note modal */}
+      <AnimatePresence>
+        {editingSeed && (
+          <EditNoteModal
+            seed={editingSeed}
+            onClose={() => setEditingSeed(null)}
+            onSave={handleSaveEdit}
+          />
         )}
       </AnimatePresence>
     </div>
