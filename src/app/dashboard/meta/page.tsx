@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mic, Paperclip, ArrowUp, Loader2 } from "lucide-react";
+import { Mic, Paperclip, ArrowUp, Loader2, Volume2, VolumeX } from "lucide-react";
 
 interface ChatMsg {
   id: string;
@@ -11,16 +11,43 @@ interface ChatMsg {
   timestamp: Date;
 }
 
+function speakText(text: string) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
 export default function MetaPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const handleSpeak = (msg: ChatMsg) => {
+    if (speakingId === msg.id) {
+      stopSpeaking();
+      setSpeakingId(null);
+      return;
+    }
+    setSpeakingId(msg.id);
+    speakText(msg.content);
+    const u = new SpeechSynthesisUtterance(msg.content);
+    u.onend = () => setSpeakingId(null);
+    u.onerror = () => setSpeakingId(null);
+  };
 
   const send = useCallback(async () => {
     const msg = input.trim();
@@ -31,15 +58,21 @@ export default function MetaPage() {
     setLoading(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     try {
+      const history = messages
+        .filter(m => m.id !== userMsg.id)
+        .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content }));
       const res = await fetch("/api/ai/meta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg, history: [] }),
+        body: JSON.stringify({
+          messages: [...history, { role: "user", content: msg }],
+          skippyContext: null,
+        }),
       });
       const data = await res.json();
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(), role: "bot",
-        content: data.reply || data.message || "Here's what I'd write for you...",
+        content: data.reply || data.response || data.message || "Here's what I'd write for you...",
         timestamp: new Date(),
       }]);
     } catch {
@@ -76,7 +109,7 @@ export default function MetaPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden mesh-bg">
 
-      {/* Liquid glass top bar */}
+      {/* Top bar */}
       <div
         className="flex items-center justify-center gap-3 py-4 flex-shrink-0 relative overflow-hidden"
         style={{
@@ -120,22 +153,44 @@ export default function MetaPage() {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div
-              className="max-w-[78%] px-5 py-4 rounded-3xl"
-              style={{
-                background: msg.role === "user" ? "#1a1a2e" : "rgba(255,255,255,0.92)",
-                border: msg.role === "user" ? "none" : "1px solid rgba(0,0,0,0.07)",
-                boxShadow: msg.role === "user" ? "0 4px 16px rgba(26,26,46,0.25)" : "0 2px 12px rgba(0,0,0,0.06)",
-                borderBottomRightRadius: msg.role === "user" ? 8 : 24,
-                borderBottomLeftRadius: msg.role === "bot" ? 8 : 24,
-              }}
-            >
-              <p className="font-pixel-thin leading-relaxed whitespace-pre-wrap" style={{ fontSize: 17, color: msg.role === "user" ? "#fff" : "rgba(0,0,0,0.75)" }}>
-                {msg.content}
-              </p>
-              <p className="font-pixel-thin mt-1.5" style={{ fontSize: 12, color: msg.role === "user" ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.22)" }}>
-                {fmt(msg.timestamp)}
-              </p>
+            <div className="relative group">
+              <div
+                className="max-w-[78%] px-5 py-4 rounded-3xl"
+                style={{
+                  background: msg.role === "user" ? "#1a1a2e" : "rgba(255,255,255,0.92)",
+                  border: msg.role === "user" ? "none" : "1px solid rgba(0,0,0,0.07)",
+                  boxShadow: msg.role === "user"
+                    ? "0 4px 16px rgba(26,26,46,0.25)"
+                    : "0 2px 12px rgba(0,0,0,0.06)",
+                  borderBottomRightRadius: msg.role === "user" ? 8 : 24,
+                  borderBottomLeftRadius: msg.role === "bot" ? 8 : 24,
+                }}
+              >
+                <p className="font-pixel-thin leading-relaxed whitespace-pre-wrap" style={{ fontSize: 18, color: msg.role === "user" ? "#fff" : "rgba(0,0,0,0.75)" }}>
+                  {msg.content}
+                </p>
+                <div className="flex items-center justify-between mt-2 gap-3">
+                  <p className="font-pixel-thin" style={{ fontSize: 12, color: msg.role === "user" ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.22)" }}>
+                    {fmt(msg.timestamp)}
+                  </p>
+                  {msg.role === "bot" && (
+                    <button
+                      onClick={() => handleSpeak(msg)}
+                      className="flex items-center gap-1 rounded-lg px-2 py-1 transition-all hover:bg-black/5"
+                      style={{ opacity: 0.55 }}
+                      title="Read aloud"
+                    >
+                      {speakingId === msg.id
+                        ? <VolumeX size={13} className="text-red-400" />
+                        : <Volume2 size={13} className="text-black/40" />
+                      }
+                      <span className="font-pixel-thin text-black/40" style={{ fontSize: 11 }}>
+                        {speakingId === msg.id ? "Stop" : "Read"}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -150,22 +205,47 @@ export default function MetaPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
+      {/* ─── Liquid glass input bar ─── */}
       <div
         className="px-6 pb-6 pt-3 flex-shrink-0"
-        style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.06)" }}
+        style={{
+          background: "rgba(255,255,255,0.5)",
+          backdropFilter: "blur(28px) saturate(180%)",
+          WebkitBackdropFilter: "blur(28px) saturate(180%)",
+          borderTop: "1px solid rgba(255,255,255,0.6)",
+        }}
       >
         <div
           className="relative rounded-3xl overflow-hidden"
-          style={{ background: "#000000", boxShadow: "0 4px 20px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.06)" }}
+          style={{
+            background: "rgba(255,255,255,0.72)",
+            backdropFilter: "blur(40px) saturate(200%) brightness(108%)",
+            WebkitBackdropFilter: "blur(40px) saturate(200%) brightness(108%)",
+            border: "1.5px solid rgba(255,255,255,0.9)",
+            boxShadow: `
+              0 8px 32px rgba(244,63,94,0.12),
+              0 4px 16px rgba(0,0,0,0.08),
+              0 2px 6px rgba(0,0,0,0.05),
+              inset 0 1px 0 rgba(255,255,255,1),
+              inset 0 -1px 0 rgba(0,0,0,0.03)
+            `,
+          }}
         >
-          <div className="flex items-end gap-2 px-4 py-3">
+          {/* Glass sheen */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(255,200,220,0.1) 100%)",
+              borderRadius: "inherit",
+            }}
+          />
+          <div className="flex items-end gap-2 px-4 py-3 relative z-10">
             <input type="file" ref={fileRef} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors mb-0.5"
+              className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors mb-0.5"
             >
-              <Paperclip size={15} className="text-white/30" />
+              <Paperclip size={16} className="text-black/30" />
             </button>
 
             <textarea
@@ -175,29 +255,34 @@ export default function MetaPage() {
               onChange={handleTextareaChange}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Give Meta a content seed or idea..."
-              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-white/25"
-              style={{ fontSize: 17, lineHeight: 1.5, minHeight: 28, maxHeight: 160, color: "#ffffff" }}
+              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-black/25"
+              style={{ fontSize: 18, lineHeight: 1.55, minHeight: 28, maxHeight: 160, color: "rgba(0,0,0,0.75)" }}
             />
 
             <button
               onClick={handleVoice}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors mb-0.5"
+              className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors mb-0.5"
+              title="Voice input"
             >
-              <Mic size={15} className={listening ? "text-red-400 animate-pulse" : "text-white/30"} />
+              <Mic size={16} className={listening ? "text-red-400 animate-pulse" : "text-black/30"} />
             </button>
 
             <motion.button
               onClick={send}
               whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
               disabled={!input.trim() || loading}
-              className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
+              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center mb-0.5"
               style={{
-                background: input.trim() && !loading ? "#ffffff" : "rgba(255,255,255,0.08)",
-                boxShadow: input.trim() && !loading ? "0 2px 10px rgba(255,255,255,0.15)" : "none",
+                background: input.trim() && !loading
+                  ? "linear-gradient(135deg, #f43f5e, #f97316)"
+                  : "rgba(0,0,0,0.07)",
+                boxShadow: input.trim() && !loading
+                  ? "0 4px 16px rgba(244,63,94,0.35), 0 2px 6px rgba(0,0,0,0.1)"
+                  : "none",
                 transition: "all 0.2s",
               }}
             >
-              <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#000" : "rgba(255,255,255,0.2)" }} />
+              <ArrowUp size={16} style={{ color: input.trim() && !loading ? "#fff" : "rgba(0,0,0,0.25)" }} />
             </motion.button>
           </div>
         </div>

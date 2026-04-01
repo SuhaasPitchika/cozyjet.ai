@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mic, Paperclip, ArrowUp, Loader2 } from "lucide-react";
+import { Mic, ArrowUp, Loader2, Volume2, VolumeX } from "lucide-react";
 
 interface ChatMsg {
   id: string;
@@ -11,78 +11,97 @@ interface ChatMsg {
   timestamp: Date;
 }
 
-/* ─── Architectural grid + liquid gradient background ─── */
-function ArchitecturalBg() {
+function speakText(text: string) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
+/* ─── Blue grid only between the chat squares ─── */
+function GridBetweenContent({ chatRef }: { chatRef: React.RefObject<HTMLDivElement | null> }) {
+  const [bounds, setBounds] = useState<{ top: number; bottom: number } | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      if (chatRef.current) {
+        const rect = chatRef.current.getBoundingClientRect();
+        const parentRect = chatRef.current.parentElement?.getBoundingClientRect();
+        if (parentRect) {
+          setBounds({ top: rect.top - parentRect.top, bottom: rect.bottom - parentRect.top });
+        }
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [chatRef]);
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Base: white + light blue liquid gradient */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(135deg, #f8fbff 0%, #eaf4ff 25%, #f0f8ff 50%, #e6f2ff 75%, #f5f9ff 100%)",
-        }}
-      />
+      {/* Full base: plain light blue */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #f8fbff 0%, #edf6ff 40%, #f3f9ff 100%)" }} />
 
-      {/* Liquid gradient blobs */}
-      <div
-        className="absolute"
-        style={{
-          top: "8%", left: "15%",
-          width: "55vw", height: "55vw",
-          background: "radial-gradient(ellipse at center, rgba(186,224,255,0.45) 0%, rgba(220,240,255,0.25) 45%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-      />
-      <div
-        className="absolute"
-        style={{
-          bottom: "10%", right: "10%",
-          width: "45vw", height: "45vw",
-          background: "radial-gradient(ellipse at center, rgba(147,210,255,0.35) 0%, rgba(200,230,255,0.2) 45%, transparent 70%)",
-          filter: "blur(80px)",
-        }}
-      />
-      <div
-        className="absolute"
-        style={{
-          top: "40%", right: "25%",
-          width: "30vw", height: "30vw",
-          background: "radial-gradient(ellipse at center, rgba(200,230,255,0.3) 0%, transparent 65%)",
-          filter: "blur(40px)",
-        }}
-      />
+      {/* Liquid blobs in the grid zone only */}
+      {bounds && (
+        <>
+          <div
+            className="absolute"
+            style={{
+              top: bounds.top + "px",
+              left: "10%",
+              width: "60vw", height: (bounds.bottom - bounds.top) * 0.8,
+              background: "radial-gradient(ellipse at center, rgba(147,210,255,0.35) 0%, rgba(200,230,255,0.18) 50%, transparent 70%)",
+              filter: "blur(50px)",
+            }}
+          />
+          <div
+            className="absolute"
+            style={{
+              top: bounds.top + (bounds.bottom - bounds.top) * 0.3 + "px",
+              right: "8%",
+              width: "40vw", height: (bounds.bottom - bounds.top) * 0.6,
+              background: "radial-gradient(ellipse at center, rgba(186,224,255,0.3) 0%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
 
-      {/* Architectural square grid — grey lines */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(160,185,220,0.18) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(160,185,220,0.18) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
+          {/* Grid lines only in the chat area */}
+          <div
+            className="absolute left-0 right-0"
+            style={{
+              top: bounds.top,
+              height: bounds.bottom - bounds.top,
+              backgroundImage: `
+                linear-gradient(rgba(140,180,220,0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(140,180,220,0.2) 1px, transparent 1px)
+              `,
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div
+            className="absolute left-0 right-0"
+            style={{
+              top: bounds.top,
+              height: bounds.bottom - bounds.top,
+              backgroundImage: `
+                linear-gradient(rgba(140,180,220,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(140,180,220,0.07) 1px, transparent 1px)
+              `,
+              backgroundSize: "8px 8px",
+            }}
+          />
+        </>
+      )}
 
-      {/* Finer sub-grid */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(160,185,220,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(160,185,220,0.07) 1px, transparent 1px)
-          `,
-          backgroundSize: "8px 8px",
-        }}
-      />
-
-      {/* Subtle vignette — edges slightly darker */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(180,210,240,0.12) 100%)",
-        }}
-      />
+      {/* Subtle vignette */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(180,210,240,0.1) 100%)" }} />
     </div>
   );
 }
@@ -109,14 +128,9 @@ function LiquidGlassBar({ children }: { children: React.ReactNode }) {
       />
       <div
         className="absolute top-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: 1.5,
-          background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0))",
-        }}
+        style={{ height: 1.5, background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0))" }}
       />
-      <div className="relative z-10 flex items-center gap-3">
-        {children}
-      </div>
+      <div className="relative z-10 flex items-center gap-3">{children}</div>
     </div>
   );
 }
@@ -132,11 +146,30 @@ export default function TuningPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const handleSpeak = (msg: ChatMsg) => {
+    if (speakingId === msg.id) {
+      stopSpeaking();
+      setSpeakingId(null);
+      return;
+    }
+    setSpeakingId(msg.id);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(msg.content);
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      u.onend = () => setSpeakingId(null);
+      u.onerror = () => setSpeakingId(null);
+      window.speechSynthesis.speak(u);
+    }
+  };
 
   const send = useCallback(async () => {
     const msg = input.trim();
@@ -147,15 +180,20 @@ export default function TuningPage() {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
     try {
+      const history = messages
+        .filter(m => m.id !== userMsg.id)
+        .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content }));
       const res = await fetch("/api/ai/tuning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg, history: [] }),
+        body: JSON.stringify({
+          messages: [...history, { role: "user", content: msg }],
+        }),
       });
       const data = await res.json();
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(), role: "bot",
-        content: data.reply || data.message || "Here's the humanised version...",
+        content: data.reply || data.response || data.message || "Here's the humanised version...",
         timestamp: new Date(),
       }]);
     } catch {
@@ -191,7 +229,7 @@ export default function TuningPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative">
-      <ArchitecturalBg />
+      <GridBetweenContent chatRef={chatContainerRef} />
 
       {/* Liquid glass top bar */}
       <LiquidGlassBar>
@@ -212,7 +250,10 @@ export default function TuningPage() {
       </LiquidGlassBar>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 relative z-10">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 relative z-10"
+      >
         {messages.map(msg => (
           <motion.div
             key={msg.id}
@@ -243,16 +284,31 @@ export default function TuningPage() {
             >
               <p
                 className="font-pixel-thin leading-relaxed whitespace-pre-wrap"
-                style={{ fontSize: 17, color: "rgba(20,40,80,0.82)" }}
+                style={{ fontSize: 18, color: "rgba(20,40,80,0.82)" }}
               >
                 {msg.content}
               </p>
-              <p
-                className="font-pixel-thin mt-1.5"
-                style={{ fontSize: 12, color: "rgba(60,100,160,0.4)" }}
-              >
-                {fmt(msg.timestamp)}
-              </p>
+              <div className="flex items-center justify-between mt-2 gap-3">
+                <p className="font-pixel-thin" style={{ fontSize: 12, color: "rgba(60,100,160,0.4)" }}>
+                  {fmt(msg.timestamp)}
+                </p>
+                {msg.role === "bot" && (
+                  <button
+                    onClick={() => handleSpeak(msg)}
+                    className="flex items-center gap-1 rounded-lg px-2 py-0.5 transition-all hover:bg-blue-50"
+                    style={{ opacity: 0.6 }}
+                    title="Read aloud"
+                  >
+                    {speakingId === msg.id
+                      ? <VolumeX size={13} className="text-red-400" />
+                      : <Volume2 size={13} style={{ color: "rgba(100,150,200,0.7)" }} />
+                    }
+                    <span className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(80,130,190,0.6)" }}>
+                      {speakingId === msg.id ? "Stop" : "Read"}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         ))}
@@ -267,11 +323,11 @@ export default function TuningPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
+      {/* ─── Enhanced input bar ─── */}
       <div
         className="relative z-10 px-6 pb-6 pt-3 flex-shrink-0"
         style={{
-          background: "rgba(240,248,255,0.7)",
+          background: "rgba(240,248,255,0.65)",
           backdropFilter: "blur(32px) saturate(180%)",
           WebkitBackdropFilter: "blur(32px) saturate(180%)",
           borderTop: "1px solid rgba(200,225,255,0.5)",
@@ -281,20 +337,26 @@ export default function TuningPage() {
           className="relative rounded-3xl overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.88)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 4px 24px rgba(160,210,255,0.2), 0 1px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(200,230,255,0.5)",
-            border: "1px solid rgba(255,255,255,0.9)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            border: "1.5px solid rgba(200,230,255,0.75)",
+            boxShadow: `
+              0 8px 32px rgba(100,170,255,0.15),
+              0 4px 16px rgba(0,0,0,0.06),
+              0 2px 6px rgba(0,0,0,0.04),
+              inset 0 1px 0 rgba(255,255,255,0.95)
+            `,
           }}
         >
-          <div className="flex items-end gap-2 px-4 py-3">
-            <input type="file" ref={fileRef} className="hidden" />
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-blue-50 transition-colors mb-0.5"
-            >
-              <Paperclip size={15} style={{ color: "rgba(100,150,200,0.5)" }} />
-            </button>
-
+          {/* Shimmer */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%)",
+              borderRadius: "inherit",
+            }}
+          />
+          <div className="flex items-end gap-2 px-4 py-3 relative z-10">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -302,31 +364,51 @@ export default function TuningPage() {
               onChange={handleTextareaChange}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Paste text to humanise, or describe your voice..."
-              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-blue-300/60"
-              style={{ fontSize: 17, lineHeight: 1.5, minHeight: 28, maxHeight: 160, color: "rgba(20,40,80,0.8)" }}
+              className="flex-1 bg-transparent outline-none resize-none font-pixel-thin"
+              style={{
+                fontSize: 18,
+                lineHeight: 1.55,
+                minHeight: 28,
+                maxHeight: 160,
+                color: "rgba(20,40,80,0.8)",
+              }}
             />
 
-            <button
+            {/* Voice button */}
+            <motion.button
               onClick={handleVoice}
-              className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-blue-50 transition-colors mb-0.5"
+              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center mb-0.5 transition-all"
+              style={{
+                background: listening
+                  ? "rgba(239,68,68,0.1)"
+                  : "rgba(180,210,240,0.2)",
+                border: `1.5px solid ${listening ? "rgba(239,68,68,0.4)" : "rgba(180,210,240,0.5)"}`,
+                boxShadow: listening ? "0 0 0 3px rgba(239,68,68,0.15)" : "none",
+              }}
+              title="Voice input"
             >
-              <Mic size={15} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(100,150,200,0.5)" }} />
-            </button>
+              <Mic size={16} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(100,150,200,0.65)" }} />
+            </motion.button>
 
+            {/* Send button */}
             <motion.button
               onClick={send}
               whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
               disabled={!input.trim() || loading}
-              className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
+              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center mb-0.5"
               style={{
                 background: input.trim() && !loading
-                  ? "linear-gradient(135deg, #4facfe, #00f2fe)"
+                  ? "linear-gradient(135deg, #4facfe, #00d4ff)"
                   : "rgba(180,210,240,0.3)",
-                boxShadow: input.trim() && !loading ? "0 2px 12px rgba(79,172,254,0.4)" : "none",
+                boxShadow: input.trim() && !loading
+                  ? "0 4px 16px rgba(79,172,254,0.4), 0 2px 6px rgba(0,0,0,0.08)"
+                  : "none",
+                border: "1.5px solid " + (input.trim() && !loading ? "rgba(79,172,254,0.5)" : "rgba(180,210,240,0.4)"),
                 transition: "all 0.2s",
               }}
             >
-              <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#fff" : "rgba(100,150,200,0.4)" }} />
+              <ArrowUp size={16} style={{ color: input.trim() && !loading ? "#fff" : "rgba(100,150,200,0.4)" }} />
             </motion.button>
           </div>
         </div>

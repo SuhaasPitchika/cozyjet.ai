@@ -64,11 +64,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo row */}
         <div
           className="flex items-center gap-2.5 px-3 flex-shrink-0"
-          style={{ height: 72, borderBottom: "1px solid rgba(0,0,0,0.07)" }}
+          style={{ height: 82, borderBottom: "1px solid rgba(0,0,0,0.07)" }}
         >
           <Link href="/" className="flex-shrink-0">
-            <motion.div whileHover={{ scale: 1.06 }} className="w-11 h-11 rounded-xl overflow-hidden">
-              <Image src="/cozyjet-logo.png" alt="CozyJet" width={44} height={44} className="object-contain" />
+            <motion.div whileHover={{ scale: 1.06 }} className="w-16 h-16 rounded-xl overflow-hidden">
+              <Image src="/cozyjet-logo.png" alt="CozyJet" width={64} height={64} className="object-contain" />
             </motion.div>
           </Link>
           <AnimatePresence>

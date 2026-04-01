@@ -42,7 +42,6 @@ const ALL_NODES = [
   { icon: Linkedin,    label: "LinkedIn",  color: "#0A66C2", tag: "PROFESSIONAL BLOGS",       noteTitle: "AUTHORITY BLOGS",  noteLines: ["Thought leadership", "Data stories", "Pro hooks"] },
 ];
 
-/* ─── Typing subtitle — types on entry from left side only, fades, then types again slowly ─── */
 const SUBTITLE = "Three AI agents watch your work and turn it into viral content — automatically.";
 
 type TypingPhase = "typing" | "hold" | "fading" | "waiting";
@@ -86,12 +85,13 @@ function TypingSubtitle() {
         fontSize: 13,
         textTransform: "uppercase",
         letterSpacing: "0.08em",
-        textAlign: "left",
+        textAlign: "center",
         color: "rgba(255,255,255,0.90)",
         minHeight: "1.8em",
         textShadow: "0 0 18px rgba(96,165,250,0.8), 0 0 40px rgba(96,165,250,0.5), 0 2px 4px rgba(0,0,0,0.9)",
         lineHeight: 2,
-        maxWidth: 600,
+        maxWidth: 680,
+        margin: "0 auto",
       }}
     >
       {displayed}
@@ -242,34 +242,34 @@ export function Hero() {
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
 
-      {/* Title + Subtitle left-aligned container */}
-      <div className="w-full max-w-6xl mx-auto z-10 px-8 mt-6">
+      {/* Title + Subtitle — centred */}
+      <div className="w-full max-w-6xl mx-auto z-10 px-8 mt-6 flex flex-col items-center text-center">
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             fontFamily: PIXEL,
-            fontSize: "clamp(22px, 3.6vw, 46px)",
+            fontSize: "clamp(20px, 3.2vw, 42px)",
             fontWeight: 700,
-            marginBottom: "0.6rem",
+            marginBottom: "0.5rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
             lineHeight: 1.7,
             color: "#ffffff",
             textShadow: "0 2px 0 rgba(0,0,0,0.9), 0 4px 32px rgba(0,0,0,0.8), 0 8px 48px rgba(0,0,0,0.5)",
-            textAlign: "left",
+            textAlign: "center",
           }}
         >
-          AI AGENTIC<br />MARKETING STUDIO
+          FULL STACK AI MARKETING AGENT<br />&amp; SOCIAL MEDIA MANAGER
         </motion.h1>
 
-        {/* Subtitle — left side only, entry typing, fade, retype slowly */}
+        {/* Subtitle — centred, tight to timeline */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          style={{ marginBottom: "0.3rem" }}
+          style={{ marginBottom: "0.1rem" }}
         >
           <TypingSubtitle />
         </motion.div>
@@ -280,7 +280,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-8"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-4"
         style={{ height: `${VH}px` }}
       >
         <OrganicMarketingCloud />
