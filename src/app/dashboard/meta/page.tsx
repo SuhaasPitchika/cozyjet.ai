@@ -224,24 +224,24 @@ export default function MetaPage() {
       {/* ─── SIDEBAR ─── */}
       <div
         className="flex flex-col flex-shrink-0 overflow-hidden"
-        style={{ width: 218, borderRight: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+        style={{ width: 250, borderRight: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
       >
         <div className="px-3 pt-4 pb-3 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={startNewChat}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl font-pixel-thin"
-            style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.85), rgba(249,115,22,0.85))", color: "#fff", fontSize: 13, boxShadow: "0 4px 14px rgba(244,63,94,0.25)", letterSpacing: "0.02em" }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl font-pixel"
+            style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.85), rgba(249,115,22,0.85))", color: "#fff", fontSize: 18, boxShadow: "0 4px 14px rgba(244,63,94,0.25)", letterSpacing: "0.02em" }}
           >
-            <Plus size={13} /> New Chat
+            <Plus size={18} /> New Chat
           </motion.button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-2 px-2">
           {sessions.length === 0 ? (
             <div className="pt-8 text-center">
-              <MessageSquare size={22} className="mx-auto mb-2 text-black/15" />
-              <p className="font-pixel-thin text-black/25" style={{ fontSize: 11 }}>No conversations yet</p>
+              <MessageSquare size={28} className="mx-auto mb-3 text-black/15" />
+              <p className="font-pixel text-black/30" style={{ fontSize: 18, lineHeight: 1.6 }}>No conversations yet</p>
             </div>
           ) : sessions.map(s => (
             <motion.div

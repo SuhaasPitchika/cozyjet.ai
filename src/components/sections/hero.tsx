@@ -86,9 +86,9 @@ function TypingSubtitle() {
         textTransform: "uppercase",
         letterSpacing: "0.08em",
         textAlign: "center",
-        color: "rgba(255,255,255,0.90)",
+        color: "#000000",
         minHeight: "1.8em",
-        textShadow: "0 0 18px rgba(96,165,250,0.8), 0 0 40px rgba(96,165,250,0.5), 0 2px 4px rgba(0,0,0,0.9)",
+        textShadow: "0 1px 0 rgba(255,255,255,0.6)",
         lineHeight: 2,
         maxWidth: 680,
         margin: "0 auto",
@@ -269,7 +269,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          style={{ marginBottom: "0.1rem" }}
+          style={{ marginTop: "1.2rem", marginBottom: "0.5rem" }}
         >
           <TypingSubtitle />
         </motion.div>
@@ -280,7 +280,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-6xl mx-auto px-4 mt-4"
+        className="relative w-full max-w-6xl mx-auto px-4 mt-10"
         style={{ height: `${VH}px` }}
       >
         <OrganicMarketingCloud />
