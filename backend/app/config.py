@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     # AI Keys
     OPEN_ROUTER: str = ""
+    ELEVENLABS_API_KEY: str = ""
     ANTHROPIC_API_KEY: Optional[str] = None
     GOOGLE_API_KEY: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None

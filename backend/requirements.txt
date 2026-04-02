@@ -13,6 +13,7 @@ langchain-openai
 anthropic
 google-generativeai
 openai
+elevenlabs
 pydantic
 pydantic-settings
 python-jose[cryptography]
