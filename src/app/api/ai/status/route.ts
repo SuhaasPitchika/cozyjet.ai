@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const hasOpenRouter = !!process.env.OPENAI_API_KEY;
+  const hasOpenRouter = !!process.env.OPEN_ROUTER;
   return NextResponse.json({ openRouter: hasOpenRouter });
 }

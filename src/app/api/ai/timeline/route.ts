@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     console.error("Timeline route error:", message);
     if (message.includes("API key")) {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY not configured. Add it in Secrets." },
+        { error: "OPEN_ROUTER not configured. Add it in Secrets." },
         { status: 502 }
       );
     }
