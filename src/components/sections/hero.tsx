@@ -201,7 +201,7 @@ function OrganicMarketingCloud() {
       animate={{ opacity: 1, scale: 1, rotate: -4 }}
       transition={{ delay: 0.9, duration: 0.6, type: "spring", stiffness: 200, damping: 18 }}
       className="absolute z-30"
-      style={{ left: "-2%", top: "10%", rotate: "-4deg" }}
+      style={{ left: "5%", top: "10%", rotate: "-4deg" }}
     >
       <motion.div animate={{ y: [0, -5, 0], rotate: [-4, -3, -4] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
         <div style={{ background: "#fff", border: "3px solid #000", boxShadow: "6px 6px 0px #000", padding: "18px 26px", borderRadius: 4, position: "relative", minWidth: 260 }}>
