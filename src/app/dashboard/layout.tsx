@@ -11,11 +11,11 @@ import { signOut } from "firebase/auth";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
 
 const NAV_ITEMS = [
-  { label: "Skippy",   href: "/dashboard/skippy",   emoji: "\uD83D\uDD2D", abbr: "SK" },
-  { label: "Snooks",   href: "/dashboard/snooks",   emoji: "\uD83D\uDCC5", abbr: "SN" },
-  { label: "Meta",     href: "/dashboard/meta",     emoji: "\u270D\uFE0F", abbr: "ME" },
-  { label: "Tuning",   href: "/dashboard/tuning",   emoji: "\uD83C\uDF9B\uFE0F", abbr: "TU" },
-  { label: "Settings", href: "/dashboard/settings", emoji: "\u2699\uFE0F", abbr: "ST" },
+  { label: "Skippy",   href: "/dashboard/skippy",   abbr: "SK" },
+  { label: "Snooks",   href: "/dashboard/snooks",   abbr: "SN" },
+  { label: "Meta",     href: "/dashboard/meta",     abbr: "ME" },
+  { label: "Tuning",   href: "/dashboard/tuning",   abbr: "TU" },
+  { label: "Settings", href: "/dashboard/settings", abbr: "ST" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -202,35 +202,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         boxShadow: isActive
                           ? "inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(0,0,0,0.06)"
                           : "none",
-                        fontSize: 18,
                       }}
                     >
-                      {item.emoji}
+                      <span className="font-pixel" style={{ fontSize: 9, color: isActive ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)" }}>
+                        {item.abbr}
+                      </span>
                     </motion.div>
                   ) : (
-                    <div className="flex items-center gap-3 w-full">
-                      <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{
-                          background: isActive ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.25)",
-                          boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.9)" : "none",
-                          fontSize: 16,
-                        }}
-                      >
-                        {item.emoji}
-                      </div>
-                      <span
-                        className="font-pixel-thin truncate"
-                        style={{
-                          fontSize: 16,
-                          color: isActive ? "rgba(15,10,5,0.82)" : "rgba(15,10,5,0.46)",
-                          fontWeight: isActive ? 600 : 400,
-                          letterSpacing: "0.01em",
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                    </div>
+                    <span
+                      className="font-pixel-thin truncate pl-2"
+                      style={{
+                        fontSize: 16,
+                        color: isActive ? "rgba(15,10,5,0.82)" : "rgba(15,10,5,0.46)",
+                        fontWeight: isActive ? 600 : 400,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {item.label}
+                    </span>
                   )}
                 </motion.div>
               </Link>

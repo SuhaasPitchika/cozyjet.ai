@@ -22,24 +22,20 @@ const SESSIONS_KEY = "meta_sessions";
 
 function generateSessionName(firstMsg: string): string {
   const lower = firstMsg.toLowerCase();
-  const platforms: Record<string, string> = {
-    linkedin: "💼", twitter: "🐦", instagram: "📸", threads: "🧵",
-    reddit: "🔴", email: "📧", tiktok: "🎵", youtube: "▶️", facebook: "📘",
-  };
+  const platforms: string[] = ["linkedin", "twitter", "instagram", "threads", "reddit", "email", "tiktok", "youtube", "facebook"];
   const types: Record<string, string> = {
     thread: "Thread", post: "Post", story: "Story", carousel: "Carousel",
     caption: "Caption", bio: "Bio", hook: "Hook", headline: "Headline",
     ad: "Ad Copy", campaign: "Campaign", newsletter: "Newsletter", script: "Script",
   };
-  const foundPlatform = Object.keys(platforms).find(p => lower.includes(p));
+  const foundPlatform = platforms.find(p => lower.includes(p));
   const foundType = Object.keys(types).find(t => lower.includes(t));
-  const emoji = foundPlatform ? platforms[foundPlatform] : "✍️";
   if (foundPlatform && foundType)
-    return `${emoji} ${foundPlatform.charAt(0).toUpperCase() + foundPlatform.slice(1)} ${types[foundType]}`;
-  if (foundPlatform) return `${emoji} ${foundPlatform.charAt(0).toUpperCase() + foundPlatform.slice(1)} Content`;
-  if (foundType) return `✍️ ${types[foundType]} Craft`;
+    return `${foundPlatform.charAt(0).toUpperCase() + foundPlatform.slice(1)} ${types[foundType]}`;
+  if (foundPlatform) return `${foundPlatform.charAt(0).toUpperCase() + foundPlatform.slice(1)} Content`;
+  if (foundType) return `${types[foundType]} Craft`;
   const t = firstMsg.slice(0, 28).trim();
-  return `✍️ ${t}${firstMsg.length > 28 ? "…" : ""}`;
+  return `${t}${firstMsg.length > 28 ? "..." : ""}`;
 }
 
 function loadSessions(): Session[] {
@@ -521,7 +517,7 @@ export default function MetaPage() {
             {messages.length === 0 && (
               <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pt-8">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                  <span style={{ fontSize: 24 }}>✍️</span>
+                  <span className="font-pixel" style={{ fontSize: 11, color: "rgba(0,0,0,0.45)", letterSpacing: "0.04em" }}>META</span>
                 </div>
                 <p className="text-black/50" style={{ fontSize: 12, lineHeight: 1.6, maxWidth: 300 }}>
                   Drop a content seed, raw idea, or topic. Meta writes three platform-ready variations that sound like you.

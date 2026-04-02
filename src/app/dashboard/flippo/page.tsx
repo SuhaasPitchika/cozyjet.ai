@@ -52,9 +52,9 @@ const TYPE_STYLES: Record<string, { dot: string; line: string; badge: string; ba
   },
 };
 
-const TOOL_ICONS: Record<string, string> = {
-  VSCode: "⌨️", Browser: "🌐", Terminal: "💻",
-  Figma: "🎨", GitHub: "🔗", Notion: "📝", Meeting: "👥",
+const TOOL_LABELS: Record<string, string> = {
+  VSCode: "VS", Browser: "BR", Terminal: "TM",
+  Figma: "FG", GitHub: "GH", Notion: "NT", Meeting: "MT",
 };
 
 function ScoreRing({ score }: { score: number }) {
@@ -126,12 +126,11 @@ function EmptyState({ onGenerate, isGenerating }: { onGenerate: () => void; isGe
 
       <div className="grid grid-cols-3 gap-4 w-full max-w-md">
         {[
-          { icon: "🧠", label: "Emotional Context", desc: "Rich, human-readable insights" },
-          { icon: "📊", label: "Deep Work Score", desc: "0–100 focus quality rating" },
-          { icon: "⚡", label: "Smart Insights", desc: "AI-powered recommendations" },
+          { label: "Emotional Context", desc: "Rich, human-readable insights" },
+          { label: "Deep Work Score", desc: "0–100 focus quality rating" },
+          { label: "Smart Insights", desc: "AI-powered recommendations" },
         ].map((f) => (
           <div key={f.label} className="p-4 rounded-xl bg-white/[0.03] border border-white/5 text-center space-y-1.5">
-            <div className="text-xl">{f.icon}</div>
             <div className="text-[11px] font-medium text-white/55">{f.label}</div>
             <div className="text-[10px] text-white/25 leading-relaxed">{f.desc}</div>
           </div>
@@ -306,7 +305,7 @@ export default function FlippoPage() {
                           </span>
                           {session.tool && (
                             <span className="text-[10px] text-white/25">
-                              {TOOL_ICONS[session.tool] || "💡"} {session.tool}
+                              {TOOL_LABELS[session.tool] || session.tool.slice(0, 2).toUpperCase()} {session.tool}
                             </span>
                           )}
                           {session.energyLevel && (

@@ -23,15 +23,15 @@ const SNOOKS_SESSIONS_KEY = "snooks_sessions";
 function generateSnooksName(firstMsg: string): string {
   const lower = firstMsg.toLowerCase();
   const topics: Record<string, string> = {
-    linkedin: "💼 LinkedIn Strategy", twitter: "🐦 Twitter Plan", instagram: "📸 Instagram Plan",
-    content: "📋 Content Strategy", calendar: "📅 Content Calendar", schedule: "📅 Scheduling Plan",
-    week: "📆 Weekly Strategy", month: "🗓 Monthly Plan", post: "✍️ Post Strategy",
-    thread: "🧵 Thread Plan", auto: "⚡ Auto Schedule", trend: "📈 Trend Analysis",
-    competitor: "🔍 Competitor Research", audience: "👥 Audience Strategy",
+    linkedin: "LinkedIn Strategy", twitter: "Twitter Plan", instagram: "Instagram Plan",
+    content: "Content Strategy", calendar: "Content Calendar", schedule: "Scheduling Plan",
+    week: "Weekly Strategy", month: "Monthly Plan", post: "Post Strategy",
+    thread: "Thread Plan", auto: "Auto Schedule", trend: "Trend Analysis",
+    competitor: "Competitor Research", audience: "Audience Strategy",
   };
   const found = Object.keys(topics).find(k => lower.includes(k));
   if (found) return topics[found];
-  return `🧠 ${firstMsg.slice(0, 28)}${firstMsg.length > 28 ? "…" : ""}`;
+  return `${firstMsg.slice(0, 28)}${firstMsg.length > 28 ? "..." : ""}`;
 }
 
 function loadSnooksSessions(): Session[] {
