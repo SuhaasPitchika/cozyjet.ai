@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal server error";
     console.error("Screen analyze error:", message);
-    if (message.includes("API key")) {
+    if (message.includes("OPEN_ROUTER") || message.includes("API key")) {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY not configured. Add OPEN_ROUTER in Secrets." },
+        { error: "OPEN_ROUTER not configured. Add it in Secrets." },
         { status: 502 }
       );
     }

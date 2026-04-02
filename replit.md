@@ -63,7 +63,9 @@ src/
 - `/api/auth/send-verification` — Generate & send 6-digit OTP codes (nodemailer)
 
 ## Environment Variables / Secrets
-- `OPEN_ROUTER` — OpenRouter API key (required for all AI features)
+- `OPEN_ROUTER` — OpenRouter API key (required for all AI chat features: Meta, Skippy, Snooks, Tuning, Flippo, Generate)
+- `ELEVENLABS_API_KEY` — ElevenLabs API key (required for TTS read-aloud and STT voice input in Meta)
+- `GOOGLE_API_KEY` — Google Gemini API key (configured; currently AI routed via OpenRouter using gemini-2.0-flash-001)
 - `SMTP_HOST` — SMTP server hostname (optional; enables real email OTPs)
 - `SMTP_USER` — SMTP username/email (optional)
 - `SMTP_PASS` — SMTP password (optional)

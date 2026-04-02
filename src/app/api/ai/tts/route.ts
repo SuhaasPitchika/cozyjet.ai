@@ -5,9 +5,9 @@ export async function POST(req: NextRequest) {
     const { text, voiceId } = await req.json();
     if (!text) return NextResponse.json({ error: "text is required" }, { status: 400 });
 
-    const apiKey = process.env.ELEVEN_LABS_API;
+    const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "ELEVEN_LABS_API not configured" }, { status: 502 });
+      return NextResponse.json({ error: "ELEVENLABS_API_KEY not configured" }, { status: 502 });
     }
 
     const voice = voiceId || "EXAVITQu4vr4xnSDxMaL";
