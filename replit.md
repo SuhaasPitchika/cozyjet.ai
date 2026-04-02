@@ -115,8 +115,9 @@ celery -A app.tasks.celery_app.celery_app beat --loglevel=info
 ```
 
 ## Running (Next.js frontend)
-- Dev: `npx next dev -p 5000 -H 0.0.0.0`
-- The workflow "Start application" handles this automatically (uses npx for Replit compatibility)
+- Dev: `npm run dev` (runs `next dev -p 5000 -H 0.0.0.0`)
+- The workflow "Start application" handles this automatically via `npm run dev`
+- Production: `npm run build && npm run start`
 
 ## Firebase Config
 Firebase config is in `src/firebase/config.ts`. The app uses Firebase Auth and Firestore.
