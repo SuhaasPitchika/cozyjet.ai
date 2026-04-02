@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/env";
 
 const VOICE_PRESETS: Record<string, { id: string; stability: number; similarity_boost: number; style: number }> = {
   sarah:    { id: "EXAVITQu4vr4xnSDxMaL", stability: 0.40, similarity_boost: 0.80, style: 0.45 },
@@ -13,9 +14,9 @@ export async function POST(req: NextRequest) {
     const { text, voiceId, emotion, voice } = await req.json();
     if (!text) return NextResponse.json({ error: "text is required" }, { status: 400 });
 
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const apiKey = env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "ELEVENLABS_API_KEY not configured" }, { status: 502 });
+      return NextResponse.json({ error: "ELEVENLABS_API_KEY not configured in Replit Secrets" }, { status: 502 });
     }
 
     const preset = voice && VOICE_PRESETS[voice] ? VOICE_PRESETS[voice] : VOICE_PRESETS.default;
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const truncated = cleanText.length > 4800 ? cleanText.slice(0, 4800) + "..." : cleanText;
 
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}/stream`, {
+    const res = await fetch(`${env.ELEVENLABS_BASE}/text-to-speech/${selectedVoiceId}/stream`, {
       method: "POST",
       headers: {
         "xi-api-key": apiKey,
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         text: truncated,
-        model_id: "eleven_turbo_v2_5",
+        model_id: env.DEFAULT_TTS_MODEL,
         voice_settings: {
           stability,
           similarity_boost: preset.similarity_boost,

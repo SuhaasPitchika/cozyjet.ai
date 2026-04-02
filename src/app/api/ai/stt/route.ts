@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const apiKey = env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "ELEVENLABS_API_KEY not configured" }, { status: 502 });
+      return NextResponse.json({ error: "ELEVENLABS_API_KEY not configured in Replit Secrets" }, { status: 502 });
     }
 
     const formData = await req.formData();
@@ -13,9 +14,9 @@ export async function POST(req: NextRequest) {
 
     const body = new FormData();
     body.append("audio", audio, "audio.webm");
-    body.append("model_id", "scribe_v1");
+    body.append("model_id", env.DEFAULT_STT_MODEL);
 
-    const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+    const res = await fetch(`${env.ELEVENLABS_BASE}/speech-to-text`, {
       method: "POST",
       headers: { "xi-api-key": apiKey },
       body,

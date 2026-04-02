@@ -1,6 +1,8 @@
-const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
-export const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
-export const SMART_MODEL = "google/gemini-2.0-flash-001";
+import { env } from "@/lib/env";
+
+const OPENROUTER_BASE = env.OPENROUTER_BASE;
+export const DEFAULT_MODEL = env.DEFAULT_AI_MODEL;
+export const SMART_MODEL = env.SMART_AI_MODEL;
 
 export interface OpenRouterMessage {
   role: "system" | "user" | "assistant";
@@ -22,10 +24,10 @@ export async function callOpenRouter(
     jsonMode?: boolean;
   } = {}
 ): Promise<string> {
-  const apiKey = process.env.OPEN_ROUTER;
+  const apiKey = env.OPEN_ROUTER;
   if (!apiKey) {
     throw new Error(
-      "OPEN_ROUTER not configured. Add it in your environment secrets."
+      "OPEN_ROUTER not configured. Add it in your Replit Secrets."
     );
   }
 
@@ -45,8 +47,8 @@ export async function callOpenRouter(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://cozyjet.ai",
-      "X-Title": "CozyJet AI Studio",
+      "HTTP-Referer": env.OPENROUTER_REFERER,
+      "X-Title": env.OPENROUTER_TITLE,
     },
     body: JSON.stringify(body),
   });
