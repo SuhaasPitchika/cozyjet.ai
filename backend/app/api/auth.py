@@ -13,7 +13,7 @@ from ..config import settings
 from ..database import get_db
 from ..models.user import User, SubscriptionTier
 from ..schemas.auth import UserSignup, UserLogin, Token, UserProfile
-from ..dependencies import get_current_user
+from ..dependencies import get_current_user, oauth2_scheme
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
@@ -82,7 +82,7 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/logout")
-async def logout(token: str = Depends(lambda: None), current_user: User = Depends(get_current_user)):
+async def logout(token: str = Depends(oauth2_scheme), current_user: User = Depends(get_current_user)):
     # Blacklist the token in Redis for its remaining TTL
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
