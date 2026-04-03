@@ -5,7 +5,17 @@ OpenAI SDK → OpenRouter    : Meta content generation, Skippy analysis
 google-generativeai        : Snooks strategic analysis (long context)
 ElevenLabs SDK             : All audio generation and transcription
 
-Every call to OpenRouter includes HTTP-Referer and X-Title headers.
+Temperature discipline (per spec):
+  Skippy seed generation  → 0.3  (factual, no hallucination)
+  Snooks strategy         → 0.5  (analytical creativity)
+  Meta hook generation    → 0.9  (maximum creative variation)
+  Meta LinkedIn           → 0.75
+  Meta Twitter            → 0.90
+  Meta Reddit             → 0.65
+  Meta Instagram          → 0.85
+  Meta YouTube            → 0.70
+  Intent classifier       → 0.1  (deterministic)
+  Tuning analysis         → 0.2  (precise stylistic extraction)
 """
 import asyncio
 import logging
@@ -25,12 +35,13 @@ PLATFORM_TEMPERATURES: dict[str, float] = {
     "youtube": 0.70,
 }
 
+# Token budgets: tight enough to eliminate filler, generous enough for quality
 PLATFORM_MAX_TOKENS: dict[str, int] = {
-    "linkedin": 400,
-    "twitter": 300,
-    "reddit": 900,
-    "instagram": 300,
-    "youtube": 800,
+    "linkedin": 550,    # ~1300-1900 chars = ~400-500 tokens; buffer for variation
+    "twitter": 950,     # 6-10 tweets × ~80 tokens each; numbering overhead
+    "reddit": 1200,     # 300-700 words long-form post
+    "instagram": 350,   # 150-300 char caption + hashtags
+    "youtube": 1600,    # Full script with B-ROLL, CUT TO markers, 5-min content
 }
 
 
@@ -137,27 +148,39 @@ async def call_meta(
     max_tokens: Optional[int] = None,
 ) -> str:
     temp = temperature if temperature is not None else PLATFORM_TEMPERATURES.get(platform, 0.85)
-    tokens = max_tokens if max_tokens is not None else PLATFORM_MAX_TOKENS.get(platform, 500)
+    tokens = max_tokens if max_tokens is not None else PLATFORM_MAX_TOKENS.get(platform, 600)
     return await call_openrouter(
         system_prompt=system_prompt,
         user_message=user_message,
+        # Claude Sonnet: elite writing quality, voice matching
+        model="anthropic/claude-3.5-sonnet",
         temperature=temp,
         max_tokens=tokens,
     )
 
 
 async def call_skippy(user_message: str, system_prompt: str) -> str:
+    """
+    Skippy seed generation.
+    Uses Claude Sonnet — quality narrative extraction requires a strong model.
+    Temperature 0.3 for factual accuracy; we're reading real work data.
+    """
     return await call_openrouter(
         system_prompt=system_prompt,
         user_message=user_message,
-        model="mistralai/mistral-7b-instruct",
+        model="anthropic/claude-3.5-sonnet",
         temperature=0.3,
-        max_tokens=800,
+        max_tokens=900,
         json_mode=True,
     )
 
 
 async def call_snooks(user_message: str, system_prompt: str) -> str:
+    """
+    Snooks strategic analysis.
+    Uses Gemini 1.5 Flash for long-context: 90-day analytics + trends + seeds.
+    Temperature 0.5 for balanced analytical creativity.
+    """
     return await call_gemini(
         system_prompt=system_prompt,
         user_message=user_message,
@@ -167,31 +190,43 @@ async def call_snooks(user_message: str, system_prompt: str) -> str:
 
 
 async def call_hook_generator(topic: str, platform: str, top_hooks: list[str]) -> str:
+    """
+    Pre-generation hook step.
+    Temperature 0.9 — maximum creative variation for opening lines.
+    Uses mistral-7b for speed; hook is short so quality delta is acceptable.
+    """
     examples = "\n".join([f"- {h}" for h in top_hooks[:3]]) if top_hooks else "None yet."
     system = (
-        "You are a hook writer. You write opening lines that stop the scroll. "
-        "Be specific, bold, never cliched."
+        "You write opening lines that stop scrollers dead. "
+        "One sentence. Specific, bold, never clichéd. "
+        "Creates curiosity, tension, surprise, or a strong opinion. "
+        "Never start with 'I'. Never use 'dive into', 'game-changer', or 'exciting'. "
+        "Under 15 words. Return ONLY the line."
     )
     user = (
-        f"Write ONE opening hook for a {platform} post about: {topic}\n\n"
-        f"User's best-performing hooks:\n{examples}\n\n"
-        f"Must create curiosity, tension, surprise, or a strong opinion. Under 15 words. "
-        f"Return ONLY the hook line."
+        f"Platform: {platform}\n"
+        f"Topic: {topic}\n\n"
+        f"This person's best-performing openers:\n{examples}\n\n"
+        f"Write ONE hook that fits their voice and stops the scroll."
     )
     return await call_openrouter(
         system_prompt=system,
         user_message=user,
         model="mistralai/mistral-7b-instruct",
         temperature=0.9,
-        max_tokens=50,
+        max_tokens=60,
     )
 
 
 async def call_intent_classifier(text: str) -> str:
+    """
+    Calendar intent classifier.
+    Tiny model, temperature 0.1 — deterministic classification.
+    """
     system = (
-        "You are a calendar intent classifier. Determine if the user message implies "
-        "a future commitment, deadline, or scheduled activity. "
-        "Return ONLY JSON: {\"intent\": true/false, \"event\": {\"title\": \"\", \"date_hint\": \"\", \"platform\": \"\"}}"
+        "You detect future commitments in user messages. "
+        "Return ONLY JSON: "
+        '{"intent": true/false, "event": {"title": "", "date_hint": "", "platform": ""}}'
     )
     return await call_openrouter(
         system_prompt=system,
@@ -206,15 +241,17 @@ async def call_intent_classifier(text: str) -> str:
 # ── ElevenLabs audio ─────────────────────────────────────────────
 
 def _clean_for_speech(text: str) -> str:
-    return (
-        text
-        .replace("#", "")
-        .replace("@", "at ")
-        .replace("→", ". ")
-        .replace("•", ". ")
-        .replace("**", "")
-        .replace("*", "")
-    )[:2500]
+    """Remove markdown and social formatting that reads poorly as speech."""
+    import re
+    text = re.sub(r'https?://\S+', '', text)         # strip URLs
+    text = re.sub(r'#\w+', '', text)                  # strip hashtags
+    text = re.sub(r'@\w+', 'at \\g<0>', text)         # @mention → "at mention"
+    text = re.sub(r'\d+/\d+', '', text)               # strip tweet numbering (1/7)
+    text = text.replace("→", ". ").replace("•", ". ").replace("**", "").replace("*", "")
+    text = re.sub(r'\[B-ROLL\]', '', text)
+    text = re.sub(r'\[CUT TO[^\]]*\]', '', text)
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()[:2500]
 
 
 async def call_elevenlabs(text: str, voice_id: Optional[str] = None) -> bytes:
