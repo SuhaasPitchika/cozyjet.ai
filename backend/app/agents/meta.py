@@ -1,17 +1,22 @@
 """
 Meta — Elite Content Writer
 Generates platform-native content in the user's exact voice.
-Uses per-platform temperatures and parallel asyncio calls for all platforms.
+Per-platform temperatures via separate asyncio.gather() calls.
+Pre-step: hook generation at temperature 0.9.
+Tuning: style observations from voice profile injected into every call.
 """
 import json
 import asyncio
+import logging
 from ..services.model_router import (
-    call_meta_parallel,
+    call_meta,
     call_openrouter,
-    generate_hook,
+    call_hook_generator,
     PLATFORM_TEMPERATURES,
     PLATFORM_MAX_TOKENS,
 )
+
+logger = logging.getLogger("cozyjet.meta")
 
 SYSTEM_PROMPT = (
     "You are Meta, an elite content writer who specializes in making technical and creative "
@@ -21,108 +26,124 @@ SYSTEM_PROMPT = (
     "'transformative', or 'exciting'. Your writing is specific, human, and publishable immediately."
 )
 
-PLATFORM_CONSTRAINTS = {
+PLATFORM_RULES: dict[str, str] = {
     "linkedin": (
-        "1300-1900 characters. Open with one bold statement or question — no 'I am excited to share'. "
-        "Paragraphs of 1-3 lines maximum. End with a genuine question that invites discussion. "
-        "Max 3 hashtags, only if they add discoverability. No filler. Every line earns its place."
+        "1300-1900 characters. Open with one bold statement or question — never 'I am excited to share'. "
+        "1-3 line paragraphs max. End with a genuine question. Max 3 hashtags. No filler."
     ),
     "twitter": (
-        "Thread of 6-10 tweets. Tweet 1 is the hook — under 240 chars, must stop mid-scroll. "
-        "Number each tweet (1/n). Each tweet standalone-valuable. Last tweet is a CTA or open question. "
-        "Punchy. No corporate language. Write how real builders tweet."
+        "Thread of 6-10 tweets. Tweet 1 = hook (≤240 chars, stops mid-scroll). "
+        "Number each tweet (1/n). Each tweet standalone-valuable. Last tweet = CTA or open question."
     ),
     "instagram": (
-        "Caption 150-300 chars. First line is the hook — no 'I' start. "
-        "Value in the middle. Strong CTA at end. 5-8 strategic hashtags on a new line after a break."
+        "Caption 150-300 chars. First line = hook (no 'I' start). Value in middle. Strong CTA at end. "
+        "5-8 hashtags on a new line after two line breaks."
     ),
     "youtube": (
-        "Video script with HOOK (0-30s, grabs attention), PROBLEM (30-90s), "
-        "SOLUTION with numbered steps (90s-5min), CTA (last 30s). "
-        "Include [B-ROLL] and [CUT TO] markers. Write as spoken word, not prose."
+        "Script: HOOK (0-30s), PROBLEM (30-90s), SOLUTION with steps (90s-5min), CTA (last 30s). "
+        "Include [B-ROLL] and [CUT TO] markers. Write as spoken word."
     ),
     "reddit": (
         "Long-form authentic post, 300-700 words. Zero marketing language. "
-        "Tell a story or share a hard-won learning. Use paragraphs. "
-        "End with a genuine question to start discussion. Write like a real community member."
+        "Tell a real story or share a hard-won insight. End with a question. Write like a community member."
     ),
 }
 
 VARIATION_FRAMES = [
     (
-        "Emotional Storytelling: Open with a hook that creates tension or curiosity. "
+        "Variation 0 — Emotional Storytelling: Open with tension or curiosity. "
         "Build a narrative arc with a moment of realization. End with a question or reflection."
     ),
     (
-        "Direct & Technical: Skip the narrative. Lead with the core insight. "
-        "Write for professional peers. Be specific — names, numbers, decisions made."
+        "Variation 1 — Direct & Technical: Lead with the core insight immediately. "
+        "Write for professional peers. Use specific names, numbers, and decisions made."
     ),
     (
-        "Outcome-Led: Lead with the result. Structure as: problem → what I tried → what happened → lesson. "
-        "End with a concrete CTA or recommendation."
+        "Variation 2 — Outcome-Led: Lead with the result. "
+        "Structure: problem → what I tried → what happened → lesson. End with a concrete CTA."
     ),
 ]
 
 
-def _strip_fences(content: str) -> str:
-    content = content.strip()
-    if content.startswith("```"):
-        lines = content.split("\n")
-        content = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
-    return content.strip()
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+    return text.strip()
 
 
 def _format_voice(profile: dict) -> str:
     if not profile:
-        return "authentic, direct, human"
-    observations = profile.get("style_observations", [])
+        return "authentic, direct, human — no corporate language."
+    obs = profile.get("style_observations", [])
     base = (
-        f"tone={profile.get('tone', 'professional')}, "
-        f"formality={profile.get('formality', 'semi-formal')}, "
-        f"humor={profile.get('humor', 'witty')}"
+        f"Tone: {profile.get('tone', 'professional')}. "
+        f"Formality: {profile.get('formality', 'semi-formal')}. "
+        f"Humor: {profile.get('humor', 'witty')}."
     )
-    if observations:
-        base += ". Style notes: " + "; ".join(observations[:3])
+    if obs:
+        base += " Style notes: " + "; ".join(obs[:4]) + "."
     return base
 
 
 class MetaAgent:
-    async def _generate_single_platform(
+    async def _generate_variation(
         self,
         seed: dict,
         voice_str: str,
         platform: str,
         variation_frame: str,
-        top_hooks: list = None,
+        hook: str = "",
     ) -> str:
-        constraints = PLATFORM_CONSTRAINTS.get(platform, "Write native content for this platform.")
+        rules = PLATFORM_RULES.get(platform, "Write native content for this platform.")
+        user_message = json.dumps({
+            "seed": {
+                "title": seed.get("title", ""),
+                "description": seed.get("description", ""),
+                "tags": seed.get("tags", []),
+            },
+            "platform": platform,
+            "platform_rules": rules,
+            "voice_profile": voice_str,
+            "variation_frame": variation_frame,
+            "hook_to_use": hook,
+            "output": "Ready-to-post content only. No labels, no explanations.",
+        })
 
+        try:
+            return await call_meta(
+                system_prompt=SYSTEM_PROMPT,
+                user_message=user_message,
+                platform=platform,
+            )
+        except Exception as e:
+            logger.error(f"Meta variation failed [{platform}]: {e}")
+            return ""
+
+    async def _generate_for_platform(
+        self,
+        seed: dict,
+        voice_str: str,
+        platform: str,
+        top_hooks: list = None,
+    ) -> tuple[str, list[str]]:
         hook = ""
-        if top_hooks is not None:
-            try:
-                hook = await generate_hook(seed.get("title", ""), platform, top_hooks)
-            except Exception:
-                pass
+        try:
+            hook = await call_hook_generator(
+                seed.get("title", seed.get("description", "")[:80]),
+                platform,
+                top_hooks or [],
+            )
+        except Exception as e:
+            logger.warning(f"Hook generation failed [{platform}]: {e}")
 
-        prompt = (
-            f"Content seed:\n"
-            f"Title: {seed.get('title', '')}\n"
-            f"Description: {seed.get('description', '')}\n"
-            f"Tags: {', '.join(seed.get('tags', []))}\n\n"
-            f"Platform: {platform}\n"
-            f"Platform rules: {constraints}\n\n"
-            f"Voice profile: {voice_str}\n\n"
-            f"Frame: {variation_frame}\n\n"
-            + (f"Opening hook to use or build from: {hook}\n\n" if hook else "")
-            + "Write the complete, ready-to-post content. No explanations, no labels, just the content."
-        )
-
-        return await call_openrouter(
-            system_prompt=SYSTEM_PROMPT,
-            user_message=prompt,
-            temperature=PLATFORM_TEMPERATURES.get(platform, 0.8),
-            max_tokens=PLATFORM_MAX_TOKENS.get(platform, 500),
-        )
+        tasks = [
+            self._generate_variation(seed, voice_str, platform, frame, hook)
+            for frame in VARIATION_FRAMES
+        ]
+        variations = await asyncio.gather(*tasks, return_exceptions=True)
+        return platform, [v if isinstance(v, str) else "" for v in variations]
 
     async def generate_content(
         self,
@@ -132,22 +153,24 @@ class MetaAgent:
         top_hooks: list = None,
     ) -> dict:
         voice_str = _format_voice(voice_profile)
-
-        async def gen_platform(platform: str) -> tuple[str, list[str]]:
-            tasks = [
-                self._generate_single_platform(seed, voice_str, platform, frame, top_hooks)
-                for frame in VARIATION_FRAMES
-            ]
-            variations = await asyncio.gather(*tasks, return_exceptions=True)
-            return platform, [v if isinstance(v, str) else "" for v in variations]
-
-        results = await asyncio.gather(*[gen_platform(p) for p in platforms])
-        return dict(results)
+        results = await asyncio.gather(
+            *[self._generate_for_platform(seed, voice_str, p, top_hooks) for p in platforms],
+            return_exceptions=True,
+        )
+        return {
+            platform: variations
+            for item in results
+            if not isinstance(item, Exception)
+            for platform, variations in [item]
+        }
 
     async def generate_from_idea(self, topic: str, voice_profile: dict, platforms: list) -> dict:
         seed = {
-            "title": topic,
-            "description": f"Raw idea: {topic}. Frame as thought leadership — what does this person know about this topic that others don't?",
+            "title": topic[:60],
+            "description": (
+                f"Raw idea: {topic}. Frame as thought leadership — "
+                f"what does this person know about this topic that others don't?"
+            ),
             "tags": [],
         }
         return await self.generate_content(seed, voice_profile, platforms)
@@ -157,7 +180,7 @@ class MetaAgent:
             "title": f"On: {trend.get('topic', '')}",
             "description": (
                 f"Connect this person's expertise to the trending topic '{trend.get('topic', '')}'. "
-                f"Relevant keywords: {', '.join(trend.get('related_keywords', []))}. "
+                f"Keywords: {', '.join(trend.get('related_keywords', []))}. "
                 f"Find the unique angle only this person can bring."
             ),
             "tags": trend.get("related_keywords", []),
@@ -168,9 +191,8 @@ class MetaAgent:
         seed = {
             "title": "Repurposed content",
             "description": (
-                f"Transform this long-form content into native posts. "
-                f"Extract the core insight and rewrite for each platform. "
-                f"Source: {source_text[:600]}"
+                f"Extract the core insight from this content and rewrite it "
+                f"natively for each platform. Source: {source_text[:600]}"
             ),
             "tags": [],
         }
@@ -184,28 +206,54 @@ class MetaAgent:
         voice_profile: dict,
     ) -> str:
         voice_str = _format_voice(voice_profile)
-        constraints = PLATFORM_CONSTRAINTS.get(platform, "")
+        rules = PLATFORM_RULES.get(platform, "")
 
-        prompt = (
-            f"Platform: {platform}\n"
-            f"Platform rules: {constraints}\n"
-            f"Voice profile: {voice_str}\n\n"
-            f"Original content:\n{content_text}\n\n"
-            f"Refinement instruction: {instruction}\n\n"
-            f"Apply the instruction precisely. Preserve platform formatting. "
-            f"Return ONLY the refined content — no labels, no explanation."
-        )
+        user_message = json.dumps({
+            "platform": platform,
+            "platform_rules": rules,
+            "voice_profile": voice_str,
+            "original_content": content_text,
+            "refinement_instruction": instruction,
+            "output": "Refined content only. Apply instruction exactly. No labels or explanations.",
+        })
 
-        return await call_openrouter(
-            system_prompt=(
-                "You are Meta, refining content based on explicit user feedback. "
-                "Apply every instruction exactly as stated. Do not add anything not asked for. "
-                "Preserve the person's voice."
-            ),
-            user_message=prompt,
-            temperature=PLATFORM_TEMPERATURES.get(platform, 0.75),
-            max_tokens=PLATFORM_MAX_TOKENS.get(platform, 500),
+        try:
+            return await call_meta(
+                system_prompt=(
+                    "You are Meta refining content based on explicit user feedback. "
+                    "Apply every instruction exactly as stated. Preserve the person's voice."
+                ),
+                user_message=user_message,
+                platform=platform,
+            )
+        except Exception as e:
+            logger.error(f"Meta refine failed: {e}")
+            return content_text
+
+    async def process_tuning_sample(self, sample_text: str) -> dict:
+        """Extract stylistic observations from a writing sample for voice profile updates."""
+        system = (
+            "You are a writing style analyst. Extract 5-10 specific, concrete observations "
+            "about how this person writes. Be precise: not 'writes professionally' but "
+            "'uses em-dashes for asides, opens with counterintuitive claims, prefers bullet lists'. "
+            "Return ONLY JSON: {\"observations\": [], \"tone\": \"\", \"formality\": \"\", "
+            "\"humor\": \"\", \"preferred_style\": \"\"}"
         )
+        user = f"Writing sample:\n\n{sample_text[:8000]}"
+
+        try:
+            raw = await call_openrouter(
+                system_prompt=system,
+                user_message=user,
+                model="anthropic/claude-3-haiku",
+                temperature=0.2,
+                max_tokens=600,
+                json_mode=True,
+            )
+            return json.loads(_strip_fences(raw))
+        except Exception as e:
+            logger.error(f"Tuning sample processing failed: {e}")
+            return {"observations": [], "tone": "", "formality": "", "humor": "", "preferred_style": ""}
 
 
 meta_agent = MetaAgent()

@@ -6,14 +6,10 @@ asyncpg
 alembic
 redis
 celery[redis]
-langchain
-langchain-anthropic
-langchain-google-genai
-langchain-openai
-anthropic
-google-generativeai
 openai
+google-generativeai
 elevenlabs
+anthropic
 pydantic
 pydantic-settings
 python-jose[cryptography]
@@ -23,6 +19,5 @@ httpx
 websockets
 pillow
 python-dotenv
-flower
 cryptography
 email-validator

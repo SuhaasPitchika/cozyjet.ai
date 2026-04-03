@@ -1,10 +1,13 @@
 """
 Snooks — Personal Brand Strategist
-Builds repeatable growth systems from real user data.
 Temperature: 0.5 (balanced analytical creativity)
+Uses Gemini directly for long-context strategic analysis.
 """
 import json
-from ..services.model_router import call_snooks, call_openrouter
+import logging
+from ..services.model_router import call_snooks as _call_snooks, call_openrouter
+
+logger = logging.getLogger("cozyjet.snooks")
 
 SYSTEM_PROMPT = (
     "You are Snooks, a personal brand strategist. You think in growth systems, not one-off "
@@ -15,36 +18,40 @@ SYSTEM_PROMPT = (
     "to this person."
 )
 
-SUGGESTIONS_SCHEMA = """{
-  "suggestions": [
-    {
-      "title": "<compelling post title>",
-      "angle": "<strategic angle — e.g. thought leadership, tutorial, behind the scenes>",
-      "platform": "<linkedin|twitter|instagram|youtube|reddit>",
-      "best_day": "<e.g. Tuesday>",
-      "best_time": "<e.g. 9:00 AM>",
-      "reasoning": "<why this content, why now, why this platform — grounded in their actual data>"
-    }
-  ]
-}"""
-
-GAPS_SCHEMA = """{
-  "gaps": [
-    {
-      "week": "<YYYY-WW>",
-      "issue": "<specific gap observed>",
-      "recommendation": "<concrete, personalized fix>"
-    }
-  ]
-}"""
+SUGGESTION_TEMPLATE = json.dumps({
+    "suggestions": [
+        {
+            "title": "",
+            "angle": "",
+            "platform": "",
+            "best_day": "",
+            "best_time": "",
+            "reasoning": "",
+        }
+    ]
+}, indent=2)
 
 
-def _strip_fences(content: str) -> str:
-    content = content.strip()
-    if content.startswith("```"):
-        lines = content.split("\n")
-        content = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
-    return content.strip()
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+    return text.strip()
+
+
+def _format_voice(profile: dict) -> str:
+    if not profile:
+        return "authentic, direct professional"
+    obs = profile.get("style_observations", [])
+    base = (
+        f"tone={profile.get('tone', 'professional')}, "
+        f"formality={profile.get('formality', 'semi-formal')}, "
+        f"humor={profile.get('humor', 'witty')}"
+    )
+    if obs:
+        base += ". Stylistic notes: " + "; ".join(obs[:3])
+    return base
 
 
 class SnooksAgent:
@@ -55,67 +62,63 @@ class SnooksAgent:
         analytics_summary: str = "",
         voice_profile: dict = None,
     ) -> dict:
-        profile_note = ""
-        if voice_profile:
-            profile_note = (
-                f"\nUser voice profile: tone={voice_profile.get('tone', 'professional')}, "
-                f"preferred platforms={voice_profile.get('preferred_platforms', ['linkedin'])}"
-            )
+        voice_str = _format_voice(voice_profile or {})
+        prefs = (voice_profile or {}).get("preferred_platforms", ["linkedin", "twitter"])
 
-        message = (
-            f"Recent content seeds (last 14 days):\n{seeds_summary or 'None yet.'}\n\n"
-            f"Performance analytics (last 30 days):\n{analytics_summary or 'No analytics yet.'}\n\n"
-            f"Top trending topics:\n{trends_summary or 'None available.'}"
-            f"{profile_note}\n\n"
-            f"Generate exactly 5 weekly content recommendations grounded in their actual data.\n"
-            f"Every suggestion must be specific to this person — if it applies to anyone, rewrite it.\n"
-            f"Return ONLY this JSON:\n{SUGGESTIONS_SCHEMA}"
+        user_message = (
+            f"User voice profile (2 sentences): {voice_str}. "
+            f"Preferred platforms: {', '.join(prefs)}.\n\n"
+            f"Recent seeds (last 14 days):\n{seeds_summary or 'None yet.'}\n\n"
+            f"Analytics (last 30 days):\n{analytics_summary or 'No data yet.'}\n\n"
+            f"Trending topics:\n{trends_summary or 'None available.'}\n\n"
+            f"Generate exactly 5 weekly content recommendations specific to this person. "
+            f"Every suggestion must be grounded in their actual data — not generic advice. "
+            f"Max 150 tokens per suggestion.\n\n"
+            f"Return ONLY this JSON:\n{SUGGESTION_TEMPLATE}"
         )
 
-        raw = await call_snooks(message)
         try:
+            raw = await _call_snooks(user_message, SYSTEM_PROMPT)
             return json.loads(_strip_fences(raw))
-        except json.JSONDecodeError:
+        except Exception as e:
+            logger.error(f"Snooks suggest failed: {e}")
             return {"suggestions": []}
 
     async def analyze_calendar_gaps(self, scheduled_content: list) -> dict:
-        message = (
+        template = json.dumps({
+            "gaps": [{"week": "", "issue": "", "recommendation": ""}]
+        }, indent=2)
+
+        user_message = (
             f"Scheduled content calendar:\n{json.dumps(scheduled_content, indent=2)}\n\n"
-            f"Identify specific gaps and imbalances. Be concrete — which days, which platforms.\n"
-            f"Return ONLY this JSON:\n{GAPS_SCHEMA}"
+            f"Identify specific gaps by day and platform. "
+            f"Every recommendation must be concrete and specific to this user.\n\n"
+            f"Return ONLY this JSON:\n{template}"
         )
 
-        raw = await call_openrouter(
-            system_prompt=SYSTEM_PROMPT,
-            user_message=message,
-            temperature=0.5,
-            max_tokens=800,
-            json_mode=True,
-        )
         try:
+            raw = await _call_snooks(user_message, SYSTEM_PROMPT)
             return json.loads(_strip_fences(raw))
-        except json.JSONDecodeError:
+        except Exception as e:
+            logger.error(f"Snooks calendar analysis failed: {e}")
             return {"gaps": []}
 
     async def evaluate_experiment(self, hypothesis: str, results: dict) -> dict:
-        message = (
+        template = json.dumps({"confirmed": False, "insight": "", "next_test": ""})
+
+        user_message = (
             f"Growth experiment hypothesis: {hypothesis}\n\n"
-            f"Results after 2 weeks:\n{json.dumps(results, indent=2)}\n\n"
-            f"Evaluate whether the hypothesis was confirmed or refuted. "
-            f"What should we test next based on these results? "
-            f"Return JSON: {{\"confirmed\": true/false, \"insight\": \"...\", \"next_test\": \"...\"}}"
+            f"Results:\n{json.dumps(results, indent=2)}\n\n"
+            f"Was the hypothesis confirmed? What does the data actually say? "
+            f"What should be tested next?\n\n"
+            f"Return ONLY this JSON:\n{template}"
         )
 
-        raw = await call_openrouter(
-            system_prompt=SYSTEM_PROMPT,
-            user_message=message,
-            temperature=0.5,
-            max_tokens=400,
-            json_mode=True,
-        )
         try:
+            raw = await _call_snooks(user_message, SYSTEM_PROMPT)
             return json.loads(_strip_fences(raw))
-        except json.JSONDecodeError:
+        except Exception as e:
+            logger.error(f"Experiment evaluation failed: {e}")
             return {"confirmed": False, "insight": "", "next_test": ""}
 
 

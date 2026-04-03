@@ -1,7 +1,6 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Removed 'output: export' — static export is incompatible with Next.js server features (API routes, server components, etc.) */
   allowedDevOrigins: ['*.replit.dev', '*.worf.replit.dev', '*.janeway.replit.dev', '*.spock.replit.dev', '*.picard.replit.dev'],
   typescript: {
     ignoreBuildErrors: true,
@@ -10,26 +9,22 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
+
+  async rewrites() {
+    return [
+      {
+        // Proxy /backend/* → FastAPI on localhost:8000
+        source: '/backend/:path*',
+        destination: 'http://localhost:8000/:path*',
+      },
+    ];
+  },
+
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
+      { protocol: 'https', hostname: 'placehold.co',       port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'images.unsplash.com',port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'picsum.photos',      port: '', pathname: '/**' },
     ],
   },
 };
