@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.12", "web", "nix", "bash"]
+modules = ["nodejs-20", "web", "python-3.12"]
 [agent]
 expertMode = true
 
@@ -38,13 +38,13 @@ waitForPort = 5000
 name = "Start backend"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd backend && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-waitForPort = 8000
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+waitForPort = 8000
 
 [[ports]]
 localPort = 5000
