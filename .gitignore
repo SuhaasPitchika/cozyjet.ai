@@ -1,3 +1,7 @@
+# Replit project config — contains userenv.shared values; never commit
+.replit
+replit.nix
+
 .env
 .env.local
 .env.development.local

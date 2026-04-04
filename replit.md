@@ -34,18 +34,36 @@ The axios client in `src/lib/api.ts` uses `/backend` as the base URL — no CORS
 
 ---
 
-## Replit Secrets
-These must be set in the Replit Secrets panel:
-| Secret Name | Used As |
-|-------------|---------|
-| `OPEN_ROUTER` | OpenRouter API key (Skippy + Meta via OpenRouter) |
-| `GOOGLE_API_KEY` | Gemini API key (Snooks strategic analysis) |
-| `ELEVENLABS_API_KEY` | ElevenLabs audio generation + transcription |
-| `SESSION_SECRET` | JWT secret for backend auth |
-| `DATABASE_URL` | PostgreSQL connection string |
+## Secrets — Doppler Integration
+All API keys live in Doppler project `cozyjet-ai`. The backend fetches them at startup via
+`backend/start.py`. Only ONE secret needs to be set manually in any environment:
 
-The backend config (`backend/app/config.py`) auto-maps `OPEN_ROUTER` → `OPENROUTER_API_KEY`
-and `GOOGLE_API_KEY` → `GEMINI_API_KEY` via `@model_validator`.
+| Secret Name | Where to set | Purpose |
+|-------------|-------------|---------|
+| `DOPPLER_TOKEN` | Replit Secrets / Railway / Vercel env | Authenticates against Doppler API |
+
+Everything else (OpenRouter, Gemini, ElevenLabs, Firebase, DB URL, etc.) is pulled from Doppler.
+
+### Doppler config mapping
+| Environment | Doppler config |
+|-------------|---------------|
+| Replit (dev) | `dev` |
+| Railway (prod) | `prd` (native Doppler→Railway integration) |
+| Vercel (frontend) | Doppler→Vercel native integration |
+
+### `backend/start.py`
+Startup launcher:
+1. Reads `DOPPLER_TOKEN` from env
+2. Calls `https://api.doppler.com/v3/configs/config/secrets/download` (no CLI needed)
+3. Injects all secrets into the process environment
+4. Exec-replaces itself with uvicorn (inherits all secrets)
+
+Falls back gracefully if Doppler is unreachable — useful on Railway where secrets
+are already injected natively.
+
+### .gitignore
+`.replit` is gitignored so the `userenv.shared` section (which holds `DOPPLER_TOKEN`
+for Replit) is never committed to GitHub.
 
 ---
 

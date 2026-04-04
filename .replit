@@ -43,7 +43,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+args = "cd backend && .venv/bin/python start.py --config dev"
 waitForPort = 8000
 
 [[ports]]
@@ -67,3 +67,4 @@ NEXT_PUBLIC_FIREBASE_APP_ID = "1:326839652598:web:d536047bef50a2f9375cd7"
 NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyCNUUR0jzzWjotLGqBjDMcrYTob9oo-fA8"
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "studio-9941557236-b9262.firebaseapp.com"
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "326839652598"
+DOPPLER_TOKEN = "dp.pt.GvQgJ6nGBUyb4WSVeXXs19cL8oDOVudoT0vWL5z3PiR"
