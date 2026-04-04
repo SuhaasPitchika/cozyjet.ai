@@ -1,1 +1,6 @@
-{}
+{
+  "app/auth/page.tsx -> firebase/auth": {
+    "id": "app/auth/page.tsx -> firebase/auth",
+    "files": []
+  }
+}

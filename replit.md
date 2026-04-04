@@ -51,7 +51,12 @@ and `GOOGLE_API_KEY` → `GEMINI_API_KEY` via `@model_validator`.
 
 ## Workflows
 - **Start application** — `npm run dev` → port 5000 (webview)
-- **Start backend** — `cd backend && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+- **Start backend** — `cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+
+Python deps installed in `backend/.venv/` via `uv venv` + `uv pip install`.
+
+## Backend Status (fully wired)
+`main.py` mounts all 8 API routers (44 endpoints total) + WebSocket + CORS + rate limiting middleware + lifespan DB init. All agents, tasks, models, and services are implemented and connected.
 
 ---
 
