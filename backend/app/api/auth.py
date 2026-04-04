@@ -1,9 +1,9 @@
 import re
 import secrets
+import bcrypt as _bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt
@@ -16,7 +16,18 @@ from ..schemas.auth import UserSignup, UserLogin, Token, UserProfile
 from ..dependencies import get_current_user, oauth2_scheme
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+
+# Use bcrypt directly — passlib 1.7.4 is incompatible with bcrypt 4.x+
+_BCRYPT_ROUNDS = 12
+
+def _hash_password(password: str) -> str:
+    return _bcrypt.hashpw(password[:72].encode(), _bcrypt.gensalt(rounds=_BCRYPT_ROUNDS)).decode()
+
+def _verify_password(plain: str, hashed: str) -> bool:
+    try:
+        return _bcrypt.checkpw(plain[:72].encode(), hashed.encode())
+    except Exception:
+        return False
 
 PASSWORD_RE = re.compile(r'^(?=.*[A-Z])(?=.*\d).{8,}$')
 
@@ -47,7 +58,7 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
     verification_token = secrets.token_urlsafe(32)
     new_user = User(
         email=user_data.email,
-        password_hash=pwd_context.hash(user_data.password),
+        password_hash=_hash_password(user_data.password),
         display_name=user_data.display_name,
         subscription_tier=SubscriptionTier.free,
         verification_token=verification_token,
@@ -70,7 +81,7 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
-    if not user or not pwd_context.verify(user_data.password, user.password_hash):
+    if not user or not _verify_password(user_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
     access_token = create_access_token(data={"sub": str(user.id)})

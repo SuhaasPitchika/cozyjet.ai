@@ -1,5 +1,4 @@
 {
   "/api/auth/replit-user/route": "app/api/auth/replit-user/route.js",
-  "/page": "app/page.js",
-  "/auth/page": "app/auth/page.js"
+  "/page": "app/page.js"
 }

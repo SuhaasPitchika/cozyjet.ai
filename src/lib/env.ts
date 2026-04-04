@@ -15,9 +15,10 @@
  */
 
 export const env = {
-  OPEN_ROUTER:         process.env.OPEN_ROUTER         ?? "",
+  // Accept both Doppler key names (OPENROUTER_API_KEY) and legacy Replit names (OPEN_ROUTER)
+  OPEN_ROUTER:         process.env.OPEN_ROUTER         ?? process.env.OPENROUTER_API_KEY  ?? "",
   ELEVENLABS_API_KEY:  process.env.ELEVENLABS_API_KEY  ?? "",
-  GOOGLE_API_KEY:      process.env.GOOGLE_API_KEY       ?? "",
+  GOOGLE_API_KEY:      process.env.GOOGLE_API_KEY       ?? process.env.GEMINI_API_KEY      ?? "",
 
   SMTP_HOST: process.env.SMTP_HOST ?? "",
   SMTP_USER: process.env.SMTP_USER ?? "",

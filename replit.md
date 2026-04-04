@@ -73,8 +73,16 @@ for Replit) is never committed to GitHub.
 
 Python deps installed in `backend/.venv/` via `uv venv` + `uv pip install`.
 
-## Backend Status (fully wired)
-`main.py` mounts all 8 API routers (44 endpoints total) + WebSocket + CORS + rate limiting middleware + lifespan DB init. All agents, tasks, models, and services are implemented and connected.
+## Backend Status — COMPLETE ✓
+| Component | Status |
+|-----------|--------|
+| `main.py` | Fully wired — 8 routers, 44 endpoints, WebSocket, CORS, rate-limit middleware |
+| Database | Connected + tables auto-created on startup; SSL handled correctly for Railway |
+| Auth | Signup/Login/Logout/Refresh/Me — all working with bcrypt + JWT |
+| Doppler | `start.py` fetches secrets at boot; `start-dev.js` writes `.env.local` for Next.js |
+| `env.ts` | Accepts both Doppler names (OPENROUTER_API_KEY) and Replit names (OPEN_ROUTER) |
+| bcrypt | Uses `bcrypt` directly (passlib 1.7.4 incompatible with bcrypt 4.x+, fixed) |
+| Database SSL | Strips `?sslmode=` from URL, passes `ssl=True` to asyncpg engine directly |
 
 ---
 
