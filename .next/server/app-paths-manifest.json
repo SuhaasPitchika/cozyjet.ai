@@ -1,7 +1,10 @@
 {
+  "/api/ai/snooks/route": "app/api/ai/snooks/route.js",
+  "/api/ai/tuning/route": "app/api/ai/tuning/route.js",
   "/api/auth/replit-user/route": "app/api/auth/replit-user/route.js",
   "/auth/page": "app/auth/page.js",
   "/dashboard/skippy/page": "app/dashboard/skippy/page.js",
+  "/dashboard/snooks/page": "app/dashboard/snooks/page.js",
   "/dashboard/tuning/page": "app/dashboard/tuning/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js"

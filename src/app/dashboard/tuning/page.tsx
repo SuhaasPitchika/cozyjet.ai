@@ -409,30 +409,62 @@ function VoiceStudio({
   );
 }
 
-/* ─── Right panel: Tuning Chat ─── */
-function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
+/* ─── Parse a profile proposal out of AI text ─── */
+function parseProfileFromText(text: string): VoiceProfile | null {
+  const tone = text.match(/TONE:\s*(.+)/i)?.[1]?.trim();
+  const formality = text.match(/FORMALITY:\s*(.+)/i)?.[1]?.trim();
+  if (!tone && !formality) return null;
+
+  const humor = text.match(/HUMOR:\s*(.+)/i)?.[1]?.trim();
+  const length = text.match(/LENGTH(?:\s+PREFERENCE)?:\s*(.+)/i)?.[1]?.trim();
+  const style = text.match(/STYLE:\s*(.+)/i)?.[1]?.trim();
+
+  const extractList = (label: string): string[] => {
+    const re = new RegExp(`${label}[:\\s]*\\n([\\s\\S]*?)(?=\\n[A-Z ]{3,}:|$)`, "i");
+    const block = text.match(re)?.[1] || "";
+    return block.split("\n").map(l => l.replace(/^[-*•\d.]+\s*/, "").trim()).filter(l => l.length > 4);
+  };
+
+  return {
+    tone,
+    formality,
+    humor,
+    length_preference: length,
+    preferred_style: style,
+    style_observations: extractList("OBSERVATIONS?"),
+    signature_moves: extractList("SIGNATURE MOVES?"),
+    avoid: extractList("AVOID"),
+  };
+}
+
+/* ─── Right panel: Voice Calibration Chat ─── */
+function TuningChat({
+  voiceProfile,
+  onSaveProfile,
+}: {
+  voiceProfile: VoiceProfile | null;
+  onSaveProfile: (p: VoiceProfile) => void;
+}) {
+  const openingMsg = voiceProfile
+    ? `I've extracted a profile from your writing samples. Let me verify it's accurate — the tone is marked as "${voiceProfile.tone || "not set"}". Does that sound right, or is it off somehow?`
+    : "When you write — a post, an email, anything — do you usually open with a statement, a question, or do you jump straight into a story?";
+
   const [messages, setMessages] = useState<ChatMsg[]>([
-    {
-      id: "init", role: "bot",
-      content: "Paste any text to humanise it, or tell me how you write and I'll map your voice. If you've built a voice profile on the left, I'll apply it automatically.",
-      timestamp: new Date(),
-    },
+    { id: "init", role: "bot", content: openingMsg, timestamp: new Date() },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [pendingProfile, setPendingProfile] = useState<{ msgId: string; profile: VoiceProfile } | null>(null);
+  const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const handleSpeak = (msg: ChatMsg) => {
-    if (speakingId === msg.id) {
-      stopSpeaking();
-      setSpeakingId(null);
-      return;
-    }
+    if (speakingId === msg.id) { stopSpeaking(); setSpeakingId(null); return; }
     setSpeakingId(msg.id);
     window.speechSynthesis?.cancel();
     const u = new SpeechSynthesisUtterance(msg.content.slice(0, 600));
@@ -440,6 +472,17 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
     u.onend = () => setSpeakingId(null);
     u.onerror = () => setSpeakingId(null);
     window.speechSynthesis?.speak(u);
+  };
+
+  const addBotMessage = (content: string) => {
+    const id = (Date.now() + 1).toString();
+    const msg: ChatMsg = { id, role: "bot", content, timestamp: new Date() };
+    setMessages(prev => [...prev, msg]);
+
+    const parsed = parseProfileFromText(content);
+    if (parsed) setPendingProfile({ msgId: id, profile: parsed });
+
+    return id;
   };
 
   const send = useCallback(async () => {
@@ -464,19 +507,27 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
         }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(), role: "bot",
-        content: data.response || data.reply || data.message || "Something went wrong.",
-        timestamp: new Date(),
-      }]);
+      addBotMessage(data.response || data.reply || data.message || "Something went wrong.");
     } catch {
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(), role: "bot",
-        content: "Connection issue — please retry.",
-        timestamp: new Date(),
-      }]);
+      addBotMessage("Connection issue — please retry.");
     } finally { setLoading(false); }
   }, [input, loading, messages, voiceProfile]);
+
+  const handleSaveProfile = (msgId: string, profile: VoiceProfile) => {
+    const full: VoiceProfile = {
+      ...profile,
+      processed_at: new Date().toISOString(),
+      samples_count: voiceProfile?.samples_count || 0,
+    };
+    onSaveProfile(full);
+    setSavedMsgIds(prev => new Set([...prev, msgId]));
+    setPendingProfile(null);
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(), role: "bot",
+      content: "Profile saved. Meta and Snooks will now generate content in your voice — no editing needed.",
+      timestamp: new Date(),
+    }]);
+  };
 
   const handleVoice = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
@@ -512,9 +563,9 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
           <span className="font-pixel text-white/90" style={{ fontSize: 7 }}>TN</span>
         </div>
         <div>
-          <h2 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>TUNING</h2>
+          <h2 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>VOICE CALIBRATION</h2>
           <p className="font-pixel-thin text-black/45 mt-0.5" style={{ fontSize: 13 }}>
-            {voiceProfile ? "Voice profile loaded — writing in your style" : "Humanise text or build your voice"}
+            {voiceProfile ? "Refining your profile — Meta and Snooks are listening" : "Teaching Meta and Snooks how you write"}
           </p>
         </div>
         {voiceProfile && (
@@ -532,10 +583,10 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
             key={msg.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
           >
             <div
-              className="max-w-[82%] px-5 py-4 rounded-3xl"
+              className="max-w-[85%] px-5 py-4 rounded-3xl"
               style={
                 msg.role === "user"
                   ? {
@@ -573,6 +624,26 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
                 )}
               </div>
             </div>
+
+            {/* Save Profile button when AI proposes a profile */}
+            {msg.role === "bot" && pendingProfile?.msgId === msg.id && !savedMsgIds.has(msg.id) && (
+              <motion.button
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => handleSaveProfile(msg.id, pendingProfile.profile)}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                className="mt-2 flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+                style={{
+                  background: "linear-gradient(135deg, rgba(79,172,254,0.9), rgba(0,212,255,0.85))",
+                  boxShadow: "0 4px 16px rgba(79,172,254,0.35)",
+                  border: "none",
+                  color: "#fff",
+                }}
+              >
+                <CheckCircle2 size={13} />
+                <span className="font-pixel-thin font-semibold" style={{ fontSize: 13 }}>Save as my voice profile</span>
+              </motion.button>
+            )}
           </motion.div>
         ))}
 
@@ -603,7 +674,7 @@ function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
               value={input}
               onChange={handleTextareaChange}
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder="Paste text to humanise, or describe your voice..."
+              placeholder="Answer or paste a sample of your writing..."
               className="flex-1 bg-transparent outline-none resize-none font-pixel-thin"
               style={{ fontSize: 16, lineHeight: 1.55, minHeight: 26, maxHeight: 160, color: "rgba(20,40,80,0.8)" }}
             />
@@ -724,9 +795,12 @@ export default function TuningPage() {
           />
         </div>
 
-        {/* Right: Chat */}
+        {/* Right: Voice Calibration Chat */}
         <div className="flex-1 min-w-0 h-full">
-          <TuningChat voiceProfile={profile} />
+          <TuningChat
+            voiceProfile={profile}
+            onSaveProfile={(p) => { setProfile(p); saveProfile(p); }}
+          />
         </div>
       </div>
     </div>
