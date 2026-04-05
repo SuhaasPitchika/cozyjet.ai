@@ -447,8 +447,8 @@ body {
   bottom: 0;
 }
 
-.bottom-2 {
-  bottom: .5rem;
+.bottom-1\.5 {
+  bottom: .375rem;
 }
 
 .bottom-3 {
@@ -1265,8 +1265,8 @@ body {
   max-width: 460px;
 }
 
-.max-w-\[75\%\] {
-  max-width: 75%;
+.max-w-\[76\%\] {
+  max-width: 76%;
 }
 
 .max-w-\[78\%\] {

@@ -1,8 +1,4 @@
 {
-  "/api/ai/snooks/route": "app/api/ai/snooks/route.js",
   "/api/auth/replit-user/route": "app/api/auth/replit-user/route.js",
-  "/auth/page": "app/auth/page.js",
-  "/dashboard/skippy/page": "app/dashboard/skippy/page.js",
-  "/dashboard/snooks/page": "app/dashboard/snooks/page.js",
   "/page": "app/page.js"
 }
