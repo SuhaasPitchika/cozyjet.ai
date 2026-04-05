@@ -75,13 +75,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* ── Logo row ── */}
         <div
-          className="relative flex items-center flex-shrink-0 overflow-hidden"
+          className="relative flex items-center flex-shrink-0"
           style={{
-            height: 80,
-            borderBottom: "1px solid rgba(255,255,255,0.40)",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.10) 100%)",
-            paddingLeft: collapsed ? 0 : 14,
-            paddingRight: collapsed ? 0 : 6,
+            height: 84,
+            borderBottom: "1px solid rgba(255,255,255,0.30)",
+            paddingLeft: collapsed ? 0 : 16,
+            paddingRight: collapsed ? 0 : 10,
             justifyContent: collapsed ? "center" : "flex-start",
           }}
         >
@@ -95,14 +94,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 transition={{ duration: 0.18 }}
               >
                 <Link href="/">
-                  <motion.div
-                    whileHover={{ scale: 1.08 }}
-                    className="w-10 h-10 rounded-xl overflow-hidden"
-                    style={{
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6)",
-                    }}
-                  >
-                    <Image src="/cozyjet-logo.png" alt="CozyJet" width={40} height={40} className="object-contain" />
+                  <motion.div whileHover={{ scale: 1.06 }} className="w-11 h-11 rounded-2xl overflow-hidden">
+                    <Image src="/cozyjet-logo.png" alt="CozyJet" width={44} height={44} className="object-contain" />
                   </motion.div>
                 </Link>
               </motion.div>
@@ -113,38 +106,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.18 }}
-                className="flex items-center gap-2.5 flex-1 min-w-0"
+                className="flex items-center gap-3 flex-1 min-w-0"
               >
                 <Link href="/" className="flex-shrink-0">
-                  <motion.div
-                    whileHover={{ scale: 1.06 }}
-                    className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0"
-                    style={{
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6)",
-                    }}
-                  >
-                    <Image src="/cozyjet-logo.png" alt="CozyJet" width={44} height={44} className="object-contain" />
+                  <motion.div whileHover={{ scale: 1.05 }} className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0">
+                    <Image src="/cozyjet-logo.png" alt="CozyJet" width={56} height={56} className="object-contain" />
                   </motion.div>
                 </Link>
                 <div className="flex-1 min-w-0 overflow-hidden">
                   <p
                     className="font-pixel leading-none"
-                    style={{
-                      fontSize: 15,
-                      color: "rgba(30,20,10,0.85)",
-                      textShadow: "0 1px 2px rgba(255,255,255,0.6)",
-                      letterSpacing: "0.02em",
-                    }}
+                    style={{ fontSize: 16, color: "rgba(30,20,10,0.88)", letterSpacing: "0.02em" }}
                   >
                     CozyJet
                   </p>
                   <p
-                    className="font-pixel-thin mt-0.5"
-                    style={{
-                      fontSize: 11,
-                      color: "rgba(30,20,10,0.42)",
-                      letterSpacing: "0.04em",
-                    }}
+                    className="font-pixel-thin mt-1"
+                    style={{ fontSize: 12, color: "rgba(30,20,10,0.40)", letterSpacing: "0.04em" }}
                   >
                     AI Studio
                   </p>

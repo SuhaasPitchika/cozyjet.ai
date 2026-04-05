@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Mic, ArrowUp, Loader2, Volume2, VolumeX } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Mic, ArrowUp, Loader2, Volume2, VolumeX,
+  Plus, Trash2, Zap, CheckCircle2, ChevronDown, ChevronUp, FileText
+} from "lucide-react";
 
+/* ─── Types ─── */
 interface ChatMsg {
   id: string;
   role: "user" | "bot";
@@ -11,135 +15,406 @@ interface ChatMsg {
   timestamp: Date;
 }
 
-function speakText(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
-  window.speechSynthesis.speak(utterance);
+interface VoiceSample {
+  id: string;
+  text: string;
+  label: string;
+  chars: number;
+  added_at: string;
 }
 
+interface VoiceProfile {
+  tone?: string;
+  formality?: string;
+  humor?: string;
+  length_preference?: string;
+  preferred_style?: string;
+  style_observations?: string[];
+  signature_moves?: string[];
+  avoid?: string[];
+  processed_at?: string;
+  samples_count?: number;
+}
+
+/* ─── localStorage keys ─── */
+const SAMPLES_KEY = "cozyjet_voice_samples";
+const PROFILE_KEY = "cozyjet_voice_profile";
+
+function loadSamples(): VoiceSample[] {
+  try { return JSON.parse(localStorage.getItem(SAMPLES_KEY) || "[]"); } catch { return []; }
+}
+function saveSamples(s: VoiceSample[]) {
+  try { localStorage.setItem(SAMPLES_KEY, JSON.stringify(s)); } catch {}
+}
+function loadProfile(): VoiceProfile | null {
+  try { const raw = localStorage.getItem(PROFILE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+function saveProfile(p: VoiceProfile) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch {}
+}
+
+/* ─── Helpers ─── */
+function fmt(d: Date) {
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
 function stopSpeaking() {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
 
-/* ─── Blue grid only between the chat squares ─── */
-function GridBetweenContent({ chatRef }: { chatRef: React.RefObject<HTMLDivElement | null> }) {
-  const [bounds, setBounds] = useState<{ top: number; bottom: number } | null>(null);
-
-  useEffect(() => {
-    const update = () => {
-      if (chatRef.current) {
-        const rect = chatRef.current.getBoundingClientRect();
-        const parentRect = chatRef.current.parentElement?.getBoundingClientRect();
-        if (parentRect) {
-          setBounds({ top: rect.top - parentRect.top, bottom: rect.bottom - parentRect.top });
-        }
-      }
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [chatRef]);
-
+/* ─── Background ─── */
+function TuningBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Full base: plain light blue */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #f8fbff 0%, #edf6ff 40%, #f3f9ff 100%)" }} />
-
-      {/* Liquid blobs in the grid zone only */}
-      {bounds && (
-        <>
-          <div
-            className="absolute"
-            style={{
-              top: bounds.top + "px",
-              left: "10%",
-              width: "60vw", height: (bounds.bottom - bounds.top) * 0.8,
-              background: "radial-gradient(ellipse at center, rgba(147,210,255,0.35) 0%, rgba(200,230,255,0.18) 50%, transparent 70%)",
-              filter: "blur(50px)",
-            }}
-          />
-          <div
-            className="absolute"
-            style={{
-              top: bounds.top + (bounds.bottom - bounds.top) * 0.3 + "px",
-              right: "8%",
-              width: "40vw", height: (bounds.bottom - bounds.top) * 0.6,
-              background: "radial-gradient(ellipse at center, rgba(186,224,255,0.3) 0%, transparent 70%)",
-              filter: "blur(60px)",
-            }}
-          />
-
-          {/* Grid lines only in the chat area */}
-          <div
-            className="absolute left-0 right-0"
-            style={{
-              top: bounds.top,
-              height: bounds.bottom - bounds.top,
-              backgroundImage: `
-                linear-gradient(rgba(140,180,220,0.2) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(140,180,220,0.2) 1px, transparent 1px)
-              `,
-              backgroundSize: "40px 40px",
-            }}
-          />
-          <div
-            className="absolute left-0 right-0"
-            style={{
-              top: bounds.top,
-              height: bounds.bottom - bounds.top,
-              backgroundImage: `
-                linear-gradient(rgba(140,180,220,0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(140,180,220,0.07) 1px, transparent 1px)
-              `,
-              backgroundSize: "8px 8px",
-            }}
-          />
-        </>
-      )}
-
-      {/* Subtle vignette */}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(180,210,240,0.1) 100%)" }} />
-    </div>
-  );
-}
-
-/* ─── Liquid glass top bar ─── */
-function LiquidGlassBar({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="relative z-10 flex items-center justify-center gap-3 py-4 flex-shrink-0 overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(225,240,255,0.62) 40%, rgba(255,255,255,0.68) 100%)",
-        backdropFilter: "blur(40px) saturate(200%) brightness(106%)",
-        WebkitBackdropFilter: "blur(40px) saturate(200%) brightness(106%)",
-        borderBottom: "1px solid rgba(200,225,255,0.6)",
-        boxShadow: "0 1px 0 rgba(255,255,255,0.9), 0 4px 24px rgba(160,210,255,0.15), inset 0 1px 0 rgba(255,255,255,0.95)",
-      }}
-    >
+      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #f8fbff 0%, #edf6ff 50%, #f3f9ff 100%)" }} />
+      <div className="absolute" style={{ top: "10%", left: "5%", width: "50vw", height: "50vh", background: "radial-gradient(ellipse, rgba(147,210,255,0.22) 0%, transparent 70%)", filter: "blur(60px)" }} />
+      <div className="absolute" style={{ bottom: "15%", right: "10%", width: "40vw", height: "40vh", background: "radial-gradient(ellipse, rgba(200,180,255,0.15) 0%, transparent 70%)", filter: "blur(50px)" }} />
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0"
         style={{
-          background: "linear-gradient(120deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 50%, rgba(200,230,255,0.25) 100%)",
-          mixBlendMode: "screen",
+          backgroundImage: `linear-gradient(rgba(140,180,220,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(140,180,220,0.12) 1px, transparent 1px)`,
+          backgroundSize: "40px 40px",
         }}
       />
-      <div
-        className="absolute top-0 left-0 right-0 pointer-events-none"
-        style={{ height: 1.5, background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0))" }}
-      />
-      <div className="relative z-10 flex items-center gap-3">{children}</div>
     </div>
   );
 }
 
-export default function TuningPage() {
+/* ─── Glass panel wrapper ─── */
+function GlassPanel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{
+        background: "rgba(255,255,255,0.70)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        border: "1px solid rgba(200,225,255,0.55)",
+        boxShadow: "0 4px 32px rgba(100,160,255,0.10), inset 0 1px 0 rgba(255,255,255,0.90)",
+      }}
+    >
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 60%)", borderRadius: "inherit" }} />
+      <div className="relative z-10 h-full flex flex-col">{children}</div>
+    </div>
+  );
+}
+
+/* ─── Voice Profile display ─── */
+function ProfileCard({ profile, onClear }: { profile: VoiceProfile; onClear: () => void }) {
+  const [open, setOpen] = useState(false);
+  const obs = profile.style_observations || [];
+  const moves = profile.signature_moves || [];
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, rgba(220,240,255,0.8), rgba(200,220,255,0.6))",
+        border: "1px solid rgba(150,200,255,0.5)",
+        boxShadow: "0 2px 12px rgba(100,160,255,0.15)",
+      }}
+    >
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={14} style={{ color: "#3b82f6" }} />
+          <span className="font-pixel-thin text-blue-700" style={{ fontSize: 13, fontWeight: 600 }}>Voice profile active</span>
+          {profile.samples_count && (
+            <span className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(60,100,160,0.6)" }}>
+              {profile.samples_count} sample{profile.samples_count !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setOpen(o => !o)} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-blue-100/50 transition-colors">
+            {open ? <ChevronUp size={12} style={{ color: "rgba(60,100,160,0.7)" }} /> : <ChevronDown size={12} style={{ color: "rgba(60,100,160,0.7)" }} />}
+          </button>
+          <button onClick={onClear} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors" title="Clear profile">
+            <Trash2 size={11} style={{ color: "rgba(200,80,80,0.5)" }} />
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-3 flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Tone", value: profile.tone },
+                  { label: "Formality", value: profile.formality },
+                  { label: "Humor", value: profile.humor },
+                  { label: "Length", value: profile.length_preference },
+                  { label: "Style", value: profile.preferred_style },
+                ].filter(t => t.value).map(tag => (
+                  <span
+                    key={tag.label}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full"
+                    style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(150,200,255,0.5)", fontSize: 11 }}
+                  >
+                    <span className="font-pixel-thin" style={{ color: "rgba(80,120,180,0.6)" }}>{tag.label}:</span>
+                    <span className="font-pixel-thin font-semibold" style={{ color: "rgba(30,60,120,0.85)" }}>{tag.value}</span>
+                  </span>
+                ))}
+              </div>
+
+              {obs.length > 0 && (
+                <div>
+                  <p className="font-pixel-thin mb-1.5" style={{ fontSize: 11, color: "rgba(60,100,160,0.55)", letterSpacing: "0.06em" }}>STYLE OBSERVATIONS</p>
+                  <ul className="flex flex-col gap-1">
+                    {obs.map((o, i) => (
+                      <li key={i} className="font-pixel-thin" style={{ fontSize: 12, color: "rgba(20,50,100,0.75)" }}>
+                        <span style={{ color: "rgba(100,160,255,0.6)" }}>•</span> {o}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {moves.length > 0 && (
+                <div>
+                  <p className="font-pixel-thin mb-1.5" style={{ fontSize: 11, color: "rgba(60,100,160,0.55)", letterSpacing: "0.06em" }}>SIGNATURE MOVES</p>
+                  <ul className="flex flex-col gap-1">
+                    {moves.map((m, i) => (
+                      <li key={i} className="font-pixel-thin" style={{ fontSize: 12, color: "rgba(20,50,100,0.75)" }}>
+                        <span style={{ color: "rgba(140,100,255,0.6)" }}>•</span> {m}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Sample item ─── */
+function SampleItem({ sample, onDelete }: { sample: VoiceSample; onDelete: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = sample.text.slice(0, 120);
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.65)",
+        border: "1px solid rgba(200,225,255,0.5)",
+        boxShadow: "0 2px 8px rgba(100,160,255,0.08)",
+      }}
+    >
+      <div className="flex items-start gap-2.5 px-3.5 py-3">
+        <FileText size={14} style={{ color: "rgba(100,150,200,0.6)", flexShrink: 0, marginTop: 1 }} />
+        <div className="flex-1 min-w-0">
+          {sample.label && (
+            <p className="font-pixel-thin font-semibold mb-0.5" style={{ fontSize: 12, color: "rgba(30,60,120,0.8)" }}>{sample.label}</p>
+          )}
+          <p className="font-pixel-thin" style={{ fontSize: 12, color: "rgba(30,60,100,0.65)", lineHeight: 1.6 }}>
+            {expanded ? sample.text : preview}
+            {!expanded && sample.text.length > 120 && (
+              <button onClick={() => setExpanded(true)} style={{ color: "rgba(100,150,220,0.7)", marginLeft: 4, fontSize: 11 }}>...more</button>
+            )}
+          </p>
+          <p className="font-pixel-thin mt-1" style={{ fontSize: 10, color: "rgba(100,140,180,0.5)" }}>
+            {sample.chars.toLocaleString()} chars
+          </p>
+        </div>
+        <button onClick={onDelete} className="w-6 h-6 flex items-center justify-center rounded-lg flex-shrink-0 hover:bg-red-50 transition-colors">
+          <Trash2 size={12} style={{ color: "rgba(200,80,80,0.45)" }} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Add sample form ─── */
+function AddSampleForm({ onAdd }: { onAdd: (text: string, label: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [label, setLabel] = useState("");
+
+  const submit = () => {
+    const t = text.trim();
+    if (t.length < 30) return;
+    onAdd(t, label.trim());
+    setText("");
+    setLabel("");
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      {!open ? (
+        <motion.button
+          onClick={() => setOpen(true)}
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl py-3"
+          style={{
+            background: "rgba(255,255,255,0.55)",
+            border: "1.5px dashed rgba(150,200,255,0.5)",
+            color: "rgba(80,130,200,0.7)",
+          }}
+        >
+          <Plus size={14} />
+          <span className="font-pixel-thin" style={{ fontSize: 13 }}>Add writing sample</span>
+        </motion.button>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(150,200,255,0.5)", boxShadow: "0 4px 20px rgba(100,160,255,0.12)" }}
+        >
+          <div className="p-3.5 flex flex-col gap-2.5">
+            <input
+              type="text"
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+              placeholder="Label (optional) — e.g. LinkedIn post, Email"
+              className="w-full bg-transparent outline-none font-pixel-thin"
+              style={{ fontSize: 12, color: "rgba(30,60,120,0.8)", borderBottom: "1px solid rgba(150,200,255,0.3)", paddingBottom: 6 }}
+            />
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder="Paste your writing here — a blog post, email, LinkedIn post, anything that sounds like you. Minimum 30 characters."
+              rows={5}
+              className="w-full bg-transparent outline-none resize-none font-pixel-thin"
+              style={{ fontSize: 13, color: "rgba(20,40,80,0.8)", lineHeight: 1.6 }}
+            />
+            <div className="flex items-center justify-between">
+              <p className="font-pixel-thin" style={{ fontSize: 11, color: text.length < 30 ? "rgba(200,100,100,0.6)" : "rgba(80,140,80,0.6)" }}>
+                {text.length} chars{text.length < 30 ? " (need 30+)" : " — good"}
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => { setOpen(false); setText(""); setLabel(""); }} className="px-3 py-1.5 rounded-xl font-pixel-thin" style={{ fontSize: 12, color: "rgba(80,100,140,0.6)", background: "rgba(0,0,0,0.04)" }}>
+                  Cancel
+                </button>
+                <button
+                  onClick={submit}
+                  disabled={text.trim().length < 30}
+                  className="px-3 py-1.5 rounded-xl font-pixel-thin"
+                  style={{
+                    fontSize: 12,
+                    background: text.trim().length >= 30 ? "linear-gradient(135deg, #4facfe, #00d4ff)" : "rgba(180,210,240,0.3)",
+                    color: text.trim().length >= 30 ? "#fff" : "rgba(100,140,180,0.4)",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Left panel: Voice Studio ─── */
+function VoiceStudio({
+  samples, profile, processing,
+  onAddSample, onDeleteSample, onProcess, onClearProfile,
+}: {
+  samples: VoiceSample[];
+  profile: VoiceProfile | null;
+  processing: boolean;
+  onAddSample: (text: string, label: string) => void;
+  onDeleteSample: (id: string) => void;
+  onProcess: () => void;
+  onClearProfile: () => void;
+}) {
+  return (
+    <GlassPanel className="rounded-3xl h-full">
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(200,225,255,0.35)" }}>
+        <div className="flex items-center gap-2.5 mb-1">
+          <div
+            className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, rgba(255,217,125,0.9), rgba(255,157,226,0.9))", boxShadow: "0 2px 8px rgba(255,180,100,0.3)" }}
+          >
+            <span className="font-pixel text-black/70" style={{ fontSize: 7 }}>VS</span>
+          </div>
+          <div>
+            <h2 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>VOICE STUDIO</h2>
+            <p className="font-pixel-thin text-black/45 mt-0.5" style={{ fontSize: 13 }}>Samples teach Meta your voice</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+        {/* Profile card */}
+        {profile && <ProfileCard profile={profile} onClear={onClearProfile} />}
+
+        {/* Samples */}
+        {samples.length === 0 && !profile && (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="w-12 h-12 rounded-2xl mb-3 flex items-center justify-center" style={{ background: "rgba(150,200,255,0.15)", border: "1px solid rgba(150,200,255,0.3)" }}>
+              <FileText size={20} style={{ color: "rgba(100,150,220,0.5)" }} />
+            </div>
+            <p className="font-pixel-thin" style={{ fontSize: 14, color: "rgba(60,100,160,0.6)" }}>No samples yet</p>
+            <p className="font-pixel-thin mt-1 max-w-44" style={{ fontSize: 12, color: "rgba(80,120,160,0.45)", lineHeight: 1.5 }}>
+              Paste writing that sounds like you — posts, emails, anything
+            </p>
+          </div>
+        )}
+
+        {samples.map(s => (
+          <SampleItem key={s.id} sample={s} onDelete={() => onDeleteSample(s.id)} />
+        ))}
+
+        {/* Add form */}
+        <AddSampleForm onAdd={onAddSample} />
+      </div>
+
+      {/* Process button */}
+      {samples.length > 0 && (
+        <div className="px-4 pb-4 pt-2 flex-shrink-0" style={{ borderTop: "1px solid rgba(200,225,255,0.35)" }}>
+          <motion.button
+            onClick={onProcess}
+            disabled={processing}
+            whileHover={!processing ? { scale: 1.02 } : {}}
+            whileTap={!processing ? { scale: 0.97 } : {}}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl"
+            style={{
+              background: processing
+                ? "rgba(180,210,240,0.4)"
+                : "linear-gradient(135deg, rgba(79,172,254,0.9), rgba(0,212,255,0.9))",
+              boxShadow: processing ? "none" : "0 4px 20px rgba(79,172,254,0.35)",
+              color: processing ? "rgba(100,150,200,0.5)" : "#fff",
+              border: "none",
+            }}
+          >
+            {processing
+              ? <Loader2 size={14} className="animate-spin" />
+              : <Zap size={14} />
+            }
+            <span className="font-pixel-thin font-semibold" style={{ fontSize: 14 }}>
+              {processing ? "Building profile..." : `Build Voice Profile (${samples.length} sample${samples.length !== 1 ? "s" : ""})`}
+            </span>
+          </motion.button>
+          <p className="font-pixel-thin text-center mt-2" style={{ fontSize: 11, color: "rgba(80,120,160,0.45)" }}>
+            Profile is used by Meta and Snooks when generating content
+          </p>
+        </div>
+      )}
+    </GlassPanel>
+  );
+}
+
+/* ─── Right panel: Tuning Chat ─── */
+function TuningChat({ voiceProfile }: { voiceProfile: VoiceProfile | null }) {
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       id: "init", role: "bot",
-      content: "I'm Tuning — your voice calibration engine. Paste AI-generated text to humanise it, or tell me how you naturally write and I'll build your voice profile.",
+      content: "Paste any text to humanise it, or tell me how you write and I'll map your voice. If you've built a voice profile on the left, I'll apply it automatically.",
       timestamp: new Date(),
     },
   ]);
@@ -148,7 +423,6 @@ export default function TuningPage() {
   const [listening, setListening] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -160,15 +434,12 @@ export default function TuningPage() {
       return;
     }
     setSpeakingId(msg.id);
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(msg.content);
-      u.rate = 1.0;
-      u.pitch = 1.0;
-      u.onend = () => setSpeakingId(null);
-      u.onerror = () => setSpeakingId(null);
-      window.speechSynthesis.speak(u);
-    }
+    window.speechSynthesis?.cancel();
+    const u = new SpeechSynthesisUtterance(msg.content.slice(0, 600));
+    u.rate = 1.0;
+    u.onend = () => setSpeakingId(null);
+    u.onerror = () => setSpeakingId(null);
+    window.speechSynthesis?.speak(u);
   };
 
   const send = useCallback(async () => {
@@ -180,20 +451,22 @@ export default function TuningPage() {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
     try {
-      const history = messages
-        .filter(m => m.id !== userMsg.id)
-        .map(m => ({ role: m.role === "bot" ? "assistant" : "user", content: m.content }));
+      const history = messages.map(m => ({
+        role: m.role === "bot" ? "assistant" : "user",
+        content: m.content,
+      }));
       const res = await fetch("/api/ai/tuning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...history, { role: "user", content: msg }],
+          voiceProfile: voiceProfile || undefined,
         }),
       });
       const data = await res.json();
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(), role: "bot",
-        content: data.reply || data.response || data.message || "Here's the humanised version...",
+        content: data.response || data.reply || data.message || "Something went wrong.",
         timestamp: new Date(),
       }]);
     } catch {
@@ -203,15 +476,15 @@ export default function TuningPage() {
         timestamp: new Date(),
       }]);
     } finally { setLoading(false); }
-  }, [input, loading]);
+  }, [input, loading, messages, voiceProfile]);
 
   const handleVoice = () => {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
       alert("Voice input not supported."); return;
     }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SR();
-    recognition.lang = 'en-US';
+    recognition.lang = "en-US";
     setListening(true);
     recognition.onresult = (e: any) => { setInput(e.results[0][0].transcript); setListening(false); };
     recognition.onerror = () => setListening(false);
@@ -225,85 +498,75 @@ export default function TuningPage() {
     e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
   };
 
-  const fmt = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-
   return (
-    <div className="h-full flex flex-col overflow-hidden relative">
-      <GridBetweenContent chatRef={chatContainerRef} />
-
-      {/* Liquid glass top bar */}
-      <LiquidGlassBar>
+    <GlassPanel className="rounded-3xl h-full">
+      {/* Header */}
+      <div
+        className="px-5 pt-5 pb-4 flex items-center gap-2.5 flex-shrink-0"
+        style={{ borderBottom: "1px solid rgba(200,225,255,0.35)" }}
+      >
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,217,125,0.9), rgba(255,157,226,0.9))",
-            backdropFilter: "blur(8px)",
-            boxShadow: "0 2px 8px rgba(255,180,100,0.3), inset 0 1px 0 rgba(255,255,255,0.5)",
-          }}
+          className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: "linear-gradient(135deg, rgba(147,210,255,0.9), rgba(100,180,255,0.9))", boxShadow: "0 2px 8px rgba(100,180,255,0.3)" }}
         >
-          <span className="font-pixel text-black/70" style={{ fontSize: 8 }}>TN</span>
+          <span className="font-pixel text-white/90" style={{ fontSize: 7 }}>TN</span>
         </div>
-        <div className="text-center">
-          <h1 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>TUNING</h1>
-          <p className="font-pixel-thin text-black/45 mt-0.5" style={{ fontSize: 14 }}>Voice Calibration Engine</p>
+        <div>
+          <h2 className="font-pixel text-black/75 leading-none" style={{ fontSize: 11 }}>TUNING</h2>
+          <p className="font-pixel-thin text-black/45 mt-0.5" style={{ fontSize: 13 }}>
+            {voiceProfile ? "Voice profile loaded — writing in your style" : "Humanise text or build your voice"}
+          </p>
         </div>
-      </LiquidGlassBar>
+        {voiceProfile && (
+          <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(79,172,254,0.12)", border: "1px solid rgba(79,172,254,0.3)" }}>
+            <CheckCircle2 size={11} style={{ color: "#3b82f6" }} />
+            <span className="font-pixel-thin" style={{ fontSize: 11, color: "#3b82f6" }}>Profile active</span>
+          </div>
+        )}
+      </div>
 
       {/* Messages */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 relative z-10"
-      >
+      <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
         {messages.map(msg => (
           <motion.div
             key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className="max-w-[78%] px-5 py-4 rounded-3xl"
+              className="max-w-[82%] px-5 py-4 rounded-3xl"
               style={
                 msg.role === "user"
                   ? {
                       background: "rgba(255,255,255,0.92)",
                       backdropFilter: "blur(20px)",
-                      boxShadow: "0 4px 20px rgba(160,210,255,0.2), 0 1px 4px rgba(0,0,0,0.06)",
+                      boxShadow: "0 4px 20px rgba(160,210,255,0.18), 0 1px 4px rgba(0,0,0,0.05)",
                       border: "1px solid rgba(200,230,255,0.6)",
                       borderBottomRightRadius: 8,
                     }
                   : {
-                      background: "rgba(255,255,255,0.55)",
-                      border: "1px solid rgba(200,225,255,0.5)",
+                      background: "rgba(255,255,255,0.50)",
+                      border: "1px solid rgba(200,225,255,0.45)",
                       backdropFilter: "blur(24px)",
                       WebkitBackdropFilter: "blur(24px)",
-                      boxShadow: "0 2px 12px rgba(160,210,255,0.12)",
+                      boxShadow: "0 2px 12px rgba(160,210,255,0.10)",
                       borderBottomLeftRadius: 8,
                     }
               }
             >
-              <p
-                className="font-pixel-thin leading-relaxed whitespace-pre-wrap"
-                style={{ fontSize: 18, color: "rgba(20,40,80,0.82)" }}
-              >
+              <p className="font-pixel-thin leading-relaxed whitespace-pre-wrap" style={{ fontSize: 16, color: "rgba(20,40,80,0.82)" }}>
                 {msg.content}
               </p>
               <div className="flex items-center justify-between mt-2 gap-3">
-                <p className="font-pixel-thin" style={{ fontSize: 12, color: "rgba(60,100,160,0.4)" }}>
-                  {fmt(msg.timestamp)}
-                </p>
+                <p className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(60,100,160,0.35)" }}>{fmt(msg.timestamp)}</p>
                 {msg.role === "bot" && (
-                  <button
-                    onClick={() => handleSpeak(msg)}
-                    className="flex items-center gap-1 rounded-lg px-2 py-0.5 transition-all hover:bg-blue-50"
-                    style={{ opacity: 0.6 }}
-                    title="Read aloud"
-                  >
+                  <button onClick={() => handleSpeak(msg)} className="flex items-center gap-1 rounded-lg px-2 py-0.5 hover:bg-blue-50 transition-all" style={{ opacity: 0.65 }}>
                     {speakingId === msg.id
-                      ? <VolumeX size={13} className="text-red-400" />
-                      : <Volume2 size={13} style={{ color: "rgba(100,150,200,0.7)" }} />
+                      ? <VolumeX size={12} className="text-red-400" />
+                      : <Volume2 size={12} style={{ color: "rgba(100,150,200,0.7)" }} />
                     }
-                    <span className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(80,130,190,0.6)" }}>
+                    <span className="font-pixel-thin" style={{ fontSize: 10, color: "rgba(80,130,190,0.6)" }}>
                       {speakingId === msg.id ? "Stop" : "Read"}
                     </span>
                   </button>
@@ -315,7 +578,7 @@ export default function TuningPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.55)", border: "1px solid rgba(200,225,255,0.5)", backdropFilter: "blur(24px)" }}>
+            <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.50)", border: "1px solid rgba(200,225,255,0.45)", backdropFilter: "blur(24px)" }}>
               <Loader2 size={14} className="animate-spin" style={{ color: "rgba(100,160,220,0.6)" }} />
             </div>
           </div>
@@ -323,40 +586,17 @@ export default function TuningPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ─── Enhanced input bar ─── */}
-      <div
-        className="relative z-10 px-6 pb-6 pt-3 flex-shrink-0"
-        style={{
-          background: "rgba(240,248,255,0.65)",
-          backdropFilter: "blur(32px) saturate(180%)",
-          WebkitBackdropFilter: "blur(32px) saturate(180%)",
-          borderTop: "1px solid rgba(200,225,255,0.5)",
-        }}
-      >
+      {/* Input */}
+      <div className="px-5 pb-5 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(200,225,255,0.35)" }}>
         <div
           className="relative rounded-3xl overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.88)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            border: "1.5px solid rgba(200,230,255,0.75)",
-            boxShadow: `
-              0 8px 32px rgba(100,170,255,0.15),
-              0 4px 16px rgba(0,0,0,0.06),
-              0 2px 6px rgba(0,0,0,0.04),
-              inset 0 1px 0 rgba(255,255,255,0.95)
-            `,
+            background: "rgba(255,255,255,0.90)",
+            border: "1.5px solid rgba(200,230,255,0.70)",
+            boxShadow: "0 6px 28px rgba(100,170,255,0.12), 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.95)",
           }}
         >
-          {/* Shimmer */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%)",
-              borderRadius: "inherit",
-            }}
-          />
-          <div className="flex items-end gap-2 px-4 py-3 relative z-10">
+          <div className="flex items-end gap-2 px-4 py-3">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -365,52 +605,128 @@ export default function TuningPage() {
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Paste text to humanise, or describe your voice..."
               className="flex-1 bg-transparent outline-none resize-none font-pixel-thin"
-              style={{
-                fontSize: 18,
-                lineHeight: 1.55,
-                minHeight: 28,
-                maxHeight: 160,
-                color: "rgba(20,40,80,0.8)",
-              }}
+              style={{ fontSize: 16, lineHeight: 1.55, minHeight: 26, maxHeight: 160, color: "rgba(20,40,80,0.8)" }}
             />
 
-            {/* Voice button */}
             <motion.button
               onClick={handleVoice}
               whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center mb-0.5 transition-all"
+              className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
               style={{
-                background: listening
-                  ? "rgba(239,68,68,0.1)"
-                  : "rgba(180,210,240,0.2)",
+                background: listening ? "rgba(239,68,68,0.10)" : "rgba(180,210,240,0.20)",
                 border: `1.5px solid ${listening ? "rgba(239,68,68,0.4)" : "rgba(180,210,240,0.5)"}`,
                 boxShadow: listening ? "0 0 0 3px rgba(239,68,68,0.15)" : "none",
               }}
-              title="Voice input"
             >
-              <Mic size={16} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(100,150,200,0.65)" }} />
+              <Mic size={14} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(100,150,200,0.65)" }} />
             </motion.button>
 
-            {/* Send button */}
             <motion.button
               onClick={send}
               whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
               disabled={!input.trim() || loading}
-              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center mb-0.5"
+              className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
               style={{
-                background: input.trim() && !loading
-                  ? "linear-gradient(135deg, #4facfe, #00d4ff)"
-                  : "rgba(180,210,240,0.3)",
-                boxShadow: input.trim() && !loading
-                  ? "0 4px 16px rgba(79,172,254,0.4), 0 2px 6px rgba(0,0,0,0.08)"
-                  : "none",
+                background: input.trim() && !loading ? "linear-gradient(135deg, #4facfe, #00d4ff)" : "rgba(180,210,240,0.3)",
+                boxShadow: input.trim() && !loading ? "0 4px 16px rgba(79,172,254,0.4)" : "none",
                 border: "1.5px solid " + (input.trim() && !loading ? "rgba(79,172,254,0.5)" : "rgba(180,210,240,0.4)"),
                 transition: "all 0.2s",
               }}
             >
-              <ArrowUp size={16} style={{ color: input.trim() && !loading ? "#fff" : "rgba(100,150,200,0.4)" }} />
+              <ArrowUp size={14} style={{ color: input.trim() && !loading ? "#fff" : "rgba(100,150,200,0.4)" }} />
             </motion.button>
           </div>
+        </div>
+      </div>
+    </GlassPanel>
+  );
+}
+
+/* ─── Main page ─── */
+export default function TuningPage() {
+  const [samples, setSamples] = useState<VoiceSample[]>([]);
+  const [profile, setProfile] = useState<VoiceProfile | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    setSamples(loadSamples());
+    setProfile(loadProfile());
+  }, []);
+
+  const handleAddSample = (text: string, label: string) => {
+    const newSample: VoiceSample = {
+      id: Date.now().toString(),
+      text,
+      label,
+      chars: text.length,
+      added_at: new Date().toISOString(),
+    };
+    const updated = [newSample, ...samples];
+    setSamples(updated);
+    saveSamples(updated);
+  };
+
+  const handleDeleteSample = (id: string) => {
+    const updated = samples.filter(s => s.id !== id);
+    setSamples(updated);
+    saveSamples(updated);
+  };
+
+  const handleProcess = async () => {
+    if (samples.length === 0 || processing) return;
+    setProcessing(true);
+    try {
+      const res = await fetch("/api/ai/voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          samples: samples.map(s => ({ text: s.text, label: s.label })),
+        }),
+      });
+      const data = await res.json();
+      if (data.profile) {
+        const p: VoiceProfile = {
+          ...data.profile,
+          processed_at: new Date().toISOString(),
+          samples_count: samples.length,
+        };
+        setProfile(p);
+        saveProfile(p);
+      }
+    } catch (e) {
+      console.error("Voice processing failed:", e);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleClearProfile = () => {
+    setProfile(null);
+    localStorage.removeItem(PROFILE_KEY);
+  };
+
+  return (
+    <div className="h-full flex flex-col overflow-hidden relative">
+      <TuningBackground />
+
+      {/* Two-column layout */}
+      <div className="relative z-10 flex-1 flex gap-5 p-5 overflow-hidden">
+        {/* Left: Voice Studio */}
+        <div className="w-80 flex-shrink-0 h-full">
+          <VoiceStudio
+            samples={samples}
+            profile={profile}
+            processing={processing}
+            onAddSample={handleAddSample}
+            onDeleteSample={handleDeleteSample}
+            onProcess={handleProcess}
+            onClearProfile={handleClearProfile}
+          />
+        </div>
+
+        {/* Right: Chat */}
+        <div className="flex-1 min-w-0 h-full">
+          <TuningChat voiceProfile={profile} />
         </div>
       </div>
     </div>

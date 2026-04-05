@@ -3,18 +3,38 @@ import { callOpenRouter, TUNING_SYSTEM_PROMPT, DEFAULT_MODEL } from "@/backend/a
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, selectedModel, tones, skippyContext } = await req.json();
+    const { messages, selectedModel, tones, skippyContext, voiceProfile } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "messages array is required" }, { status: 400 });
     }
 
     let systemContent = TUNING_SYSTEM_PROMPT;
+
     if (tones && tones.length > 0) {
       systemContent += `\n\nActive tone profile: ${tones.join(", ")}. Apply these tones when rewriting or generating content.`;
     }
+
     if (skippyContext) {
       systemContent += `\n\nWorkspace context from Skippy:\n${skippyContext}`;
+    }
+
+    if (voiceProfile && Object.keys(voiceProfile).length > 0) {
+      const obs = (voiceProfile.style_observations as string[] | undefined) || [];
+      const moves = (voiceProfile.signature_moves as string[] | undefined) || [];
+      const avoid = (voiceProfile.avoid as string[] | undefined) || [];
+
+      systemContent += `\n\n=== THIS USER'S VOICE PROFILE (extracted from their actual writing) ===
+Tone: ${voiceProfile.tone || "not set"}
+Formality: ${voiceProfile.formality || "not set"}
+Humor: ${voiceProfile.humor || "none"}
+Length preference: ${voiceProfile.length_preference || "medium"}
+Style: ${voiceProfile.preferred_style || "not set"}
+${obs.length > 0 ? `\nKey observations (mirror these exactly):\n${obs.map((o: string) => `- ${o}`).join("\n")}` : ""}
+${moves.length > 0 ? `\nSignature moves (use these patterns):\n${moves.map((m: string) => `- ${m}`).join("\n")}` : ""}
+${avoid.length > 0 ? `\nAvoid (would sound wrong for this voice):\n${avoid.map((a: string) => `- ${a}`).join("\n")}` : ""}
+
+When rewriting, humanizing, or generating any content for this user, apply every observation above. The goal: output they could post without changing a word.`;
     }
 
     const model = selectedModel || DEFAULT_MODEL;

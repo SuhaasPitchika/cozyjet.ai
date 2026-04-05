@@ -1229,6 +1229,10 @@ body {
   max-width: 42rem;
 }
 
+.max-w-44 {
+  max-width: 11rem;
+}
+
 .max-w-4xl {
   max-width: 56rem;
 }
@@ -1271,6 +1275,10 @@ body {
 
 .max-w-\[78\%\] {
   max-width: 78%;
+}
+
+.max-w-\[82\%\] {
+  max-width: 82%;
 }
 
 .max-w-\[85\%\] {
@@ -2258,6 +2266,10 @@ body {
   padding: .75rem;
 }
 
+.p-3\.5 {
+  padding: .875rem;
+}
+
 .p-4 {
   padding: 1rem;
 }
@@ -2316,6 +2328,11 @@ body {
 .px-3 {
   padding-left: .75rem;
   padding-right: .75rem;
+}
+
+.px-3\.5 {
+  padding-left: .875rem;
+  padding-right: .875rem;
 }
 
 .px-4 {
@@ -2393,6 +2410,11 @@ body {
   padding-bottom: .75rem;
 }
 
+.py-3\.5 {
+  padding-top: .875rem;
+  padding-bottom: .875rem;
+}
+
 .py-32 {
   padding-top: 8rem;
   padding-bottom: 8rem;
@@ -2416,6 +2438,11 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 .pb-1 {
@@ -2819,6 +2846,11 @@ body {
 .text-blue-600 {
   --tw-text-opacity: 1;
   color: rgba(37, 99, 235, var(--tw-text-opacity, 1));
+}
+
+.text-blue-700 {
+  --tw-text-opacity: 1;
+  color: rgba(29, 78, 216, var(--tw-text-opacity, 1));
 }
 
 .text-card-foreground {
@@ -3628,6 +3660,10 @@ body {
 
 .hover\:bg-black\/\[0\.015\]:hover {
   background-color: rgba(0, 0, 0, .016);
+}
+
+.hover\:bg-blue-100\/50:hover {
+  background-color: rgba(219, 234, 254, .5);
 }
 
 .hover\:bg-blue-50:hover {

@@ -1,10 +1,8 @@
 {
-  "/api/ai/meta/route": "app/api/ai/meta/route.js",
-  "/api/ai/snooks/route": "app/api/ai/snooks/route.js",
   "/api/auth/replit-user/route": "app/api/auth/replit-user/route.js",
   "/auth/page": "app/auth/page.js",
-  "/dashboard/meta/page": "app/dashboard/meta/page.js",
   "/dashboard/skippy/page": "app/dashboard/skippy/page.js",
-  "/dashboard/snooks/page": "app/dashboard/snooks/page.js",
+  "/dashboard/tuning/page": "app/dashboard/tuning/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js"
 }
