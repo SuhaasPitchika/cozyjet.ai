@@ -10,6 +10,9 @@ celery_app = Celery(
         "app.tasks.skippy_tasks",
         "app.tasks.publishing_tasks",
         "app.tasks.analytics_tasks",
+        "app.tasks.snooks_tasks",
+        "app.tasks.momentum_tasks",
+        "app.tasks.relationship_tasks",
     ],
 )
 
@@ -50,5 +53,25 @@ celery_app.conf.beat_schedule = {
     "weekly-growth-experiment": {
         "task": "snooks.run_growth_experiment",
         "schedule": crontab(minute=0, hour=8, day_of_week=1),
+    },
+    # Weekly strategy: every Sunday at 8PM UTC
+    "weekly-strategy": {
+        "task": "snooks.weekly_strategy",
+        "schedule": crontab(minute=0, hour=20, day_of_week=0),
+    },
+    # Momentum check: every 15 minutes
+    "momentum-check": {
+        "task": "momentum.check_all",
+        "schedule": crontab(minute="*/15"),
+    },
+    # Relationship engine: daily at 9AM UTC
+    "relationship-engine": {
+        "task": "relationships.run_engine",
+        "schedule": crontab(minute=0, hour=9),
+    },
+    # Conversation hunt: daily at 7AM UTC
+    "conversation-hunt": {
+        "task": "relationships.hunt_conversations",
+        "schedule": crontab(minute=0, hour=7),
     },
 }

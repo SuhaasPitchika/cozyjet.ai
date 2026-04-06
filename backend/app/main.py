@@ -184,15 +184,19 @@ from .api.audio import router as audio_router
 from .api.integrations import router as integrations_router
 from .api.analytics import router as analytics_router
 from .api.tune import router as tune_router
+from .api.onboarding import router as onboarding_router
+from .api.relationships import router as relationships_router
 
-app.include_router(auth_router,         prefix="/api/auth",         tags=["Auth"])
-app.include_router(skippy_router,       prefix="/api/skippy",       tags=["Skippy"])
-app.include_router(meta_router,         prefix="/api/meta",         tags=["Meta"])
-app.include_router(snooks_router,       prefix="/api/snooks",       tags=["Snooks"])
-app.include_router(audio_router,        prefix="/api/audio",        tags=["Audio"])
-app.include_router(integrations_router, prefix="/api/integrations", tags=["Integrations"])
-app.include_router(analytics_router,    prefix="/api/analytics",    tags=["Analytics"])
-app.include_router(tune_router,         prefix="/api/tune",         tags=["Tune"])
+app.include_router(auth_router,          prefix="/api/auth",          tags=["Auth"])
+app.include_router(onboarding_router,    prefix="/api/onboarding",    tags=["Onboarding"])
+app.include_router(skippy_router,        prefix="/api/skippy",        tags=["Skippy"])
+app.include_router(meta_router,          prefix="/api/meta",          tags=["Meta"])
+app.include_router(snooks_router,        prefix="/api/snooks",        tags=["Snooks"])
+app.include_router(audio_router,         prefix="/api/audio",         tags=["Audio"])
+app.include_router(integrations_router,  prefix="/api/integrations",  tags=["Integrations"])
+app.include_router(analytics_router,     prefix="/api/analytics",     tags=["Analytics"])
+app.include_router(tune_router,          prefix="/api/tune",          tags=["Tune"])
+app.include_router(relationships_router, prefix="/api/relationships",  tags=["Relationships"])
 
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────

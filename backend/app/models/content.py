@@ -36,14 +36,25 @@ class Content(Base, TimestampMixin):
     content_type = Column(Enum(ContentType), nullable=False)
     content_text = Column(Text, nullable=False)
     
-    variation_index = Column(Integer, default=0) # 0 to 2
+    # Opening hook line (extracted separately at high temperature)
+    hook = Column(Text, nullable=True)
+
+    variation_index = Column(Integer, default=0)  # 0 to 2
     status = Column(Enum(ContentStatus), default=ContentStatus.draft)
-    
+
+    # Virality pre-assessment: 0-100 + reasoning from Mistral 7B
+    virality_score = Column(Integer, default=0)
+    virality_reasoning = Column(Text, nullable=True)
+
     scheduled_time = Column(DateTime, nullable=True)
     published_at = Column(DateTime, nullable=True)
-    
+
     platform_post_id = Column(String, nullable=True)
     error_message = Column(Text, nullable=True)
+
+    # Narrative arc linkage
+    narrative_arc_id = Column(UUID(as_uuid=True), ForeignKey("narrative_arcs.id", ondelete="SET NULL"), nullable=True)
+    arc_stage = Column(String(100), nullable=True)  # e.g. "teaser", "struggle", "breakthrough"
 
     # Indexes for performance
     __table_args__ = (

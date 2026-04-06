@@ -32,3 +32,12 @@ class User(Base, TimestampMixin):
         "humor": "witty",
         "preferred_platforms": ["twitter", "linkedin"]
     })
+
+    # growth_profile: extracted from onboarding conversation by the AI
+    # {niche, sub_niche, goal, goal_timeline, current_state, fear, tone,
+    #  content_style, admired_creators, time_available_minutes,
+    #  comfort_zone, positioning_opportunity, psychological_profile}
+    growth_profile = Column(JSON, default={})
+
+    onboarding_complete = Column(Boolean, default=False)
+    timezone = Column(String(100), default="UTC")

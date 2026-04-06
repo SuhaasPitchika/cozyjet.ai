@@ -216,6 +216,51 @@ class SnooksAgent:
             logger.error(f"Morning digest failed: {e}")
             return {"message": "Your calendar has some empty days this week.", "proposed_entries": []}
 
+    async def generate_relationship_sequence(
+        self,
+        target: dict,
+        growth_profile: dict,
+    ) -> dict:
+        """
+        Generate a 3-week relationship building sequence for a specific target.
+        Methodical and genuine — not spammy. Each week builds on the previous.
+        """
+        template = json.dumps({
+            "week_1_actions": [],
+            "week_2_actions": [],
+            "week_3_actions": [],
+            "natural_collaboration_angle": "",
+            "avoid": [],
+        })
+
+        user_message = (
+            f"Build a relationship sequence for this target:\n{json.dumps(target, indent=2)}\n\n"
+            f"Our creator's context:\n"
+            f"Niche: {growth_profile.get('niche', '')}\n"
+            f"Sub-niche: {growth_profile.get('sub_niche', '')}\n"
+            f"Goal: {growth_profile.get('goal', '')}\n"
+            f"Tone: {growth_profile.get('tone', '')}\n\n"
+            f"Week 1: Engage meaningfully with their content twice before any direct interaction.\n"
+            f"Week 2: One thoughtful reply demonstrating real familiarity with their work.\n"
+            f"Week 3: A natural direct interaction ONLY if previous engagement felt genuine and reciprocal.\n\n"
+            f"Every action must be specific and executable. The avoid list must name behaviors "
+            f"that would make this sequence feel calculated or awkward.\n\n"
+            f"Return ONLY this JSON:\n{template}"
+        )
+
+        try:
+            raw = await _call_snooks(user_message, SYSTEM_PROMPT)
+            return json.loads(_strip_fences(raw))
+        except Exception as e:
+            logger.error(f"Relationship sequence generation failed: {e}")
+            return {
+                "week_1_actions": [],
+                "week_2_actions": [],
+                "week_3_actions": [],
+                "natural_collaboration_angle": "",
+                "avoid": [],
+            }
+
     async def form_growth_hypothesis(
         self,
         top_performers: list,

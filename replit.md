@@ -80,39 +80,68 @@ Python deps installed in `backend/.venv/` — created with `python3 -m venv .ven
 ## Backend Status — COMPLETE ✓
 | Component | Status |
 |-----------|--------|
-| `main.py` | Fully wired — 8 routers, 44 endpoints, WebSocket, CORS, rate-limit middleware |
-| Database | Connected + tables auto-created on startup; SSL handled correctly for Railway |
-| Auth | Signup/Login/Logout/Refresh/Me — all working with bcrypt + JWT |
-| Doppler | `start.py` fetches secrets at boot; `start-dev.js` writes `.env.local` for Next.js |
-| `env.ts` | Accepts both Doppler names (OPENROUTER_API_KEY) and Replit names (OPEN_ROUTER) |
-| bcrypt | Uses `bcrypt` directly (passlib 1.7.4 incompatible with bcrypt 4.x+, fixed) |
-| Database SSL | Strips `?sslmode=` from URL, passes `ssl=True` to asyncpg engine directly |
+| `main.py` | Fully wired — 10 routers, WebSocket, CORS, rate-limit middleware |
+| Database | Connected + tables auto-created on startup |
+| Auth | Signup/Login/Logout/Refresh/Me — bcrypt + JWT |
+| Onboarding | Multi-turn Claude conversation → growth_profile extraction |
+| Relationships | Full relationship pipeline with Snooks 3-week sequences |
+| Virality Scoring | Mistral 7B at temp 0.3 scores all content pre-approval |
+| Momentum Detection | 15-min Celery task, WebSocket alerts when score > 50 |
+| Conversation Hunter | Claude finds 5 opportunities/day per user |
+| All Celery Tasks | Skippy, Snooks, momentum, relationships, publishing, analytics |
 
 ---
 
 ## Backend API Routes
 ```
-GET  /health                      — health check + agent status
-POST /api/auth/signup             — user registration
-POST /api/auth/login              — JWT authentication
-GET  /api/skippy/seeds            — list content seeds
-POST /api/skippy/sync-now         — trigger integration sync
-POST /api/skippy/voice            — voice input → seed
-POST /api/skippy/screenshot       — screenshot → seed
-POST /api/snooks/suggest          — 5 weekly content recommendations (Gemini)
-GET  /api/snooks/calendar         — calendar gap analysis
-POST /api/meta/generate           — generate content (3 variations × N platforms)
-POST /api/meta/refine             — refine with instruction
-POST /api/meta/repurpose          — repurpose long-form to social
-GET  /api/analytics/summary       — engagement metrics rollup
-GET  /api/analytics/top-performing — ranked by engagement rate
-POST /api/analytics/track         — record post metrics
-GET  /api/tune/voice-profile      — current voice profile
-POST /api/tune/samples            — add writing sample
-POST /api/tune/process            — run style extraction → update voice profile
-POST /api/audio/speak             — text → MP3 (ElevenLabs)
-POST /api/audio/transcribe        — audio → text (ElevenLabs Scribe)
-WS   /ws/main?token={jwt}        — real-time agent chat
+GET  /health                           — health check + agent status
+
+POST /api/auth/signup                  — user registration
+POST /api/auth/login                   — JWT authentication
+
+POST /api/onboarding/chat              — multi-turn Claude onboarding conversation
+GET  /api/onboarding/status            — check if onboarding is complete
+POST /api/onboarding/reset             — reset onboarding session
+
+GET  /api/skippy/seeds                 — list content seeds
+POST /api/skippy/sync-now              — trigger integration sync
+POST /api/skippy/voice                 — voice input → seed
+POST /api/skippy/screenshot            — screenshot → seed
+GET  /api/skippy/opportunities         — current conversation queue
+
+GET  /api/snooks/strategy              — current weekly plan
+GET  /api/snooks/calendar              — calendar gap analysis
+GET  /api/snooks/narrative-arcs        — active story arcs
+POST /api/snooks/create-arc            — start a new narrative arc
+GET  /api/snooks/relationships         — relationship pipeline
+GET  /api/snooks/gap-report            — competitor gap analysis
+
+GET  /api/relationships                — list relationship targets
+POST /api/relationships                — add relationship target
+GET  /api/relationships/{id}           — get target + sequence
+PATCH /api/relationships/{id}          — update stage / notes
+DELETE /api/relationships/{id}         — remove target
+POST /api/relationships/{id}/sequence  — generate Snooks 3-week sequence
+
+POST /api/meta/generate                — generate content (3 variations × N platforms)
+POST /api/meta/refine                  — refine with instruction
+POST /api/meta/repurpose               — repurpose long-form to social
+POST /api/meta/improve-score           — improve low-scoring content
+
+GET  /api/analytics/summary            — engagement metrics rollup
+GET  /api/analytics/top-performing     — ranked by engagement rate
+POST /api/analytics/track              — record post metrics
+GET  /api/analytics/experiments        — experiment results
+GET  /api/analytics/positioning        — brand positioning drift score
+
+GET  /api/tune/voice-profile           — current voice profile
+POST /api/tune/samples                 — add writing sample
+POST /api/tune/process                 — run style extraction → update voice profile
+
+POST /api/audio/speak                  — text → MP3 (ElevenLabs)
+POST /api/audio/transcribe             — audio → text (ElevenLabs Scribe)
+
+WS   /ws/main?token={jwt}             — real-time agent chat + momentum alerts
 ```
 
 ---
