@@ -1,1 +1,6 @@
-{}
+{
+  "app/auth/page.tsx -> firebase/auth": {
+    "id": 59253,
+    "files": []
+  }
+}

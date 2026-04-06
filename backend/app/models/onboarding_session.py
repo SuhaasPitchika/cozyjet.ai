@@ -11,5 +11,5 @@ class OnboardingSession(Base, TimestampMixin):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
 
     # JSON array of {"role": "user"|"assistant", "content": "..."} objects
-    messages = Column(JSON, default=[])
+    messages = Column(JSON, default=list)
     is_complete = Column(Boolean, default=False)

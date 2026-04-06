@@ -24,20 +24,20 @@ class User(Base, TimestampMixin):
     verification_token = Column(String, nullable=True)
     
     # voice_profile: e.g. {tone, style, emoji_usage, formality, humor, preferred_platforms}
-    voice_profile = Column(JSON, default={
+    voice_profile = Column(JSON, default=lambda: {
         "tone": "professional",
         "style": "storytelling",
         "emoji_usage": "moderate",
         "formality": "semi-formal",
         "humor": "witty",
-        "preferred_platforms": ["twitter", "linkedin"]
+        "preferred_platforms": ["twitter", "linkedin"],
     })
 
     # growth_profile: extracted from onboarding conversation by the AI
     # {niche, sub_niche, goal, goal_timeline, current_state, fear, tone,
     #  content_style, admired_creators, time_available_minutes,
     #  comfort_zone, positioning_opportunity, psychological_profile}
-    growth_profile = Column(JSON, default={})
+    growth_profile = Column(JSON, default=dict)
 
     onboarding_complete = Column(Boolean, default=False)
     timezone = Column(String(100), default="UTC")

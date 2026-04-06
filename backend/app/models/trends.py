@@ -11,7 +11,7 @@ class Trend(Base, TimestampMixin):
     platform = Column(String, nullable=False)
     trend_score = Column(Integer, default=0) # 0-100
     
-    related_keywords = Column(ARRAY(String), default=[])
+    related_keywords = Column(ARRAY(String), default=list)
     
     detected_at = Column(DateTime, nullable=False)
     expires_at = Column(DateTime, nullable=False)

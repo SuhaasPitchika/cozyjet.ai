@@ -13,7 +13,7 @@ class ContentTemplate(Base, TimestampMixin):
     template_text = Column(Text, nullable=False)
     
     # {var_name: {"hint": "description", "type": "string"}}
-    variables = Column(JSON, default={})
+    variables = Column(JSON, default=dict)
     
     performance_score = Column(Integer, default=0) # Average engagement score
     is_public = Column(Boolean, default=False)

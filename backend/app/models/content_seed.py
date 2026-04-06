@@ -22,7 +22,7 @@ class ContentSeed(Base, TimestampMixin):
     source_type = Column(Enum(SourceType), nullable=False)
     
     # Store commit hashes, repo names, Figma keys, etc.
-    source_data = Column(JSON, default={})
+    source_data = Column(JSON, default=dict)
     
     # Extracted opening line — the story hook
     hook = Column(Text, nullable=True)
@@ -32,7 +32,7 @@ class ContentSeed(Base, TimestampMixin):
     virality_reasoning = Column(Text, nullable=True)
 
     # PostgreSQL array for categorization
-    tags = Column(ARRAY(String), default=[])
+    tags = Column(ARRAY(String), default=list)
 
     is_used = Column(Boolean, default=False)
     is_dismissed = Column(Boolean, default=False)

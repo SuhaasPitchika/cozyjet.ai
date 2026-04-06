@@ -30,7 +30,7 @@ class Integration(Base, TimestampMixin):
 
     platform_user_id = Column(String, nullable=True)
     platform_username = Column(String, nullable=True)
-    scopes = Column(JSON, default=[])
+    scopes = Column(JSON, default=list)
 
     is_active = Column(Boolean, default=True)
     last_synced_at = Column(DateTime, nullable=True)

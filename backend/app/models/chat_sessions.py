@@ -6,8 +6,10 @@ from .base import Base, TimestampMixin
 
 
 class ChatMode(str, enum.Enum):
-    refine = "refine"
+    skippy = "skippy"
+    snooks = "snooks"
     meta = "meta"
+    refine = "refine"
     support = "support"
 
 
@@ -19,7 +21,7 @@ class ChatSession(Base, TimestampMixin):
     mode = Column(Enum(ChatMode), nullable=False)
 
     # List of {"role": "user"|"assistant", "content": "..."}
-    messages = Column(JSON, default=[])
+    messages = Column(JSON, default=list)
 
     # For refine sessions — the content being refined
     content_id = Column(UUID(as_uuid=True), ForeignKey("content.id", ondelete="SET NULL"), nullable=True)

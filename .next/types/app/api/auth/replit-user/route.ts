@@ -1,4 +1,4 @@
-// File: /home/runner/workspace/src/app/api/auth/replit-user/route.ts
+// File: /workspaces/cozyjet.ai/src/app/api/auth/replit-user/route.ts
 import * as entry from '../../../../../../src/app/api/auth/replit-user/route.js'
 import type { NextRequest } from 'next/server.js'
 

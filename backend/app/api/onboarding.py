@@ -139,25 +139,16 @@ async def onboarding_chat(
 
     # Call Claude with the full conversation history
     try:
-        openai_messages = [{"role": "system", "content": ONBOARDING_SYSTEM}] + messages
-        from ..config import settings
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=settings.OPENROUTER_API_KEY,
-            default_headers={
-                "HTTP-Referer": "https://cozyjet.ai",
-                "X-Title": "CozyJet AI Studio",
-            },
+        conversation_text = "\n".join(
+            [f"{item['role'].capitalize()}: {item['content']}" for item in messages]
         )
-        resp = await client.chat.completions.create(
+        reply = await call_openrouter(
+            system_prompt=ONBOARDING_SYSTEM,
+            user_message=f"Conversation:\n{conversation_text}",
             model="anthropic/claude-3.5-sonnet",
-            messages=openai_messages,
             temperature=0.85,
             max_tokens=300,
         )
-        reply = resp.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Onboarding chat call failed: {e}")
         raise HTTPException(status_code=503, detail="AI service unavailable. Please try again.")

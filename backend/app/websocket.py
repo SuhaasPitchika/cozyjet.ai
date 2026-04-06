@@ -11,6 +11,7 @@ import asyncio
 import base64
 import json
 import logging
+from uuid import UUID
 from fastapi import WebSocket, WebSocketDisconnect, Query
 from jose import jwt, JWTError
 from sqlalchemy.future import select
@@ -18,6 +19,7 @@ from sqlalchemy.future import select
 from .config import settings
 from .database import AsyncSessionLocal
 from .models.user import User
+from .models.chat_sessions import ChatSession, ChatMode as ChatSessionMode
 
 logger = logging.getLogger("cozyjet.websocket")
 
@@ -27,6 +29,41 @@ async def _get_user(user_id: str):
         stmt = select(User).where(User.id == user_id)
         result = await db.execute(stmt)
         return result.scalar_one_or_none()
+
+
+async def _get_or_create_chat_session(user, mode: str, session_id: str | None = None):
+    try:
+        mode_enum = ChatSessionMode(mode)
+    except ValueError:
+        return None, "invalid_mode"
+
+    async with AsyncSessionLocal() as db:
+        if session_id:
+            try:
+                session_uuid = UUID(session_id)
+            except ValueError:
+                return None, "invalid_session_id"
+
+            stmt = select(ChatSession).where(
+                ChatSession.id == session_uuid,
+                ChatSession.user_id == user.id,
+            )
+            result = await db.execute(stmt)
+            session = result.scalar_one_or_none()
+            if not session:
+                return None, "session_not_found"
+            if session.mode != mode_enum:
+                return None, "mode_mismatch"
+            return session, None
+
+        session = ChatSession(
+            user_id=user.id,
+            mode=mode_enum,
+            messages=[],
+        )
+        db.add(session)
+        await db.flush()
+        return session, None
 
 
 async def _route_chat(content: str, mode: str, user) -> dict:
@@ -196,10 +233,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
 
     try:
         while True:
-            raw = await websocket.receive_text()
             try:
-                data = json.loads(raw)
-            except json.JSONDecodeError:
+                data = await websocket.receive_json()
+            except ValueError:
                 await websocket.send_text(
                     json.dumps({"type": "error", "message": "Invalid JSON"})
                 )
@@ -209,39 +245,71 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
 
             if msg_type == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
+                continue
 
-            elif msg_type == "chat":
-                content = data.get("content", "")
-                mode = data.get("mode", "skippy")
-
-                # Send typing indicator immediately
-                await websocket.send_text(
-                    json.dumps({"type": "typing", "agent": mode})
-                )
-
-                result = await _route_chat(content, mode, user)
-
-                response_payload = {
-                    "type": "chat_response",
-                    "agent": result["agent"],
-                    "content": result["text"],
-                }
-
-                # Include audio as base64 if available
-                if result.get("audio_b64"):
-                    response_payload["audio_b64"] = result["audio_b64"]
-                    response_payload["audio_format"] = "mp3"
-
-                # Include any extras (seed data, calendar events, etc.)
-                if result.get("extras"):
-                    response_payload["extras"] = result["extras"]
-
-                await websocket.send_text(json.dumps(response_payload))
-
-            else:
+            if msg_type != "chat":
                 await websocket.send_text(
                     json.dumps({"type": "error", "message": f"Unknown message type: {msg_type}"})
                 )
+                continue
+
+            content = data.get("content", "")
+            mode = data.get("mode", "skippy")
+            session_id = data.get("session_id")
+
+            if not isinstance(content, str) or not content.strip():
+                await websocket.send_text(
+                    json.dumps({"type": "error", "message": "content is required"})
+                )
+                continue
+
+            session, session_error = await _get_or_create_chat_session(user, mode, session_id)
+            if session_error:
+                await websocket.send_text(
+                    json.dumps({
+                        "type": "error",
+                        "message": session_error,
+                    })
+                )
+                continue
+
+            # Persist the user message
+            session.messages = list(session.messages or []) + [{"role": "user", "content": content}]
+            async with AsyncSessionLocal() as db:
+                db.add(session)
+                await db.commit()
+                await db.refresh(session)
+
+            # Send typing indicator immediately
+            await websocket.send_text(
+                json.dumps({"type": "typing", "agent": mode, "session_id": str(session.id)})
+            )
+
+            result = await _route_chat(content, mode, user)
+
+            # Persist the assistant response
+            session.messages.append({"role": "assistant", "content": result["text"]})
+            async with AsyncSessionLocal() as db:
+                db.add(session)
+                await db.commit()
+                await db.refresh(session)
+
+            response_payload = {
+                "type": "chat_response",
+                "agent": result["agent"],
+                "content": result["text"],
+                "session_id": str(session.id),
+            }
+
+            # Include audio as base64 if available
+            if result.get("audio_b64"):
+                response_payload["audio_b64"] = result["audio_b64"]
+                response_payload["audio_format"] = "mp3"
+
+            if result.get("extras"):
+                response_payload["extras"] = result["extras"]
+
+            await websocket.send_text(json.dumps(response_payload))
 
     except WebSocketDisconnect:
         pass

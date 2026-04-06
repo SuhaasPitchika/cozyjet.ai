@@ -186,6 +186,8 @@ from .api.analytics import router as analytics_router
 from .api.tune import router as tune_router
 from .api.onboarding import router as onboarding_router
 from .api.relationships import router as relationships_router
+from .api.opportunities import router as opportunities_router
+from .api.chat import router as chat_router
 
 app.include_router(auth_router,          prefix="/api/auth",          tags=["Auth"])
 app.include_router(onboarding_router,    prefix="/api/onboarding",    tags=["Onboarding"])
@@ -197,6 +199,8 @@ app.include_router(integrations_router,  prefix="/api/integrations",  tags=["Int
 app.include_router(analytics_router,     prefix="/api/analytics",     tags=["Analytics"])
 app.include_router(tune_router,          prefix="/api/tune",          tags=["Tune"])
 app.include_router(relationships_router, prefix="/api/relationships",  tags=["Relationships"])
+app.include_router(opportunities_router, prefix="/api/opportunities", tags=["Opportunities"])
+app.include_router(chat_router,          prefix="/api/chat",           tags=["Chat"])
 
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────
