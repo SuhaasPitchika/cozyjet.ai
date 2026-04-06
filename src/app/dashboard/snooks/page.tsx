@@ -564,9 +564,12 @@ export default function SnooksPage() {
         role: m.role === "bot" ? "assistant" : "user",
         content: m.content,
       }));
-      const res  = await fetch("/api/ai/snooks", {
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch("/backend/api/snooks/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ messages: [...history, { role: "user", content: msg }] }),
       });
       const data = await res.json();

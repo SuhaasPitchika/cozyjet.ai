@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { LogOut, ChevronRight, Flame, X } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useReplitAuth } from "@/contexts/replit-auth-context";
+import { useAgentWebSocket } from "@/hooks/use-websocket";
 
 const NAV_ITEMS = [
   { label: "Skippy",   href: "/dashboard/skippy",   abbr: "SK" },
   { label: "Snooks",   href: "/dashboard/snooks",   abbr: "SN" },
-  { label: "Meta",     href: "/dashboard/meta",     abbr: "ME" },
+  { label: "Create",   href: "/dashboard/create",   abbr: "CR" },
   { label: "Tuning",   href: "/dashboard/tuning",   abbr: "TU" },
+  { label: "Analytics",href: "/dashboard/analytics",abbr: "AN" },
   { label: "Settings", href: "/dashboard/settings", abbr: "ST" },
 ];
 
@@ -25,9 +27,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const auth = useAuth();
   const { replitUser, isReplitLoading, signOutReplit } = useReplitAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [showMomentum, setShowMomentum] = useState(false);
 
   const isLoading = isUserLoading || isReplitLoading;
   const isAuthenticated = !!user || !!replitUser;
+
+  const { lastMomentumAlert } = useAgentWebSocket();
+
+  useEffect(() => {
+    if (lastMomentumAlert) {
+      setShowMomentum(true);
+      const t = setTimeout(() => setShowMomentum(false), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [lastMomentumAlert]);
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth");
@@ -307,6 +320,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ─── MAIN ─── */}
       <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
+
+      {/* ─── MOMENTUM ALERT TOAST ─── */}
+      <AnimatePresence>
+        {showMomentum && lastMomentumAlert && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 32 }}
+            className="fixed bottom-6 right-6 z-[100] flex items-start gap-3 px-4 py-3 rounded-2xl"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(255,250,240,0.92) 100%)",
+              backdropFilter: "blur(24px) saturate(180%)",
+              WebkitBackdropFilter: "blur(24px) saturate(180%)",
+              border: "1px solid rgba(251,146,60,0.35)",
+              boxShadow: "0 8px 40px rgba(251,146,60,0.18), inset 0 1px 0 rgba(255,255,255,0.9)",
+              maxWidth: 340,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
+            >
+              <Flame size={15} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-pixel text-[11px] text-orange-700 uppercase tracking-wider mb-0.5">Momentum Alert</p>
+              <p className="font-pixel-thin text-[13px] text-black/75 leading-snug">
+                {lastMomentumAlert.platform} score hit {lastMomentumAlert.score} — {lastMomentumAlert.reason}
+              </p>
+            </div>
+            <button onClick={() => setShowMomentum(false)} className="flex-shrink-0 mt-0.5">
+              <X size={14} className="text-black/30 hover:text-black/60 transition-colors" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

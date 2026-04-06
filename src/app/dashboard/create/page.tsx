@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Github, Mic, Camera, PenLine, Figma, Clock, Tag, Sparkles, Copy, Check,
   Linkedin, Twitter, Instagram, Youtube, Zap, ChevronRight, FileText, Send,
   RefreshCw, Calendar, BookmarkPlus, ChevronDown, Wand2, Eye, Filter,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 const PLATFORMS = [
   { id: "linkedin", label: "LinkedIn", icon: Linkedin, color: "#0A66C2", charLimit: 1900 },
@@ -103,6 +104,17 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+interface Seed {
+  id: string;
+  title: string;
+  description: string;
+  source: string;
+  source_label: string;
+  time: string;
+  tags: string[];
+  score: number;
+}
+
 export default function CreatePage() {
   const [selectedSeed, setSelectedSeed] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -111,15 +123,38 @@ export default function CreatePage() {
   const [generated, setGenerated] = useState(false);
   const [manualText, setManualText] = useState("");
   const [activeVariant, setActiveVariant] = useState<Record<string, number>>({});
+  const [seeds, setSeeds] = useState<Seed[]>(MOCK_SEEDS);
+  const [generatedContent, setGeneratedContent] = useState<Record<string, string>>({});
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const FILTERS = ["All", "GitHub", "Notion", "Figma", "Drive"];
 
-  const filteredSeeds = useMemo(() => {
-    if (activeFilter === "All") return MOCK_SEEDS;
-    return MOCK_SEEDS.filter((s) => s.source_label === activeFilter);
-  }, [activeFilter]);
+  useEffect(() => {
+    api.get("/backend/api/skippy/seeds")
+      .then(({ data }) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map((s: Record<string, unknown>) => ({
+            id: String(s.id || ""),
+            title: String(s.title || ""),
+            description: String(s.raw_text || s.description || ""),
+            source: String(s.source_type || "manual"),
+            source_label: String(s.source_type || "Manual"),
+            time: s.created_at ? "recently" : "recently",
+            tags: (s.tags as string[]) || [],
+            score: Number(s.relevance_score) || 70,
+          }));
+          setSeeds(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  const selectedSeedData = MOCK_SEEDS.find((s) => s.id === selectedSeed);
+  const filteredSeeds = useMemo(() => {
+    if (activeFilter === "All") return seeds;
+    return seeds.filter((s) => s.source_label.toLowerCase() === activeFilter.toLowerCase());
+  }, [activeFilter, seeds]);
+
+  const selectedSeedData = seeds.find((s) => s.id === selectedSeed);
 
   const togglePlatform = (id: string) => {
     setSelectedPlatforms((prev) =>
@@ -127,14 +162,56 @@ export default function CreatePage() {
     );
   };
 
-  const handleGenerate = async () => {
-    if (!selectedSeed) return;
+  const handleGenerate = useCallback(async () => {
+    if (!selectedSeed && !manualText.trim()) return;
     setIsGenerating(true);
     setGenerated(false);
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsGenerating(false);
-    setGenerated(true);
-  };
+    setGenerateError(null);
+    setGeneratedContent({});
+
+    try {
+      let seedId = selectedSeed;
+
+      if (manualText.trim() && !seedId) {
+        const { data: newSeed } = await api.post("/backend/api/skippy/seeds", {
+          title: manualText.slice(0, 80),
+          raw_text: manualText,
+          source_type: "manual",
+        });
+        seedId = String(newSeed.id);
+        setSeeds((prev) => [{
+          id: seedId!,
+          title: manualText.slice(0, 80),
+          description: manualText,
+          source: "manual",
+          source_label: "Manual",
+          time: "just now",
+          tags: [],
+          score: 80,
+        }, ...prev]);
+        setSelectedSeed(seedId);
+      }
+
+      const { data } = await api.post("/backend/api/meta/generate", {
+        seed_id: seedId,
+        platforms: selectedPlatforms,
+      });
+
+      const contentMap: Record<string, string> = {};
+      if (data.variations) {
+        for (const v of data.variations) {
+          contentMap[v.platform] = v.content || v.text || "";
+        }
+      }
+      setGeneratedContent(contentMap);
+      setGenerated(true);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Generation failed";
+      setGenerateError(msg);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [selectedSeed, manualText, selectedPlatforms]);
 
   return (
     <div className="flex h-full" style={{ background: "#f0f0f5" }}>
@@ -433,6 +510,12 @@ export default function CreatePage() {
                 </motion.button>
               </div>
 
+              {generateError && (
+                <div className="mx-5 mt-2 px-4 py-2 rounded-xl text-xs font-pixel-thin text-red-600" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  {generateError}
+                </div>
+              )}
+
               {/* Generated output area */}
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {isGenerating && (
@@ -474,7 +557,7 @@ export default function CreatePage() {
                   <AnimatePresence>
                     {selectedPlatforms.map((pid, i) => {
                       const pl = PLATFORMS.find((p) => p.id === pid)!;
-                      const content = CONTENT_MAP[pid] || "";
+                      const content = generatedContent[pid] || CONTENT_MAP[pid] || "";
                       const charCount = content.length;
                       const isOver = charCount > pl.charLimit;
                       const variant = activeVariant[pid] || 1;

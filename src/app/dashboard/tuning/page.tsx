@@ -722,9 +722,33 @@ export default function TuningPage() {
   useEffect(() => {
     setSamples(loadSamples());
     setProfile(loadProfile());
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    if (!token) return;
+
+    Promise.all([
+      fetch("/backend/api/tune/voice-profile", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.ok ? r.json() : null),
+      fetch("/backend/api/tune/samples", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.ok ? r.json() : null),
+    ]).then(([profileData, samplesData]) => {
+      if (profileData && Object.keys(profileData).length > 0) {
+        setProfile(profileData);
+        saveProfile(profileData);
+      }
+      if (Array.isArray(samplesData) && samplesData.length > 0) {
+        const mapped = samplesData.map((s: Record<string, unknown>) => ({
+          id: String(s.id || Date.now()),
+          text: String(s.content || s.text || ""),
+          label: String(s.label || "Sample"),
+          chars: Number(s.chars || String(s.content || "").length),
+          added_at: String(s.created_at || new Date().toISOString()),
+        }));
+        setSamples(mapped);
+        saveSamples(mapped);
+      }
+    }).catch(() => {});
   }, []);
 
-  const handleAddSample = (text: string, label: string) => {
+  const handleAddSample = async (text: string, label: string) => {
     const newSample: VoiceSample = {
       id: Date.now().toString(),
       text,
@@ -735,6 +759,15 @@ export default function TuningPage() {
     const updated = [newSample, ...samples];
     setSamples(updated);
     saveSamples(updated);
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    if (token) {
+      fetch("/backend/api/tune/samples", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: text, label }),
+      }).catch(() => {});
+    }
   };
 
   const handleDeleteSample = (id: string) => {
@@ -747,17 +780,20 @@ export default function TuningPage() {
     if (samples.length === 0 || processing) return;
     setProcessing(true);
     try {
-      const res = await fetch("/api/ai/voice", {
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/backend/api/tune/process", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          samples: samples.map(s => ({ text: s.text, label: s.label })),
-        }),
+        headers,
+        body: JSON.stringify({ sample_ids: samples.map(s => s.id) }),
       });
       const data = await res.json();
-      if (data.profile) {
+      const rawProfile = data.voice_profile || data.profile || data;
+      if (rawProfile && typeof rawProfile === "object") {
         const p: VoiceProfile = {
-          ...data.profile,
+          ...rawProfile,
           processed_at: new Date().toISOString(),
           samples_count: samples.length,
         };
