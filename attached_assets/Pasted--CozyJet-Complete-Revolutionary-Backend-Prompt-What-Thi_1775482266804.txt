@@ -1,0 +1,916 @@
+# CozyJet — Complete Revolutionary Backend Prompt
+
+---
+
+## What This System Actually Is
+
+CozyJet is not a content generator. It is an autonomous growth operator that runs 24 hours a day making intelligent decisions about your social media presence while you do your actual work. The backend powers three simultaneously running agents, a real time conversation hunting system, a momentum detection engine, a relationship graph builder, a narrative arc planner, and a virality scoring system — all personalized to a specific user's niche, voice, goals, and psychology from the moment they answer the onboarding questions. The system works even if zero integrations are connected because the agents can operate purely from user-provided context, conversation data, and niche intelligence. Integrations make it better but they are never a requirement.
+
+---
+
+## The Onboarding QnA System — Backend
+
+The first thing a new user sees after signup is a conversational popup that feels like talking to a smart friend, not filling a form. This conversation is powered by OpenRouter using Claude and must feel warm, curious, and genuinely interested — not robotic. The backend endpoint `POST /api/onboarding/chat` handles this as a multi-turn conversation stored in a `onboarding_sessions` table. The session persists each exchange and after the conversation completes it runs a profile extraction call that builds the user's complete `growth_profile` JSON saved to the `users` table.
+
+The conversation must extract the following through natural dialogue, never through direct questions in sequence. It finds the user's niche and sub-niche — not just "developer" but "indie developer who builds SaaS tools and shares the building process." It finds their current social media state — complete beginner, has an audience but stuck, growing but inconsistent. It finds their actual goal — is it clients, is it a following, is it a job, is it credibility, is it selling a product. It finds their biggest fear about posting publicly. It finds what kind of creator they admire and why. It finds how much time per day they can realistically give. It finds their content comfort zone — do they prefer technical posts, storytelling, opinions, tutorials, or behind the scenes. It finds their tone — are they naturally funny, serious, direct, warm, provocative.
+
+The system prompt for the onboarding conversation must be exactly this with nothing added:
+
+```python
+ONBOARDING_SYSTEM = """You are the CozyJet onboarding guide. 
+Your job is to understand this person deeply enough that 
+every piece of content CozyJet creates feels like it came 
+from their best self on their best day.
+
+Ask one question at a time. Listen to the answer before 
+asking the next thing. React like a real person would — 
+if they say something interesting, acknowledge it before 
+moving on. Be warm and direct. Never list questions. 
+Never use bullet points. Talk like a smart friend who 
+genuinely wants to help them grow.
+
+You need to understand: their niche, their goal, their 
+current situation, their fears about posting, their 
+content style, their tone, and how much time they have.
+
+After 8-10 exchanges end the conversation naturally and 
+tell them CozyJet is ready to start working for them."""
+```
+
+After the conversation ends a second extraction call with temperature 0.1 parses the entire conversation and outputs a structured `growth_profile` JSON:
+
+```python
+async def extract_growth_profile(conversation_history: list) -> dict:
+    messages = [
+        {
+            "role": "system",
+            "content": """Extract a structured growth profile from this 
+            onboarding conversation. Return only valid JSON, nothing else."""
+        },
+        {
+            "role": "user", 
+            "content": f"""Conversation: {json.dumps(conversation_history)}
+            
+            Return this exact structure filled with specifics:
+            {{
+                "niche": "",
+                "sub_niche": "",
+                "goal": "",
+                "goal_timeline": "",
+                "current_state": "",
+                "fear": "",
+                "tone": "",
+                "content_style": [],
+                "admired_creators": [],
+                "time_available_minutes": 0,
+                "comfort_zone": "",
+                "positioning_opportunity": "",
+                "psychological_profile": ""
+            }}"""
+        }
+    ]
+    
+    response = await call_openrouter(messages, max_tokens=400, temperature=0.1)
+    return json.loads(response)
+```
+
+---
+
+## Project Structure
+
+```
+cozyjet-backend/
+├── app/
+│   ├── main.py
+│   ├── config.py
+│   ├── database.py
+│   ├── dependencies.py
+│   ├── startup_check.py
+│   ├── models/
+│   │   ├── user.py
+│   │   ├── integration.py
+│   │   ├── content_seed.py
+│   │   ├── content.py
+│   │   ├── analytics.py
+│   │   ├── relationship.py
+│   │   ├── narrative_arc.py
+│   │   ├── conversation_opportunity.py
+│   │   ├── onboarding_session.py
+│   │   └── experiment.py
+│   ├── agents/
+│   │   ├── skippy_agent.py
+│   │   ├── snooks_agent.py
+│   │   └── meta_agent.py
+│   ├── api/
+│   │   ├── auth.py
+│   │   ├── onboarding.py
+│   │   ├── skippy.py
+│   │   ├── snooks.py
+│   │   ├── meta.py
+│   │   ├── analytics.py
+│   │   ├── relationships.py
+│   │   └── websockets.py
+│   ├── services/
+│   │   ├── model_router.py
+│   │   ├── encryption_service.py
+│   │   ├── voice_service.py
+│   │   ├── virality_scorer.py
+│   │   ├── momentum_detector.py
+│   │   └── conversation_hunter.py
+│   └── tasks/
+│       ├── celery_app.py
+│       ├── skippy_tasks.py
+│       ├── snooks_tasks.py
+│       ├── publishing_tasks.py
+│       ├── momentum_tasks.py
+│       ├── relationship_tasks.py
+│       └── analytics_tasks.py
+├── Procfile
+├── railway.json
+├── requirements.txt
+└── .env.example
+```
+
+---
+
+## Database Models
+
+The `users` table stores: `id` as UUID primary key, `email` unique string, `password_hash` string, `display_name` string, `subscription_tier` as enum free, pro, ultra, `growth_profile` as JSON containing the full extracted onboarding profile, `voice_profile` as JSON containing tone, style, emoji usage, formality, humor, technical depth, learned preferences, `onboarding_complete` as boolean, `timezone` string, `created_at` and `updated_at` timestamps.
+
+The `integrations` table stores: `id` UUID, `user_id` foreign key cascade delete, `platform` as enum github, notion, figma, google_drive, google_calendar, linkedin, twitter, instagram, `access_token` as AES-256 encrypted text never plaintext, `refresh_token` encrypted nullable, `is_active` boolean, `last_synced_at` nullable datetime, `sync_error` nullable text.
+
+The `content_seeds` table stores: `id` UUID, `user_id` foreign key, `title` string, `description` text, `source_platform` string, `source_metadata` JSON, `tags` text array, `virality_score` integer 0 to 100, `virality_reasoning` text, `is_used` boolean, `is_dismissed` boolean, `created_at` datetime. Index on `(user_id, created_at DESC)`.
+
+The `content` table stores: `id` UUID, `user_id` foreign key, `seed_id` nullable foreign key, `platform` enum, `content_text` text, `hook` text, `variation_index` integer, `status` enum draft, approved, scheduled, published, failed, `virality_score` integer, `scheduled_time` nullable datetime, `published_at` nullable datetime, `platform_post_id` nullable string, `narrative_arc_id` nullable foreign key, `arc_stage` nullable string, `error_message` nullable text. Index on `(user_id, status)` and partial on `scheduled_time WHERE status = 'approved'`.
+
+The `conversation_opportunities` table stores: `id` UUID, `user_id` foreign key, `platform` string, `thread_url` string, `thread_title` text, `original_post` text, `drafted_reply` text, `relevance_score` integer, `opportunity_reason` text, `status` enum pending, approved, posted, skipped, `created_at` datetime.
+
+The `relationship_targets` table stores: `id` UUID, `user_id` foreign key, `target_username` string, `target_platform` string, `target_follower_count` integer, `alignment_score` integer, `relationship_stage` enum identified, warming, engaged, connected, `engagement_count` integer, `last_engaged_at` nullable datetime, `notes` text.
+
+The `narrative_arcs` table stores: `id` UUID, `user_id` foreign key, `arc_title` string, `arc_description` text, `project_context` text, `total_stages` integer, `current_stage` integer, `status` enum active, completed, paused, `started_at` datetime, `estimated_end` datetime.
+
+The `experiments` table stores: `id` UUID, `user_id` foreign key, `hypothesis` text, `content_variable` string, `control_content_id` UUID, `test_content_id` UUID, `started_at` datetime, `ended_at` nullable datetime, `result` nullable text, `learning` nullable text, `applied_to_profile` boolean.
+
+The `onboarding_sessions` table stores: `id` UUID, `user_id` foreign key, `messages` JSON array of role and content objects, `is_complete` boolean, `created_at` datetime.
+
+---
+
+## Model Router — OpenRouter, Gemini, ElevenLabs
+
+```python
+# app/services/model_router.py
+
+from openai import AsyncOpenAI
+import google.generativeai as genai
+from elevenlabs.client import ElevenLabs
+from app.config import settings
+
+openrouter = AsyncOpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=settings.OPENROUTER_API_KEY,
+    default_headers={
+        "HTTP-Referer": settings.FRONTEND_URL,
+        "X-Title": "CozyJet"
+    }
+)
+
+genai.configure(api_key=settings.GEMINI_API_KEY)
+eleven = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
+
+async def call_openrouter(
+    messages: list,
+    model: str = "anthropic/claude-3.5-sonnet",
+    max_tokens: int = 400,
+    temperature: float = 0.8
+) -> str:
+    response = await openrouter.chat.completions.create(
+        model=model,
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature
+    )
+    return response.choices[0].message.content
+
+async def call_gemini(prompt: str, context_data: dict) -> str:
+    model = genai.GenerativeModel("gemini-1.5-pro")
+    full_prompt = f"{prompt}\n\nContext: {json.dumps(context_data)}"
+    response = await model.generate_content_async(full_prompt)
+    return response.text
+
+async def call_classifier(text: str) -> dict:
+    response = await openrouter.chat.completions.create(
+        model="google/gemma-2-9b-it",
+        messages=[{"role": "user", "content": text}],
+        max_tokens=100,
+        temperature=0.1
+    )
+    return json.loads(response.choices[0].message.content)
+
+async def generate_audio(text: str, voice_id: str) -> bytes:
+    audio = eleven.generate(
+        text=text,
+        voice=voice_id,
+        model="eleven_turbo_v2"
+    )
+    return audio
+```
+
+---
+
+## Skippy Agent — Intelligence Layer
+
+Skippy has three simultaneous jobs. It syncs integrations when available, hunts conversations where the user should show up, and detects momentum on live posts. It works without integrations by relying purely on the user's growth profile and niche data.
+
+```python
+# app/agents/skippy_agent.py
+
+import json
+from app.services.model_router import call_openrouter
+
+SKIPPY_SYSTEM = """You are Skippy, CozyJet's intelligence agent.
+You find what's worth sharing and where the user should show up.
+You think like a journalist — specific, curious, no fluff.
+You write seed descriptions that make someone immediately see 
+the story worth telling. Never generic. Always specific."""
+
+async def generate_seed_from_activity(
+    raw_activity: dict,
+    growth_profile: dict
+) -> dict:
+    messages = [
+        {"role": "system", "content": SKIPPY_SYSTEM},
+        {
+            "role": "user",
+            "content": json.dumps({
+                "activity": raw_activity,
+                "creator": {
+                    "niche": growth_profile.get("niche"),
+                    "goal": growth_profile.get("goal"),
+                    "tone": growth_profile.get("tone"),
+                    "audience": growth_profile.get("sub_niche")
+                },
+                "output": {
+                    "title": "",
+                    "hook": "",
+                    "story": "",
+                    "why_this_matters_to_their_audience": "",
+                    "tags": [],
+                    "best_platforms": []
+                }
+            })
+        }
+    ]
+    raw = await call_openrouter(
+        messages,
+        model="mistralai/mistral-7b-instruct",
+        max_tokens=250,
+        temperature=0.35
+    )
+    return json.loads(raw)
+
+async def generate_seed_without_integration(
+    user_description: str,
+    growth_profile: dict
+) -> dict:
+    messages = [
+        {"role": "system", "content": SKIPPY_SYSTEM},
+        {
+            "role": "user",
+            "content": json.dumps({
+                "user_said": user_description,
+                "creator_context": growth_profile,
+                "output": {
+                    "title": "",
+                    "hook": "",
+                    "story": "",
+                    "tags": [],
+                    "best_platforms": []
+                }
+            })
+        }
+    ]
+    raw = await call_openrouter(
+        messages,
+        model="mistralai/mistral-7b-instruct",
+        max_tokens=250,
+        temperature=0.4
+    )
+    return json.loads(raw)
+
+async def hunt_conversations(
+    growth_profile: dict,
+    recent_content: list
+) -> list:
+    messages = [
+        {
+            "role": "system",
+            "content": """You find conversation opportunities where 
+            this creator can add genuine value right now. 
+            You think about timing, relevance, and what angle 
+            would make people want to check out this person's profile.
+            Every opportunity must be specific and actionable."""
+        },
+        {
+            "role": "user",
+            "content": json.dumps({
+                "creator": growth_profile,
+                "recent_work": recent_content[:3],
+                "find": "5 specific conversations happening right now where this person has something real to add",
+                "for_each": {
+                    "platform": "",
+                    "topic": "",
+                    "angle": "",
+                    "drafted_reply": "",
+                    "why_this_works": "",
+                    "estimated_profile_visit_probability": ""
+                }
+            })
+        }
+    ]
+    raw = await call_openrouter(
+        messages,
+        model="anthropic/claude-3.5-sonnet",
+        max_tokens=600,
+        temperature=0.7
+    )
+    return json.loads(raw).get("opportunities", [])
+```
+
+---
+
+## Snooks Agent — Strategy Layer
+
+Snooks runs on Gemini for its long context capacity and handles positioning, narrative arcs, relationship strategy, and weekly experiments.
+
+```python
+# app/agents/snooks_agent.py
+
+import json
+from app.services.model_router import call_gemini
+
+async def generate_weekly_strategy(
+    growth_profile: dict,
+    analytics_data: dict,
+    relationship_data: list,
+    trends: list
+) -> dict:
+    prompt = """You are Snooks, a senior personal brand strategist.
+    You think in systems not tactics. You look at what is actually 
+    working for this specific person with this specific audience 
+    and build repeatable strategies from real patterns.
+    You are direct. Never generic. Never say 'post consistently'.
+    Every recommendation references specific data from their history."""
+    
+    context = {
+        "creator_profile": growth_profile,
+        "last_30_days": analytics_data,
+        "relationship_pipeline": relationship_data,
+        "trending_now": trends,
+        "output_needed": {
+            "weekly_arc": [],
+            "positioning_move": "",
+            "relationship_actions": [],
+            "experiment_this_week": {
+                "hypothesis": "",
+                "test": "",
+                "measure": ""
+            },
+            "gap_opportunity": "",
+            "strategic_reasoning": ""
+        }
+    }
+    
+    return json.loads(await call_gemini(prompt, context))
+
+async def build_narrative_arc(
+    project_description: str,
+    growth_profile: dict,
+    duration_weeks: int
+) -> dict:
+    prompt = """You are Snooks building a content narrative arc.
+    A narrative arc is a multi-week story that unfolds across 
+    someone's feed making followers feel invested in the journey.
+    Think in emotional beats — curiosity, struggle, breakthrough, 
+    proof, lesson. Each stage serves a purpose in the overall story."""
+    
+    context = {
+        "project": project_description,
+        "creator": growth_profile,
+        "duration_weeks": duration_weeks,
+        "output": {
+            "arc_title": "",
+            "arc_description": "",
+            "stages": [],
+            "emotional_journey": "",
+            "audience_payoff": ""
+        }
+    }
+    
+    return json.loads(await call_gemini(prompt, context))
+
+async def run_relationship_sequence(
+    target: dict,
+    growth_profile: dict
+) -> dict:
+    prompt = """You are Snooks planning a relationship building 
+    sequence. This is methodical and genuine — not spammy.
+    The goal is to build a real connection with someone whose 
+    audience overlaps with ours. Think about what genuine engagement 
+    looks like versus what feels calculated and gross."""
+    
+    context = {
+        "target": target,
+        "our_creator": growth_profile,
+        "output": {
+            "week_1_actions": [],
+            "week_2_actions": [],
+            "week_3_actions": [],
+            "natural_collaboration_angle": "",
+            "avoid": []
+        }
+    }
+    
+    return json.loads(await call_gemini(prompt, context))
+```
+
+---
+
+## Meta Agent — Production Layer With Virality Scoring
+
+Meta runs two separate calls per piece of content — hook generation first at high temperature, then body generation using the winning hook. Virality scoring runs before any content is approved for publishing.
+
+```python
+# app/agents/meta_agent.py
+
+import json
+import asyncio
+from app.services.model_router import call_openrouter
+
+META_SYSTEM = """You are Meta, an elite content writer who 
+understands human psychology, platform algorithms, and what 
+makes people stop scrolling.
+
+You never use: 'dive into', 'game-changer', 'in today's world',
+'it's important to note', 'delve', 'leverage', 'landscape',
+'journey', 'unlock', or any hollow marketing phrase.
+
+You write the way a smart self-aware person writes when they are 
+being genuinely honest and interesting. You understand that 
+virality is not luck — it is specific psychology executed well.
+
+You know that hooks work through one of five mechanisms: 
+curiosity gap, social proof contrast, counterintuitive claim, 
+specific relatable pain, or bold opinion. You always know 
+which mechanism you are using and why."""
+
+async def generate_hooks(
+    seed: dict,
+    platform: str,
+    growth_profile: dict,
+    top_performing_hooks: list
+) -> list:
+    messages = [
+        {"role": "system", "content": META_SYSTEM},
+        {
+            "role": "user",
+            "content": json.dumps({
+                "work": seed.get("story"),
+                "platform": platform,
+                "creator_tone": growth_profile.get("tone"),
+                "niche": growth_profile.get("niche"),
+                "psychological_profile": growth_profile.get(
+                    "psychological_profile"
+                ),
+                "their_best_hooks": top_performing_hooks[:3],
+                "generate": "6 hooks for this content",
+                "each_hook": {
+                    "text": "",
+                    "mechanism": "",
+                    "why_it_works": "",
+                    "platform_fit_score": 0
+                }
+            })
+        }
+    ]
+    raw = await call_openrouter(
+        messages,
+        model="anthropic/claude-3.5-sonnet",
+        max_tokens=500,
+        temperature=0.92
+    )
+    hooks = json.loads(raw).get("hooks", [])
+    return sorted(hooks, key=lambda x: x.get("platform_fit_score", 0), reverse=True)
+
+async def generate_content_body(
+    seed: dict,
+    platform: str,
+    hook: str,
+    growth_profile: dict,
+    tuning_observations: list,
+    arc_stage: str = None
+) -> dict:
+    
+    platform_rules = {
+        "linkedin": {
+            "length": "1200-1800 characters",
+            "structure": "hook, 3-5 short paragraphs, question or CTA",
+            "hashtags": "3-5 at end",
+            "avoid": "corporate speak, excessive formatting, emoji overload"
+        },
+        "twitter": {
+            "length": "6-10 tweets each under 280 chars",
+            "structure": "hook tweet stands alone, numbered, end with follow CTA",
+            "hashtags": "1-2 max in thread",
+            "avoid": "padding tweets, weak middle tweets"
+        },
+        "reddit": {
+            "length": "detailed, as long as needed",
+            "structure": "value first, story second, never promotional",
+            "hashtags": "none",
+            "avoid": "self promotion, marketing language, anything that sounds like an ad"
+        },
+        "instagram": {
+            "length": "150-300 characters ideally",
+            "structure": "hook line, 2-3 line breaks, hashtags separate",
+            "hashtags": "5-10 at end",
+            "avoid": "walls of text, too many emojis"
+        }
+    }
+    
+    messages = [
+        {"role": "system", "content": META_SYSTEM},
+        {
+            "role": "user",
+            "content": json.dumps({
+                "opening_hook": hook,
+                "work_story": seed.get("story"),
+                "platform": platform,
+                "rules": platform_rules.get(platform, {}),
+                "write_in_this_style": tuning_observations[:8],
+                "tone": growth_profile.get("tone"),
+                "arc_stage": arc_stage,
+                "arc_instruction": f"This is the {arc_stage} stage of a larger story" if arc_stage else None,
+                "output": {
+                    "full_content": "",
+                    "cta": "",
+                    "hashtags": []
+                }
+            })
+        }
+    ]
+    
+    raw = await call_openrouter(
+        messages,
+        model="anthropic/claude-3.5-sonnet",
+        max_tokens=500,
+        temperature=0.78
+    )
+    return json.loads(raw)
+
+async def score_virality(
+    content: str,
+    platform: str,
+    growth_profile: dict
+) -> dict:
+    messages = [
+        {
+            "role": "system",
+            "content": """You are a viral content analyst who has 
+            studied millions of posts across platforms. You score 
+            content on its probability of performing above average 
+            and explain specifically what works and what does not. 
+            You are honest and direct. If something is weak you say 
+            so and explain exactly how to fix it."""
+        },
+        {
+            "role": "user",
+            "content": json.dumps({
+                "content": content,
+                "platform": platform,
+                "niche": growth_profile.get("niche"),
+                "creator_goal": growth_profile.get("goal"),
+                "output": {
+                    "score": 0,
+                    "what_works": "",
+                    "what_doesnt": "",
+                    "specific_fix": "",
+                    "predicted_outcome": ""
+                }
+            })
+        }
+    ]
+    raw = await call_openrouter(
+        messages,
+        model="mistralai/mistral-7b-instruct",
+        max_tokens=200,
+        temperature=0.3
+    )
+    return json.loads(raw)
+
+async def generate_all_platforms(
+    seed: dict,
+    platforms: list,
+    growth_profile: dict,
+    tuning_observations: list,
+    top_hooks: list,
+    arc_stage: str = None
+) -> dict:
+    async def generate_for_platform(platform: str) -> tuple:
+        hooks = await generate_hooks(seed, platform, growth_profile, top_hooks)
+        best_hook = hooks[0].get("text") if hooks else seed.get("hook", "")
+        body = await generate_content_body(
+            seed, platform, best_hook,
+            growth_profile, tuning_observations, arc_stage
+        )
+        full_content = f"{best_hook}\n\n{body.get('full_content', '')}"
+        score_data = await score_virality(full_content, platform, growth_profile)
+        return platform, {
+            "hook": best_hook,
+            "body": body,
+            "virality_score": score_data.get("score"),
+            "virality_reasoning": score_data.get("what_works"),
+            "improvement": score_data.get("specific_fix"),
+            "full_content": full_content
+        }
+
+    results = await asyncio.gather(
+        *[generate_for_platform(p) for p in platforms],
+        return_exceptions=True
+    )
+    
+    return {
+        platform: data
+        for platform, data in results
+        if not isinstance(data, Exception)
+    }
+```
+
+---
+
+## Momentum Detection — The Real Time Engine
+
+```python
+# app/services/momentum_detector.py
+
+from app.services.model_router import call_classifier
+import json
+
+async def analyze_post_momentum(
+    post_metrics: dict,
+    baseline_metrics: dict,
+    time_since_posted_minutes: int
+) -> dict:
+    
+    save_rate = post_metrics.get("saves", 0) / max(post_metrics.get("impressions", 1), 1)
+    comment_rate = post_metrics.get("comments", 0) / max(post_metrics.get("impressions", 1), 1)
+    baseline_save_rate = baseline_metrics.get("avg_save_rate", 0.01)
+    baseline_comment_rate = baseline_metrics.get("avg_comment_rate", 0.005)
+    
+    momentum_score = 0
+    signals = []
+    
+    if save_rate > baseline_save_rate * 2:
+        momentum_score += 40
+        signals.append("save rate 2x above your average — algorithm will push this")
+    
+    if comment_rate > baseline_comment_rate * 3:
+        momentum_score += 35
+        signals.append("unusually high comment rate in first hour")
+    
+    if post_metrics.get("profile_visits", 0) > 50 and time_since_posted_minutes < 60:
+        momentum_score += 25
+        signals.append("high profile visit conversion — hook is working")
+    
+    is_momentum = momentum_score >= 50 and time_since_posted_minutes < 90
+    
+    return {
+        "momentum_score": momentum_score,
+        "is_momentum": is_momentum,
+        "signals": signals,
+        "window_remaining_minutes": max(0, 90 - time_since_posted_minutes),
+        "recommended_actions": await get_amplification_actions(
+            signals, momentum_score
+        ) if is_momentum else []
+    }
+
+async def get_amplification_actions(signals: list, score: int) -> list:
+    text = f"""Momentum detected: {json.dumps(signals)} Score: {score}
+    Return JSON array of 3 specific amplification actions to take 
+    in the next 30 minutes to maximize algorithm boost.
+    Each action: {{"action": "", "reason": "", "urgency": ""}}"""
+    
+    result = await call_classifier(text)
+    return result if isinstance(result, list) else []
+```
+
+---
+
+## Celery Tasks — The Autonomous Loop
+
+```python
+# app/tasks/skippy_tasks.py
+
+from app.tasks.celery_app import celery_app
+from app.agents.skippy_agent import (
+    generate_seed_from_activity,
+    hunt_conversations
+)
+from app.services.momentum_detector import analyze_post_momentum
+
+@celery_app.task
+async def run_daily_briefing(user_id: str):
+    """Runs at 7AM user timezone. Works with or without integrations."""
+    user = await get_user(user_id)
+    growth_profile = user.growth_profile
+    
+    recent_content = await get_recent_content(user_id, days=7)
+    opportunities = await hunt_conversations(growth_profile, recent_content)
+    
+    for opp in opportunities:
+        await save_conversation_opportunity(user_id, opp)
+    
+    if user.integrations:
+        for integration in user.active_integrations:
+            await sync_integration.delay(integration.id)
+    
+    await notify_user_websocket(user_id, {
+        "type": "daily_briefing",
+        "opportunities_found": len(opportunities),
+        "message": f"Found {len(opportunities)} conversations worth joining today"
+    })
+
+@celery_app.task
+async def check_post_momentum(user_id: str):
+    """Runs every 15 minutes checking live posts for momentum signals."""
+    recent_posts = await get_posts_under_90_minutes(user_id)
+    baseline = await get_user_baseline_metrics(user_id)
+    
+    for post in recent_posts:
+        current_metrics = await fetch_post_metrics(post)
+        minutes_since = get_minutes_since_posted(post.published_at)
+        
+        momentum = await analyze_post_momentum(
+            current_metrics, baseline, minutes_since
+        )
+        
+        if momentum.get("is_momentum"):
+            await notify_user_websocket(user_id, {
+                "type": "momentum_alert",
+                "post_id": str(post.id),
+                "score": momentum.get("momentum_score"),
+                "signals": momentum.get("signals"),
+                "actions": momentum.get("recommended_actions"),
+                "window": momentum.get("window_remaining_minutes")
+            })
+
+@celery_app.task
+async def run_relationship_engine(user_id: str):
+    """Runs daily. Identifies and nurtures relationship targets."""
+    targets = await get_relationship_targets(user_id)
+    growth_profile = await get_growth_profile(user_id)
+    
+    for target in targets:
+        if target.relationship_stage == "identified":
+            sequence = await run_relationship_sequence(target, growth_profile)
+            await update_target_sequence(target.id, sequence)
+        elif target.relationship_stage == "warming":
+            action = await get_next_relationship_action(target)
+            await notify_user_websocket(user_id, {
+                "type": "relationship_action",
+                "target": target.target_username,
+                "action": action,
+                "stage": target.relationship_stage
+            })
+
+@celery_app.task  
+async def run_weekly_experiment(user_id: str):
+    """Runs Sunday night. Forms hypothesis, designs test for coming week."""
+    analytics = await get_analytics_data(user_id, days=30)
+    growth_profile = await get_growth_profile(user_id)
+    
+    top_performer = max(analytics, key=lambda x: x.get("engagement_rate", 0))
+    bottom_performer = min(analytics, key=lambda x: x.get("engagement_rate", 0))
+    
+    experiment = await snooks_agent.design_experiment(
+        top_performer, bottom_performer, growth_profile
+    )
+    
+    await save_experiment(user_id, experiment)
+    await notify_user_websocket(user_id, {
+        "type": "new_experiment",
+        "hypothesis": experiment.get("hypothesis"),
+        "test": experiment.get("test")
+    })
+```
+
+---
+
+## Celery Beat Schedule
+
+```python
+# app/tasks/celery_app.py
+
+from celery import Celery
+from celery.schedules import crontab
+from app.config import settings
+
+celery_app = Celery(
+    "cozyjet",
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL
+)
+
+celery_app.conf.beat_schedule = {
+    "daily-briefing": {
+        "task": "app.tasks.skippy_tasks.run_daily_briefing_all_users",
+        "schedule": crontab(hour=7, minute=0)
+    },
+    "momentum-check": {
+        "task": "app.tasks.skippy_tasks.check_all_momentum",
+        "schedule": 900
+    },
+    "publish-scheduled": {
+        "task": "app.tasks.publishing_tasks.publish_scheduled_content",
+        "schedule": 60
+    },
+    "relationship-engine": {
+        "task": "app.tasks.skippy_tasks.run_all_relationship_engines",
+        "schedule": crontab(hour=9, minute=0)
+    },
+    "weekly-strategy": {
+        "task": "app.tasks.snooks_tasks.run_weekly_strategy_all_users",
+        "schedule": crontab(day_of_week=0, hour=20, minute=0)
+    },
+    "weekly-experiment": {
+        "task": "app.tasks.skippy_tasks.run_all_weekly_experiments",
+        "schedule": crontab(day_of_week=0, hour=21, minute=0)
+    },
+    "collect-analytics": {
+        "task": "app.tasks.analytics_tasks.collect_all_analytics",
+        "schedule": crontab(hour="*/6")
+    }
+}
+```
+
+---
+
+## Key API Endpoints
+
+```
+POST /api/onboarding/chat          — conversational onboarding turn
+POST /api/onboarding/complete      — extract profile and finish
+
+POST /api/skippy/voice             — manual seed from description
+POST /api/skippy/screenshot        — seed from uploaded image
+POST /api/skippy/sync-now          — trigger immediate integration sync
+GET  /api/skippy/opportunities     — get conversation queue
+
+POST /api/meta/generate            — generate content all platforms
+POST /api/meta/refine              — refine with instruction
+POST /api/meta/approve             — approve and schedule
+POST /api/meta/improve-score       — auto-improve low virality score
+
+GET  /api/snooks/strategy          — get current weekly strategy
+GET  /api/snooks/narrative-arcs    — get active story arcs
+POST /api/snooks/create-arc        — start new narrative arc
+GET  /api/snooks/relationships     — get relationship pipeline
+GET  /api/snooks/gap-report        — get competitor gap analysis
+
+GET  /api/analytics/summary        — KPIs and growth metrics
+GET  /api/analytics/experiments    — experiment results
+GET  /api/analytics/positioning    — brand positioning score
+
+WS   /ws/main                      — real time notifications
+```
+
+---
+
+## Requirements.txt
+
+```
+fastapi
+uvicorn[standard]
+gunicorn
+sqlalchemy[asyncio]
+asyncpg
+alembic
+redis
+celery[redis]
+openai
+google-generativeai
+elevenlabs
+pydantic
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+httpx
+websockets
+pillow
+python-dotenv
+cryptography
+```
+
+---
+
+**Build this exactly as specified. Start with database models and migrations, then authentication, then the onboarding conversation system, then the three agents, then the Celery tasks starting with the momentum detector and daily briefing, then all API endpoints. The system must work for users with zero integrations connected using only their growth profile and niche data from onboarding.**

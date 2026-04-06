@@ -83,8 +83,8 @@ async function main() {
   // Start Next.js dev server
   console.log("[doppler-start] Starting Next.js on port 5000 …");
   const next = spawn(
-    "npx",
-    ["next", "dev", "--port", "5000", "--turbopack"],
+    "node_modules/.bin/next",
+    ["dev", "--port", "5000", "--hostname", "0.0.0.0"],
     {
       stdio: "inherit",
       env: { ...process.env },

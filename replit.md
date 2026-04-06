@@ -68,10 +68,14 @@ for Replit) is never committed to GitHub.
 ---
 
 ## Workflows
-- **Start application** — `npm run dev` → port 5000 (webview)
-- **Start backend** — `cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+- **Start application** — `node scripts/start-dev.js` → port 5000 (webview)
+  - Attempts Doppler fetch (gracefully skips if token missing/invalid)
+  - Launches `node_modules/.bin/next dev` on 0.0.0.0:5000
+- **Start backend** — `cd backend && .venv/bin/python start.py --config dev` → port 8000
+  - Attempts Doppler fetch (gracefully skips if token missing/invalid)
+  - Launches uvicorn on 0.0.0.0:8000
 
-Python deps installed in `backend/.venv/` via `uv venv` + `uv pip install`.
+Python deps installed in `backend/.venv/` — created with `python3 -m venv .venv` and all packages from `requirements.txt` installed via `.venv/bin/pip install --no-user`.
 
 ## Backend Status — COMPLETE ✓
 | Component | Status |
