@@ -1,3 +1,7 @@
 {
-  "/page": "app/page.js"
+  "/onboarding/page": "app/onboarding/page.js",
+  "/dashboard/tuning/page": "app/dashboard/tuning/page.js",
+  "/dashboard/snooks/page": "app/dashboard/snooks/page.js",
+  "/dashboard/skippy/page": "app/dashboard/skippy/page.js",
+  "/dashboard/meta/page": "app/dashboard/meta/page.js"
 }

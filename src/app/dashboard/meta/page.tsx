@@ -438,19 +438,25 @@ export default function MetaPage() {
         )}
       </AnimatePresence>
 
-      <div className="h-full flex overflow-hidden mesh-bg">
+      <div className="h-full flex overflow-hidden meta-graph-bg relative">
 
         {/* ─── SIDEBAR ─── */}
         <div
-          className="flex flex-col flex-shrink-0 overflow-hidden"
-          style={{ width: 230, borderRight: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+          className="flex flex-col flex-shrink-0 overflow-hidden relative z-10"
+          style={{
+            width: 230,
+            borderRight: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(8,8,16,0.82)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+          }}
         >
-          <div className="px-3 pt-3 pb-2 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          <div className="px-3 pt-3 pb-2 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={startNewChat}
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl"
-              style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.85), rgba(249,115,22,0.85))", color: "#fff", fontSize: 12, letterSpacing: "0.02em", boxShadow: "0 3px 10px rgba(244,63,94,0.22)" }}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-pixel-thin"
+              style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.9), rgba(249,115,22,0.9))", color: "#fff", fontSize: 13, letterSpacing: "0.03em", boxShadow: "0 4px 16px rgba(244,63,94,0.3)" }}
             >
               <Plus size={13} /> New Chat
             </motion.button>
@@ -458,8 +464,8 @@ export default function MetaPage() {
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={startVoiceConversation}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl mt-1.5"
-              style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.18)", color: "rgba(139,92,246,0.8)", fontSize: 11, letterSpacing: "0.02em" }}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl mt-2 font-pixel-thin"
+              style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.28)", color: "rgba(167,139,250,0.9)", fontSize: 12, letterSpacing: "0.02em" }}
             >
               <Phone size={11} /> Voice Call Meta
             </motion.button>
@@ -468,22 +474,23 @@ export default function MetaPage() {
           <div className="flex-1 overflow-y-auto py-1.5 px-2">
             {sessions.length === 0 ? (
               <div className="pt-6 text-center">
-                <MessageSquare size={22} className="mx-auto mb-2 text-black/15" />
-                <p className="text-black/30" style={{ fontSize: 11, lineHeight: 1.5 }}>No conversations yet</p>
+                <MessageSquare size={22} className="mx-auto mb-2" style={{ color: "rgba(255,255,255,0.1)" }} />
+                <p style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.2)" }}>No conversations yet</p>
               </div>
             ) : sessions.map(s => (
               <motion.div
                 key={s.id}
                 onClick={() => loadSession(s)}
                 className="relative group mb-0.5 px-2.5 py-2 rounded-lg cursor-pointer flex flex-col"
-                style={{ background: activeId === s.id ? "rgba(244,63,94,0.08)" : "transparent", border: activeId === s.id ? "1px solid rgba(244,63,94,0.15)" : "1px solid transparent" }}
-                whileHover={{ backgroundColor: "rgba(0,0,0,0.03)" }}
+                style={{ background: activeId === s.id ? "rgba(244,63,94,0.12)" : "transparent", border: activeId === s.id ? "1px solid rgba(244,63,94,0.22)" : "1px solid transparent" }}
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}
               >
-                <p className="text-black/75 truncate" style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{s.name}</p>
-                <p className="text-black/30 mt-0.5" style={{ fontSize: 10 }}>{fmtDate(s.createdAt)}</p>
+                <p className="font-pixel-thin truncate" style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: "rgba(255,255,255,0.72)" }}>{s.name}</p>
+                <p className="font-pixel-thin mt-0.5" style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{fmtDate(s.createdAt)}</p>
                 <button
                   onClick={e => deleteSession(e, s.id)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-md flex items-center justify-center hover:bg-red-50"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-md flex items-center justify-center"
+                  style={{ background: "rgba(239,68,68,0.12)" }}
                 >
                   <Trash2 size={10} className="text-red-400" />
                 </button>
@@ -493,21 +500,26 @@ export default function MetaPage() {
         </div>
 
         {/* ─── CHAT PANEL ─── */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
 
           {/* Top bar */}
           <div
-            className="flex items-center justify-center gap-3 py-3 flex-shrink-0 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,245,250,0.55), rgba(255,255,255,0.6))", backdropFilter: "blur(32px) saturate(180%) brightness(108%)", WebkitBackdropFilter: "blur(32px) saturate(180%) brightness(108%)", borderBottom: "1px solid rgba(255,255,255,0.7)", boxShadow: "0 1px 0 rgba(255,255,255,0.9), 0 4px 24px rgba(244,63,94,0.08), inset 0 1px 0 rgba(255,255,255,0.95)" }}
+            className="flex items-center justify-center gap-3 py-3.5 flex-shrink-0 relative overflow-hidden"
+            style={{
+              background: "rgba(8,8,16,0.75)",
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              borderBottom: "1px solid rgba(255,255,255,0.07)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+            }}
           >
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(120deg, rgba(255,255,255,0.55), rgba(255,255,255,0), rgba(255,200,220,0.15))", mixBlendMode: "screen" }} />
-            <div className="relative z-10 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.9), rgba(249,115,22,0.9))", boxShadow: "0 2px 6px rgba(244,63,94,0.3)" }}>
-                <span style={{ color: "#fff", fontSize: 7, fontWeight: 700 }}>ME</span>
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.9), rgba(249,115,22,0.9))", boxShadow: "0 3px 12px rgba(244,63,94,0.4)" }}>
+                <span className="font-pixel" style={{ color: "#fff", fontSize: 8 }}>ME</span>
               </div>
               <div>
-                <h1 className="font-pixel text-black/70 leading-none" style={{ fontSize: 10 }}>META</h1>
-                <p className="text-black/40 mt-0.5" style={{ fontSize: 11 }}>AI Copywriter — drop a seed or idea</p>
+                <h1 className="font-pixel leading-none" style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>META</h1>
+                <p className="font-pixel-thin mt-0.5" style={{ fontSize: 12, color: "rgba(255,255,255,0.28)" }}>AI Copywriter — drop a seed or idea</p>
               </div>
             </div>
           </div>
@@ -516,19 +528,22 @@ export default function MetaPage() {
           <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5">
             {messages.length === 0 && (
               <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pt-8">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-                  <span className="font-pixel" style={{ fontSize: 11, color: "rgba(0,0,0,0.45)", letterSpacing: "0.04em" }}>META</span>
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                >
+                  <span className="font-pixel" style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", letterSpacing: "0.06em" }}>META</span>
                 </div>
-                <p className="text-black/50" style={{ fontSize: 12, lineHeight: 1.6, maxWidth: 300 }}>
-                  Drop a content seed, raw idea, or topic. Meta writes three platform-ready variations that sound like you.
+                <p className="font-pixel-thin" style={{ fontSize: 15, lineHeight: 1.7, maxWidth: 300, color: "rgba(255,255,255,0.38)" }}>
+                  Drop a content seed, raw idea, or topic. Meta writes platform-ready copy that sounds like you.
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <div className="mt-5 flex flex-wrap gap-2 justify-center">
                   {["Write a LinkedIn post about my SaaS launch", "Twitter thread on lessons learned", "Instagram caption for my journey"].map(prompt => (
                     <button
                       key={prompt}
                       onClick={() => setInput(prompt)}
-                      className="px-3 py-1.5 rounded-xl transition-all hover:bg-black/5"
-                      style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(0,0,0,0.07)", fontSize: 11, color: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
+                      className="px-3.5 py-2 rounded-xl transition-all font-pixel-thin"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", fontSize: 12, color: "rgba(255,255,255,0.4)" }}
                     >
                       {prompt}
                     </button>
@@ -540,17 +555,26 @@ export default function MetaPage() {
               <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
                   className="max-w-[78%] px-5 py-4 rounded-3xl"
-                  style={{ background: msg.role === "user" ? "#1a1a2e" : "rgba(255,255,255,0.92)", border: msg.role === "user" ? "none" : "1px solid rgba(0,0,0,0.07)", boxShadow: msg.role === "user" ? "0 4px 16px rgba(26,26,46,0.25)" : "0 2px 12px rgba(0,0,0,0.06)", borderBottomRightRadius: msg.role === "user" ? 8 : 24, borderBottomLeftRadius: msg.role === "bot" ? 8 : 24 }}
+                  style={{
+                    background: msg.role === "user"
+                      ? "linear-gradient(135deg, rgba(244,63,94,0.85), rgba(249,115,22,0.75))"
+                      : "rgba(255,255,255,0.07)",
+                    border: msg.role === "user" ? "none" : "1px solid rgba(255,255,255,0.10)",
+                    boxShadow: msg.role === "user" ? "0 4px 20px rgba(244,63,94,0.25)" : "0 2px 12px rgba(0,0,0,0.3)",
+                    borderBottomRightRadius: msg.role === "user" ? 8 : 24,
+                    borderBottomLeftRadius: msg.role === "bot" ? 8 : 24,
+                    backdropFilter: "blur(16px)",
+                  }}
                 >
-                  <p className="font-pixel-thin leading-relaxed whitespace-pre-wrap" style={{ fontSize: 15, color: msg.role === "user" ? "#fff" : "rgba(0,0,0,0.78)" }}>
+                  <p className="font-pixel-thin leading-relaxed whitespace-pre-wrap" style={{ fontSize: 16, color: "rgba(255,255,255,0.88)" }}>
                     {msg.content}
                   </p>
                   <div className="flex items-center justify-between mt-2 gap-3">
-                    <p style={{ fontSize: 10, color: msg.role === "user" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)" }}>{fmt(msg.timestamp)}</p>
+                    <p className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{fmt(msg.timestamp)}</p>
                     {msg.role === "bot" && (
-                      <button onClick={() => handleSpeak(msg)} className="flex items-center gap-1 rounded-lg px-2 py-0.5 transition-all hover:bg-black/5" style={{ opacity: 0.6 }} title="Read aloud">
-                        {speakingId === msg.id ? <VolumeX size={12} className="text-red-400" /> : <Volume2 size={12} className="text-black/40" />}
-                        <span style={{ fontSize: 10, color: "rgba(0,0,0,0.35)" }}>{speakingId === msg.id ? "Stop" : "Read"}</span>
+                      <button onClick={() => handleSpeak(msg)} className="flex items-center gap-1 rounded-lg px-2 py-0.5 transition-all" style={{ opacity: 0.7 }} title="Read aloud">
+                        {speakingId === msg.id ? <VolumeX size={12} className="text-red-400" /> : <Volume2 size={12} style={{ color: "rgba(255,255,255,0.4)" }} />}
+                        <span className="font-pixel-thin" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{speakingId === msg.id ? "Stop" : "Read"}</span>
                       </button>
                     )}
                   </div>
@@ -559,8 +583,8 @@ export default function MetaPage() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(0,0,0,0.07)" }}>
-                  <Loader2 size={13} className="animate-spin text-black/30" />
+                <div className="px-5 py-4 rounded-3xl rounded-bl-lg" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.10)" }}>
+                  <Loader2 size={14} className="animate-spin" style={{ color: "rgba(255,255,255,0.3)" }} />
                 </div>
               </div>
             )}
@@ -571,7 +595,7 @@ export default function MetaPage() {
           {attachedFiles.length > 0 && (
             <div className="px-6 pb-2 flex flex-wrap gap-2 flex-shrink-0">
               {attachedFiles.map((f, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.07)", fontSize: 11, color: "rgba(0,0,0,0.45)" }}>
+                <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-pixel-thin" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.10)", fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
                   📎 {f.name.slice(0, 22)}{f.name.length > 22 ? "…" : ""}
                   <button onClick={() => setAttachedFiles(p => p.filter((_, j) => j !== i))} className="ml-1 hover:text-red-400">×</button>
                 </div>
@@ -580,30 +604,46 @@ export default function MetaPage() {
           )}
 
           {/* Input bar */}
-          <div className="px-6 pb-6 pt-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.5)", backdropFilter: "blur(28px) saturate(180%)", WebkitBackdropFilter: "blur(28px) saturate(180%)", borderTop: "1px solid rgba(255,255,255,0.6)" }}>
-            <div className="relative rounded-3xl overflow-hidden" style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(40px) saturate(200%) brightness(108%)", WebkitBackdropFilter: "blur(40px) saturate(200%) brightness(108%)", border: "1.5px solid rgba(255,255,255,0.9)", boxShadow: "0 8px 32px rgba(244,63,94,0.12), 0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)" }}>
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0), rgba(255,200,220,0.1))", borderRadius: "inherit" }} />
+          <div
+            className="px-6 pb-5 pt-3 flex-shrink-0"
+            style={{
+              background: "rgba(8,8,16,0.65)",
+              backdropFilter: "blur(28px)",
+              WebkitBackdropFilter: "blur(28px)",
+              borderTop: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <div
+              className="relative rounded-3xl overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
+                border: "1.5px solid rgba(255,255,255,0.14)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.10)",
+              }}
+            >
               <div className="flex items-end gap-2 px-4 py-3 relative z-10">
                 <input type="file" ref={fileRef} className="hidden" multiple onChange={handleFileChange} />
-                <button onClick={() => fileRef.current?.click()} className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors mb-0.5" title="Attach file">
-                  <Paperclip size={15} className={attachedFiles.length > 0 ? "text-rose-500" : "text-black/30"} />
+                <button onClick={() => fileRef.current?.click()} className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-colors mb-0.5" title="Attach file" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <Paperclip size={15} className={attachedFiles.length > 0 ? "text-rose-400" : ""} style={{ color: attachedFiles.length > 0 ? undefined : "rgba(255,255,255,0.3)" }} />
                 </button>
                 <textarea
                   ref={textareaRef} rows={1} value={input} onChange={handleTextareaChange}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
                   placeholder="Give Meta a content seed or idea…"
-                  className="flex-1 bg-transparent outline-none resize-none font-pixel-thin placeholder:text-black/25"
-                  style={{ fontSize: 15, lineHeight: 1.55, minHeight: 26, maxHeight: 160, color: "rgba(0,0,0,0.75)" }}
+                  className="flex-1 bg-transparent outline-none resize-none font-pixel-thin"
+                  style={{ fontSize: 16, lineHeight: 1.55, minHeight: 26, maxHeight: 160, color: "rgba(255,255,255,0.82)", caretColor: "rgba(244,63,94,0.9)" }}
                 />
-                <button onClick={handleVoiceInput} className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors mb-0.5" title={listening ? "Stop recording" : "Voice input"}>
-                  <Mic size={15} className={listening ? "text-red-400 animate-pulse" : "text-black/30"} />
+                <button onClick={handleVoiceInput} className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-colors mb-0.5" title={listening ? "Stop recording" : "Voice input"} style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <Mic size={15} className={listening ? "text-red-400 animate-pulse" : ""} style={{ color: listening ? undefined : "rgba(255,255,255,0.3)" }} />
                 </button>
                 <motion.button
                   onClick={send} whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }} disabled={!input.trim() || loading}
                   className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center mb-0.5"
-                  style={{ background: input.trim() && !loading ? "linear-gradient(135deg, #f43f5e, #f97316)" : "rgba(0,0,0,0.07)", boxShadow: input.trim() && !loading ? "0 4px 16px rgba(244,63,94,0.35), 0 2px 6px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                  style={{ background: input.trim() && !loading ? "linear-gradient(135deg, #f43f5e, #f97316)" : "rgba(255,255,255,0.06)", boxShadow: input.trim() && !loading ? "0 4px 16px rgba(244,63,94,0.35)" : "none", transition: "all 0.2s" }}
                 >
-                  <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#fff" : "rgba(0,0,0,0.25)" }} />
+                  <ArrowUp size={15} style={{ color: input.trim() && !loading ? "#fff" : "rgba(255,255,255,0.2)" }} />
                 </motion.button>
               </div>
             </div>

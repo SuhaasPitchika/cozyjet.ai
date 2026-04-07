@@ -20,15 +20,41 @@ const INTEGRATIONS = [
   },
   {
     id: "gdrive", name: "Google Drive",
-    logo: <svg viewBox="0 0 87.3 78" className="w-full h-full"><path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5zm40.1-23.8H27.5l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h38.6l-10.2-25zm-13.75 0L46.7 19.3 33.0 43.05zm0 0" fill="#0066DA"/><path d="M46.7 19.3L33.0 43.05h27.4l13.75-23.75zm27.4 23.75H60.4l-13.7 23.8h13.7zm0 0" fill="#00AC47"/><path d="M46.7 19.3l-13.7 23.75L46.7 19.3zm27.4 0H46.7l13.7 23.75zm0 0" fill="#EA4335"/><path d="M32.95 43.05h27.4L46.7 19.3zm0 0" fill="#FFBA00"/><path d="M1.1 66.85C.4 68.25 0 69.8 0 71.35c0 4.55 3.7 8.25 8.25 8.25 1.55 0 3.1-.4 4.5-1.2l3.85-6.65L1.1 66.85zm0 0" fill="#00832D"/><path d="M73.75 19.3H46.7l13.7 23.75 13.7-23.75zm0 0" fill="#2684FC"/><path d="M86.2 66.85l-25.8-44.8-13.7 23.75 13.7 21.05 10.2-25c0 0 0 0 0 0 0-1.55.4-3.1 1.2-4.5l3.85 6.65 1.2 4.5h-5.4L86.2 66.85c.8-1.4 1.2-2.95 1.2-4.5 0-1.55-.4-3.1-1.2-4.5zm0 0" fill="#4285F4"/></svg>,
+    logo: <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+      <path d="M4.56 17.69L6.39 20.8c.38.66.92 1.17 1.55 1.53L12 14.78H1.5c0 .66.18 1.31.57 1.91z" fill="#0066DA"/>
+      <path d="M12 9.22L8.06 2.11C7.43 2.47 6.89 2.98 6.51 3.64L1.57 12.17c-.38.65-.57 1.38-.57 2.1H12V9.22z" fill="#00AC47"/>
+      <path d="M16.06 22.33c.63-.36 1.17-.87 1.55-1.53l.75-1.3 3.57-6.19c.38-.66.57-1.38.57-2.1H12l3.94 7.16.62 1.07.5.89z" fill="#EA4335"/>
+      <path d="M12 9.22l3.94-7.11C15.31 1.75 14.67 1.5 14 1.5H10c-.67 0-1.31.25-1.94.61L12 9.22z" fill="#00832D"/>
+      <path d="M15.94 14.78H12l-4.06 7.55c.63.36 1.31.56 2 .56h8.12c.69 0 1.37-.2 2-.56L15.94 14.78z" fill="#2684FC"/>
+      <path d="M12 9.22l-3.94 5.56H22.5c0-.72-.19-1.44-.57-2.1l-2.56-4.44c-.38-.66-.92-1.17-1.55-1.53L12 9.22z" fill="#FFBA00"/>
+    </svg>,
   },
   {
     id: "gcal", name: "Google Calendar",
-    logo: <svg viewBox="0 0 48 48" className="w-full h-full"><rect x="6" y="6" width="36" height="36" rx="4" fill="#fff"/><path d="M6 18h36v-8a4 4 0 00-4-4H10a4 4 0 00-4 4v8z" fill="#1a73e8"/><path d="M6 18h36v4H6z" fill="#1a73e8"/><text x="24" y="36" textAnchor="middle" fill="#1a73e8" fontSize="14" fontWeight="bold">31</text><rect x="16" y="6" width="4" height="6" rx="2" fill="#1a73e8"/><rect x="28" y="6" width="4" height="6" rx="2" fill="#1a73e8"/></svg>,
+    logo: <svg viewBox="0 0 48 48" fill="none" className="w-full h-full">
+      <rect x="4" y="8" width="40" height="37" rx="4" fill="#fff" stroke="#DADCE0" strokeWidth="1.5"/>
+      <path d="M4 13.5C4 10.46 6.46 8 9.5 8h29C41.54 8 44 10.46 44 13.5V18H4v-4.5z" fill="#4285F4"/>
+      <rect x="14" y="4" width="4" height="9" rx="2" fill="#1967D2"/>
+      <rect x="30" y="4" width="4" height="9" rx="2" fill="#1967D2"/>
+      <text x="24" y="36" textAnchor="middle" fontWeight="700" fontSize="15" fontFamily="Arial, sans-serif" fill="#4285F4">21</text>
+      <circle cx="24" cy="32" r="8.5" fill="none" stroke="#EA4335" strokeWidth="1.5"/>
+    </svg>,
   },
   {
     id: "linear", name: "Linear",
-    logo: <svg viewBox="0 0 100 100" fill="none" className="w-full h-full"><defs><linearGradient id="lin-g" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stopColor="#5E6AD2"/><stop offset="1" stopColor="#8B5CF6"/></linearGradient></defs><circle cx="50" cy="50" r="50" fill="url(#lin-g)"/><path d="M17 64.5L35.5 83c16.5-3 30-13 37-27L17 64.5zm-2.8-4.5L56 18.8C44.5 15.5 32 18 22.5 26L14.2 60zm50.6 21.5C78 74 85 62.5 85 50c0-4-.7-7.8-2-11.2L45 78.8c2.6.8 5.3 1.2 8.1 1.3l11.7 1.7zm7.5-58C68 15 59.5 13 50.8 14L19 45.5c-1.3 4-1.5 8.3-.5 12.5L72.3 23z" fill="#fff"/></svg>,
+    logo: <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+      <defs>
+        <linearGradient id="lg-linear" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#5E6AD2"/>
+          <stop offset="1" stopColor="#7C5CFC"/>
+        </linearGradient>
+      </defs>
+      <circle cx="12" cy="12" r="12" fill="url(#lg-linear)"/>
+      <path d="M3.94 15.81L8.19 20.06C11.84 19.36 14.95 17.15 16.78 14.07L3.94 15.81z" fill="white"/>
+      <path d="M3.37 14.5L9.5 4.5C7.19 5.17 5.25 6.7 4.04 8.75L3.37 14.5z" fill="white"/>
+      <path d="M16.04 19.19C17.97 17.89 19.45 15.98 20.17 13.72L11.18 20.59C12.88 20.38 14.54 19.9 16.04 19.19z" fill="white"/>
+      <path d="M20.63 11.3L10.5 3.94C10.74 3.87 11.5 3.66 12 3.66c3.59 0 6.71 1.98 8.38 4.92l.25 2.72z" fill="white"/>
+    </svg>,
   },
   {
     id: "slack", name: "Slack",
@@ -105,7 +131,7 @@ function CursorDotsBg() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const SPACING = 26;
+    const SPACING = 14;
     let cols = 0, rows = 0;
     const dots: { x: number; y: number }[] = [];
 
@@ -129,7 +155,7 @@ function CursorDotsBg() {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const RADIUS = 130;
+    const RADIUS = 120;
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -139,13 +165,16 @@ function CursorDotsBg() {
         const dx = d.x - mx;
         const dy = d.y - my;
         const dist = Math.sqrt(dx * dx + dy * dy);
+        const baseAlpha = 0.07;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 1.1, 0, Math.PI * 2);
         if (dist < RADIUS) {
-          const alpha = (1 - dist / RADIUS) * 0.55;
-          ctx.beginPath();
-          ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(160,160,160,${alpha})`;
-          ctx.fill();
+          const extra = (1 - dist / RADIUS) * 0.85;
+          ctx.fillStyle = `rgba(10,10,10,${baseAlpha + extra})`;
+        } else {
+          ctx.fillStyle = `rgba(10,10,10,${baseAlpha})`;
         }
+        ctx.fill();
       }
       frameRef.current = requestAnimationFrame(draw);
     };

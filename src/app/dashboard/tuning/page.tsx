@@ -65,13 +65,14 @@ function stopSpeaking() {
 function TuningBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #f8fbff 0%, #edf6ff 50%, #f3f9ff 100%)" }} />
-      <div className="absolute" style={{ top: "10%", left: "5%", width: "50vw", height: "50vh", background: "radial-gradient(ellipse, rgba(147,210,255,0.22) 0%, transparent 70%)", filter: "blur(60px)" }} />
-      <div className="absolute" style={{ bottom: "15%", right: "10%", width: "40vw", height: "40vh", background: "radial-gradient(ellipse, rgba(200,180,255,0.15) 0%, transparent 70%)", filter: "blur(50px)" }} />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #0c0e18 0%, #0f1525 50%, #0a0c1a 100%)" }} />
+      <div className="absolute" style={{ top: "8%", left: "10%", width: "55vw", height: "55vh", background: "radial-gradient(ellipse, rgba(79,70,229,0.14) 0%, transparent 65%)", filter: "blur(80px)" }} />
+      <div className="absolute" style={{ bottom: "10%", right: "5%", width: "45vw", height: "45vh", background: "radial-gradient(ellipse, rgba(139,92,246,0.10) 0%, transparent 65%)", filter: "blur(70px)" }} />
+      <div className="absolute" style={{ top: "40%", left: "30%", width: "30vw", height: "30vh", background: "radial-gradient(ellipse, rgba(79,172,254,0.07) 0%, transparent 70%)", filter: "blur(60px)" }} />
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `linear-gradient(rgba(140,180,220,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(140,180,220,0.12) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
           backgroundSize: "40px 40px",
         }}
       />
@@ -85,14 +86,14 @@ function GlassPanel({ children, className = "" }: { children: React.ReactNode; c
     <div
       className={`relative overflow-hidden ${className}`}
       style={{
-        background: "rgba(255,255,255,0.70)",
-        backdropFilter: "blur(24px) saturate(180%)",
-        WebkitBackdropFilter: "blur(24px) saturate(180%)",
-        border: "1px solid rgba(200,225,255,0.55)",
-        boxShadow: "0 4px 32px rgba(100,160,255,0.10), inset 0 1px 0 rgba(255,255,255,0.90)",
+        background: "rgba(255,255,255,0.06)",
+        backdropFilter: "blur(28px) saturate(120%)",
+        WebkitBackdropFilter: "blur(28px) saturate(120%)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
       }}
     >
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 60%)", borderRadius: "inherit" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%)", borderRadius: "inherit" }} />
       <div className="relative z-10 h-full flex flex-col">{children}</div>
     </div>
   );

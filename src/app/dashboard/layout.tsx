@@ -14,11 +14,13 @@ import { useAgentWebSocket } from "@/hooks/use-websocket";
 const NAV_ITEMS = [
   { label: "Skippy",   href: "/dashboard/skippy",   abbr: "SK" },
   { label: "Snooks",   href: "/dashboard/snooks",   abbr: "SN" },
-  { label: "Create",   href: "/dashboard/create",   abbr: "CR" },
+  { label: "Meta",     href: "/dashboard/meta",     abbr: "ME" },
   { label: "Tuning",   href: "/dashboard/tuning",   abbr: "TU" },
   { label: "Analytics",href: "/dashboard/analytics",abbr: "AN" },
   { label: "Settings", href: "/dashboard/settings", abbr: "ST" },
 ];
+
+const ONBOARDING_KEY = "cozyjet_onboarding_done";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -44,6 +46,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth");
+  }, [isLoading, isAuthenticated, router]);
+
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      try {
+        if (!localStorage.getItem(ONBOARDING_KEY)) {
+          router.push("/onboarding");
+        }
+      } catch {}
+    }
   }, [isLoading, isAuthenticated, router]);
 
   const handleSignOut = async () => {

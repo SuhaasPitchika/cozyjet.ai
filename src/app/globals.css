@@ -76,6 +76,20 @@
 .dot-drift-2 { animation: dot-drift-2 24s ease-in-out infinite; }
 .dot-drift-3 { animation: dot-drift-3 20s ease-in-out infinite; }
 
+/* ─── Meta page — moving graph grid background ─── */
+@keyframes meta-grid-up {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 -40px; }
+}
+.meta-graph-bg {
+  background-color: #080810;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: meta-grid-up 2.8s linear infinite;
+}
+
 /* ─── Custom Scrollbar ─── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
