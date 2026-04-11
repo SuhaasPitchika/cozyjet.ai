@@ -1,7 +1,12 @@
 import os
+from pathlib import Path
 from typing import Optional, List
 from pydantic import model_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Always load backend/.env (not cwd-relative) so uvicorn picks it up from any working directory.
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+_ENV_FILE = _BACKEND_DIR / ".env"
 
 
 def _build_allowed_origins() -> List[str]:
@@ -80,9 +85,11 @@ class Settings(BaseSettings):
     INSTAGRAM_CLIENT_ID: Optional[str] = None
     INSTAGRAM_CLIENT_SECRET: Optional[str] = None
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILE,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     @model_validator(mode="after")
     def _resolve(self) -> "Settings":

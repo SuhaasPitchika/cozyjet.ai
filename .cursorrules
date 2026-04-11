@@ -1,0 +1,6 @@
+This is CozyJet, an AI marketing studio SaaS.
+Backend: FastAPI, Python, PostgreSQL via SQLAlchemy async, Redis, Celery.
+All API keys come from environment variables never hardcoded.
+Use async/await throughout. Always use try/except on external calls.
+Models are in app/models/, routes in app/api/, agents in app/agents/.
+Keep responses concise. Return JSON always.
