@@ -1,0 +1,6 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+# Repo-root asgi.py prepends ./backend to sys.path (works without pip install ./backend).
+startCommand = "python -m uvicorn asgi:app --host 0.0.0.0 --port ${PORT:-8000}"

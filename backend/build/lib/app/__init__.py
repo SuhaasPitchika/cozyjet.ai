@@ -1,0 +1,1 @@
+# CozyJet FastAPI application package

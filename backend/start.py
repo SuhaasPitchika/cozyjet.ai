@@ -16,6 +16,7 @@ the hosting platform, e.g. Railway's native Doppler integration).
 import os
 import sys
 import json
+from pathlib import Path
 import logging
 import argparse
 import subprocess
@@ -92,12 +93,17 @@ def main() -> None:
         )
 
     # ── Launch uvicorn ────────────────────────────────────────────────────────
+    # Always run with cwd = backend/ so `app.main:app` resolves.
+    _backend_dir = Path(__file__).resolve().parent
+    os.chdir(_backend_dir)
+
     python = sys.executable
+    port = os.environ.get("PORT", "8000")
     cmd = [
         python, "-m", "uvicorn",
-        "app.main:app",
+        "asgi:app",
         "--host", "0.0.0.0",
-        "--port", "8000",
+        "--port", port,
         "--reload",
     ] + uvicorn_extra
 
