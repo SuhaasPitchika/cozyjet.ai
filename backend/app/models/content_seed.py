@@ -1,38 +1,28 @@
-import enum
 import uuid
-from sqlalchemy import Column, String, Enum, ForeignKey, Text, JSON, Boolean, Integer
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from .base import Base, TimestampMixin
+from datetime import datetime
 
-class SourceType(str, enum.Enum):
-    github = "github"
-    figma = "figma"
-    notion = "notion"
-    voice = "voice"
-    screenshot = "screenshot"
-    manual = "manual"
+from sqlalchemy import Boolean, DateTime, JSON, Text, Integer, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID
 
-class ContentSeed(Base, TimestampMixin):
+from app.database import Base
+
+
+class ContentSeed(Base):
     __tablename__ = "content_seeds"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
-    source_type = Column(Enum(SourceType), nullable=False)
-    
-    # Store commit hashes, repo names, Figma keys, etc.
-    source_data = Column(JSON, default=dict)
-    
-    # Extracted opening line — the story hook
-    hook = Column(Text, nullable=True)
-
-    # Virality pre-assessment from Mistral 7B at temperature 0.3
-    virality_score = Column(Integer, default=0)
-    virality_reasoning = Column(Text, nullable=True)
-
-    # PostgreSQL array for categorization
-    tags = Column(ARRAY(String), default=list)
-
-    is_used = Column(Boolean, default=False)
-    is_dismissed = Column(Boolean, default=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    title: Mapped[str] = mapped_column(String(255), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    hook: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_platform: Mapped[str] = mapped_column(String(50), default="manual")
+    source_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    virality_score: Mapped[int] = mapped_column(Integer, default=0)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

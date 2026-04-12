@@ -116,8 +116,8 @@ async def generate(
     seed = {
         "title": seed_obj.title,
         "description": seed_obj.description,
-        "tags": (seed_obj.source_data or {}).get("tags", []),
-        "story_hook": (seed_obj.source_data or {}).get("story_hook", ""),
+        "tags": (seed_obj.source_metadata or {}).get("tags", []),
+        "story_hook": (seed_obj.source_metadata or {}).get("story_hook", ""),
     }
 
     generated = await meta_agent.generate_content(

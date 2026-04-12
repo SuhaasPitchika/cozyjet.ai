@@ -33,13 +33,11 @@ def _serialize(opportunity: ConversationOpportunity) -> dict:
         "platform": opportunity.platform,
         "thread_url": opportunity.thread_url,
         "thread_title": opportunity.thread_title,
-        "original_post": opportunity.original_post,
         "drafted_reply": opportunity.drafted_reply,
         "relevance_score": opportunity.relevance_score,
         "opportunity_reason": opportunity.opportunity_reason,
         "status": opportunity.status,
         "created_at": opportunity.created_at.isoformat(),
-        "updated_at": opportunity.updated_at.isoformat() if opportunity.updated_at else None,
     }
 
 

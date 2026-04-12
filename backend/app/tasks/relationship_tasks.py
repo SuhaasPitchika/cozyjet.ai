@@ -121,15 +121,18 @@ async def _hunt_conversations_async():
                 opportunities = await hunt_conversations(growth_profile, recent_content)
 
                 for opp in opportunities:
+                    reason = (opp.get("opportunity_reason") or "").strip()
+                    original = (opp.get("original_post") or "").strip()
+                    merged_reason = f"{reason}\n\nOriginal post:\n{original}".strip() if original else reason
+
                     record = ConversationOpportunity(
                         user_id=user.id,
                         platform=opp["platform"],
-                        thread_url=opp["thread_url"],
-                        thread_title=opp["thread_title"],
-                        original_post=opp["original_post"],
-                        drafted_reply=opp["drafted_reply"],
-                        relevance_score=opp["relevance_score"],
-                        opportunity_reason=opp["opportunity_reason"],
+                        thread_url=opp.get("thread_url") or "",
+                        thread_title=opp.get("thread_title") or "",
+                        drafted_reply=opp.get("drafted_reply") or "",
+                        relevance_score=opp.get("relevance_score", 50),
+                        opportunity_reason=merged_reason,
                     )
                     db.add(record)
 

@@ -48,12 +48,13 @@ PLATFORM_MAX_TOKENS: dict[str, int] = {
 # ── Lazy client constructors (avoid import-time settings reads) ──
 def _openrouter_client() -> AsyncOpenAI:
     from ..config import settings
+    referer = (settings.FRONTEND_URL or "https://cozyjet.ai").rstrip("/")
     return AsyncOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=settings.OPENROUTER_API_KEY,
         default_headers={
-            "HTTP-Referer": "https://cozyjet.ai",
-            "X-Title": "CozyJet AI Studio",
+            "HTTP-Referer": referer,
+            "X-Title": "CozyJet",
         },
     )
 
@@ -74,43 +75,71 @@ def _elevenlabs_client():
 # ── Core call functions ───────────────────────────────────────────
 
 async def call_openrouter(
-    system_prompt: str,
-    user_message: str,
+    system_prompt: Optional[str] = None,
+    user_message: Optional[str] = None,
+    *,
+    messages: Optional[list] = None,
     model: Optional[str] = None,
     temperature: float = 0.5,
     max_tokens: int = 1200,
     json_mode: bool = False,
 ) -> str:
     from ..config import settings
+
     model = model or settings.OPENROUTER_DEFAULT_MODEL
     client = _openrouter_client()
 
-    kwargs: dict = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-    }
-    if json_mode:
-        kwargs["response_format"] = {"type": "json_object"}
+    def _build_kwargs(for_model: str) -> dict:
+        if messages is not None:
+            kw: dict = {
+                "model": for_model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+        else:
+            if system_prompt is None or user_message is None:
+                raise TypeError(
+                    "call_openrouter requires either messages=... or both system_prompt and user_message"
+                )
+            kw = {
+                "model": for_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+        if json_mode:
+            kw["response_format"] = {"type": "json_object"}
+        return kw
 
+    kwargs = _build_kwargs(model)
     try:
         resp = await client.chat.completions.create(**kwargs)
-        return resp.choices[0].message.content.strip()
+        content = resp.choices[0].message.content
+        return (content or "").strip()
     except Exception as e:
         logger.error(f"OpenRouter call failed (model={model}): {e}")
-        # Retry once with fallback model
         if model != settings.OPENROUTER_FALLBACK_MODEL:
-            kwargs["model"] = settings.OPENROUTER_FALLBACK_MODEL
+            kwargs = _build_kwargs(settings.OPENROUTER_FALLBACK_MODEL)
             try:
                 resp = await client.chat.completions.create(**kwargs)
-                return resp.choices[0].message.content.strip()
+                content = resp.choices[0].message.content
+                return (content or "").strip()
             except Exception as e2:
                 logger.error(f"Fallback model also failed: {e2}")
         raise
+
+
+async def call_fast(text_input: str, max_tokens: int = 100) -> str:
+    return await call_openrouter(
+        messages=[{"role": "user", "content": text_input}],
+        model="google/gemma-2-9b-it",
+        max_tokens=max_tokens,
+        temperature=0.1,
+    )
 
 
 async def call_gemini(

@@ -12,9 +12,11 @@ and pass ssl=True to the engine explicitly when the value is require/prefer.
 from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.orm import sessionmaker, declarative_base
 from .config import settings
+
+# Shared declarative base for all ORM models (import as `from app.database import Base`).
+Base = declarative_base()
 
 
 def _normalize_database_url(url: str) -> tuple[str, bool]:
@@ -52,11 +54,18 @@ def _normalize_database_url(url: str) -> tuple[str, bool]:
 _raw_url = settings.DATABASE_URL
 DATABASE_URL, _use_ssl = _normalize_database_url(_raw_url)
 
-_engine_kwargs: dict = {"echo": False}
+# asyncpg: disable prepared-statement cache when behind PgBouncer (e.g. Supabase pooler).
+_connect_args: dict = {"statement_cache_size": 0}
 if _use_ssl:
     import ssl as _ssl
-    _ssl_ctx = _ssl.create_default_context()
-    _engine_kwargs["connect_args"] = {"ssl": _ssl_ctx}
+
+    _connect_args["ssl"] = _ssl.create_default_context()
+
+_engine_kwargs: dict = {
+    "echo": False,
+    "pool_pre_ping": True,
+    "connect_args": _connect_args,
+}
 
 async_engine = create_async_engine(DATABASE_URL, **_engine_kwargs)
 

@@ -70,7 +70,7 @@ async def _do_sync_user(user_id: str):
 async def _do_sync_integration(integration_id: str):
     from ..database import AsyncSessionLocal
     from ..models.integration import Integration
-    from ..models.content_seed import ContentSeed, SourceType
+    from ..models.content_seed import ContentSeed
     from ..models.user import User
     from ..agents.skippy import skippy_agent
     from ..services.encryption_service import decrypt_token
@@ -153,13 +153,13 @@ async def _do_sync_integration(integration_id: str):
                     user_context=user_context,
                     recent_titles=recent_titles,
                 )
-                source_type_value = platform if platform in [e.value for e in SourceType] else "manual"
+                source_platform = (platform or "manual")[:50]
                 seed = ContentSeed(
                     user_id=intg.user_id,
                     title=seed_data.get("title", activity_text[:60]),
                     description=seed_data.get("description", activity_text[:300]),
-                    source_type=SourceType(source_type_value),
-                    source_data={
+                    source_platform=source_platform,
+                    source_metadata={
                         "tags": seed_data.get("tags", []),
                         "content_angles": seed_data.get("content_angles", []),
                         "story_hook": seed_data.get("story_hook", ""),
@@ -392,7 +392,11 @@ async def _do_morning_digest():
                 # Load unused seeds for topic suggestions
                 seeds_stmt = (
                     select(ContentSeed)
-                    .where(ContentSeed.user_id == user.id, ContentSeed.is_used == False)
+                    .where(
+                        ContentSeed.user_id == user.id,
+                        ContentSeed.is_used == False,
+                        ContentSeed.is_dismissed == False,
+                    )
                     .order_by(desc(ContentSeed.created_at))
                     .limit(10)
                 )

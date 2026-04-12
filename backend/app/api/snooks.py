@@ -43,7 +43,7 @@ async def suggest_content(
     seeds_result = await db.execute(seeds_stmt)
     seeds = seeds_result.scalars().all()
     seeds_summary = "\n".join([
-        f"- [{s.source_type}] {s.title}: {s.description[:120]}"
+        f"- [{s.source_platform}] {s.title}: {s.description[:120]}"
         for s in seeds
     ]) or "None yet."
 
@@ -239,7 +239,11 @@ async def calendar_gaps(
     # Load unused seeds to suggest topics for gaps
     seeds_stmt = (
         select(ContentSeed)
-        .where(ContentSeed.user_id == user.id, ContentSeed.is_used == False)
+        .where(
+            ContentSeed.user_id == user.id,
+            ContentSeed.is_used == False,
+            ContentSeed.is_dismissed == False,
+        )
         .order_by(desc(ContentSeed.created_at))
         .limit(10)
     )

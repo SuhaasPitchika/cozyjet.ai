@@ -1,43 +1,38 @@
 import enum
 import uuid
-from sqlalchemy import Column, String, Boolean, Enum, DateTime, JSON
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, JSON, String, Enum as SAEnum
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
-from .base import Base, TimestampMixin
+
+from app.database import Base
+
 
 class SubscriptionTier(str, enum.Enum):
     free = "free"
     pro = "pro"
-    studio = "studio"
-    agency = "agency"
+    ultra = "ultra"
 
-class User(Base, TimestampMixin):
+
+class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    display_name = Column(String, nullable=True)
-    avatar_url = Column(String, nullable=True)
-    subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.free)
-    subscription_expires_at = Column(DateTime, nullable=True)
-    email_verified = Column(Boolean, default=False)
-    verification_token = Column(String, nullable=True)
-    
-    # voice_profile: e.g. {tone, style, emoji_usage, formality, humor, preferred_platforms}
-    voice_profile = Column(JSON, default=lambda: {
-        "tone": "professional",
-        "style": "storytelling",
-        "emoji_usage": "moderate",
-        "formality": "semi-formal",
-        "humor": "witty",
-        "preferred_platforms": ["twitter", "linkedin"],
-    })
-
-    # growth_profile: extracted from onboarding conversation by the AI
-    # {niche, sub_niche, goal, goal_timeline, current_state, fear, tone,
-    #  content_style, admired_creators, time_available_minutes,
-    #  comfort_zone, positioning_opportunity, psychological_profile}
-    growth_profile = Column(JSON, default=dict)
-
-    onboarding_complete = Column(Boolean, default=False)
-    timezone = Column(String(100), default="UTC")
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String)
+    display_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    subscription_tier: Mapped[SubscriptionTier] = mapped_column(
+        SAEnum(SubscriptionTier), default=SubscriptionTier.free
+    )
+    growth_profile: Mapped[dict] = mapped_column(JSON, default=dict)
+    voice_profile: Mapped[dict] = mapped_column(JSON, default=dict)
+    onboarding_complete: Mapped[bool] = mapped_column(Boolean, default=False)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    timezone: Mapped[str] = mapped_column(String, default="UTC")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )

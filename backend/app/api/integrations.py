@@ -12,7 +12,7 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..models.integration import Integration, IntegrationPlatform
-from ..models.content_seed import ContentSeed, SourceType
+from ..models.content_seed import ContentSeed
 from ..services.encryption_service import encrypt_token, decrypt_token
 from ..schemas.integration import IntegrationStatus, OAuthConnectResponse
 
@@ -243,7 +243,7 @@ async def integration_status(user: User = Depends(get_current_user), db: AsyncSe
     for intg in integrations:
         seed_stmt = select(ContentSeed).where(
             ContentSeed.user_id == user.id,
-            ContentSeed.source_type == intg.platform.value,
+            ContentSeed.source_platform == intg.platform.value,
             ContentSeed.created_at >= since_24h,
         )
         seed_result = await db.execute(seed_stmt)

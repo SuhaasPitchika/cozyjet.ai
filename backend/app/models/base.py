@@ -1,7 +1,7 @@
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, DateTime, func
 
-Base = declarative_base()
+from ..database import Base
+
 
 class TimestampMixin:
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
