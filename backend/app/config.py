@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     def _resolve(self) -> "Settings":
         # JWT secret — prefer explicit, fall back to Replit SESSION_SECRET
         if not self.JWT_SECRET_KEY:
+            if self.ENVIRONMENT.lower() in ("production", "staging"):
+                raise ValueError("JWT_SECRET_KEY must be set in non-development environments")
+            # Development fallback (never use in production).
             self.JWT_SECRET_KEY = self.SESSION_SECRET or "dev-secret-change-in-production"
 
         # OpenRouter key — Replit stores it as OPEN_ROUTER

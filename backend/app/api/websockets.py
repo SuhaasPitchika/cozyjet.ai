@@ -1,61 +1,5 @@
 import json
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-from jose import jwt, JWTError
-from app.config import settings
-
-router = APIRouter()
-
-
-class ConnectionManager:
-    def __init__(self):
-        self.active: dict[str, WebSocket] = {}
-
-    async def connect(self, user_id: str, ws: WebSocket):
-        await ws.accept()
-        self.active[user_id] = ws
-
-    def disconnect(self, user_id: str):
-        self.active.pop(user_id, None)
-
-    async def send(self, user_id: str, data: dict):
-        ws = self.active.get(user_id)
-        if ws:
-            try:
-                await ws.send_json(data)
-            except Exception:
-                self.disconnect(user_id)
-
-
-manager = ConnectionManager()
-
-
-@router.websocket("/ws/main")
-async def ws_endpoint(websocket: WebSocket, token: str = Query(...)):
-    try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM]
-        )
-        user_id = payload.get("sub")
-        if not user_id:
-            await websocket.close(code=4001)
-            return
-    except JWTError:
-        await websocket.close(code=4001)
-        return
-
-    await manager.connect(user_id, websocket)
-    try:
-        await manager.send(user_id, {"type": "connected", "message": "CozyJet online"})
-        while True:
-            data = await websocket.receive_text()
-            msg = json.loads(data)
-            if msg.get("type") == "ping":
-                await manager.send(user_id, {"type": "pong"})
-    except WebSocketDisconnect:
-        manager.disconnect(user_id)
-import json
+from typing import Optional
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError, jwt
@@ -88,11 +32,34 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+def _get_token_from_headers(websocket: WebSocket) -> Optional[str]:
+    """
+    Prefer Authorization header:
+      Authorization: Bearer <jwt>
+    """
+    auth = websocket.headers.get("authorization") or websocket.headers.get("Authorization")
+    if not auth:
+        return None
+    if auth.lower().startswith("bearer "):
+        return auth.split(" ", 1)[1].strip()
+    return None
+
+
 @router.websocket("/ws/main")
-async def ws_endpoint(websocket: WebSocket, token: str = Query(...)):
+async def ws_endpoint(
+    websocket: WebSocket,
+    token: Optional[str] = Query(default=None),
+):
     try:
+        token = token or _get_token_from_headers(websocket)
+        if not token:
+            await websocket.close(code=4001)
+            return
+
         payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
         user_id = payload.get("sub")
         if not user_id:
@@ -102,16 +69,16 @@ async def ws_endpoint(websocket: WebSocket, token: str = Query(...)):
         await websocket.close(code=4001)
         return
 
-    await manager.connect(user_id, websocket)
-
+    await manager.connect(str(user_id), websocket)
     try:
-        await manager.send(user_id, {"type": "connected", "message": "CozyJet is online"})
-
+        await manager.send(str(user_id), {"type": "connected", "message": "CozyJet online"})
         while True:
             data = await websocket.receive_text()
-            msg = json.loads(data)
+            try:
+                msg = json.loads(data)
+            except Exception:
+                continue
             if msg.get("type") == "ping":
-                await manager.send(user_id, {"type": "pong"})
-
+                await manager.send(str(user_id), {"type": "pong"})
     except WebSocketDisconnect:
-        manager.disconnect(user_id)
+        manager.disconnect(str(user_id))
