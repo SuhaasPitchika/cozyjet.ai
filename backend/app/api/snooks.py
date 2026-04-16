@@ -19,7 +19,7 @@ from ..models.content import Content, ContentStatus
 from ..models.analytics import PostAnalytics
 from ..agents.snooks import snooks_agent
 
-router = APIRouter()
+router = APIRouter(prefix="/api/snooks", tags=["snooks"])
 
 
 @router.post("/suggest")

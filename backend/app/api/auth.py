@@ -11,7 +11,12 @@ from app.config import settings
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use PBKDF2 only to avoid bcrypt backend/runtime issues on this environment.
+pwd = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    default="pbkdf2_sha256",
+    deprecated="auto",
+)
 
 
 class SignupRequest(BaseModel):
@@ -48,6 +53,8 @@ async def signup(
         raise HTTPException(status_code=400, detail="Email already registered")
     if len(data.password) < 8:
         raise HTTPException(status_code=400, detail="Password min 8 chars")
+    if len(data.password.encode("utf-8")) > 1024:
+        raise HTTPException(status_code=400, detail="Password too long")
 
     user = User(
         email=data.email,

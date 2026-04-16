@@ -16,6 +16,12 @@ class VoiceInput(BaseModel):
     transcription: str
 
 
+class CreateSeedRequest(BaseModel):
+    raw_text: str | None = None
+    title: str | None = None
+    source_type: str | None = "manual"
+
+
 @router.post("/voice")
 async def voice_seed(
     data: VoiceInput,

@@ -1,429 +1,346 @@
-"""
-Meta API — content generation endpoints.
-Fetches top-performing opening hooks from analytics to ground hook generation.
-"""
-import json
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy import desc
-from uuid import UUID
+from sqlalchemy import select
+from pydantic import BaseModel
+from typing import List, Optional
+from app.database import get_db
+from app.dependencies import get_current_user
+from app.models.user import User
+from app.models.content_seed import ContentSeed
+from app.models.content import Content, ContentStatus
+from app.agents.meta_agent import generate_all
+from app.agents.skippy_agent import generate_seed
+from app.services.model_router import call_openrouter
 
-from ..database import get_db
-from ..dependencies import get_current_user
-from ..models.user import User
-from ..models.content_seed import ContentSeed
-from ..models.content import Content, ContentPlatform, ContentType, ContentStatus
-from ..models.analytics import PostAnalytics
-from ..models.trends import Trend
-from ..models.tune_samples import TuneSample, TuneSampleSource
-from ..agents.meta import meta_agent
-
-router = APIRouter()
+router = APIRouter(prefix="/api/meta", tags=["meta"])
 
 
-def _save_variations(user_id, seed_id, platform, variations, db_session):
-    items = []
-    for i, text in enumerate(variations[:3]):
-        if not text.strip():
-            continue
-        c = Content(
-            user_id=user_id,
-            seed_id=seed_id,
-            platform=ContentPlatform(platform),
-            content_type=ContentType.post,
-            content_text=text,
-            variation_index=i,
-            status=ContentStatus.draft,
-        )
-        db_session.add(c)
-        items.append(c)
-    return items
+class GenRequest(BaseModel):
+    seed_id: Optional[str] = None
+    topic: Optional[str] = None
+    platforms: List[str] = ["linkedin", "twitter"]
 
 
-async def _get_top_hooks(user_id, platforms: list, db: AsyncSession, days: int = 90) -> list[str]:
-    """
-    Fetch the opening lines of the user's top-performing content across all platforms.
-    These are passed to hook generation so it can match the user's proven style.
-    """
-    since = datetime.utcnow() - timedelta(days=days)
-    content_stmt = (
-        select(Content)
-        .where(
-            Content.user_id == user_id,
-            Content.status == ContentStatus.published,
-            Content.created_at >= since,
-        )
-        .limit(100)
-    )
-    content_result = await db.execute(content_stmt)
-    content_items = content_result.scalars().all()
+class RefineRequest(BaseModel):
+    content_id: str
+    instruction: str
 
-    if not content_items:
-        return []
 
-    content_ids = [c.id for c in content_items]
-    content_map = {c.id: c for c in content_items}
-
-    analytics_stmt = (
-        select(PostAnalytics)
-        .where(
-            PostAnalytics.content_id.in_(content_ids),
-            PostAnalytics.engagement_rate > 0,
-        )
-        .order_by(desc(PostAnalytics.engagement_rate))
-        .limit(10)
-    )
-    analytics_result = await db.execute(analytics_stmt)
-    top_analytics = analytics_result.scalars().all()
-
-    hooks = []
-    for a in top_analytics:
-        if a.content_id in content_map:
-            text = content_map[a.content_id].content_text
-            first_line = text.split("\n")[0].strip()[:120]
-            if first_line and first_line not in hooks:
-                hooks.append(first_line)
-
-    return hooks[:5]
+class ApproveRequest(BaseModel):
+    content_id: str
+    scheduled_time: Optional[str] = None
 
 
 @router.post("/generate")
 async def generate(
-    payload: dict,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    data: GenRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    seed_id = payload.get("seed_id")
-    platforms = payload.get("platforms", ["linkedin", "twitter"])
+    if not current_user.growth_profile:
+        raise HTTPException(400, "Complete onboarding first")
 
-    if not seed_id:
-        raise HTTPException(status_code=400, detail="seed_id is required")
-
-    stmt = select(ContentSeed).where(
-        ContentSeed.id == UUID(seed_id),
-        ContentSeed.user_id == user.id,
-    )
-    result = await db.execute(stmt)
-    seed_obj = result.scalar_one_or_none()
-    if not seed_obj:
-        raise HTTPException(status_code=404, detail="Content seed not found")
-
-    # Fetch user's top hooks from analytics — grounds hook generation in proven style
-    top_hooks = await _get_top_hooks(user.id, platforms, db)
-
-    seed = {
-        "title": seed_obj.title,
-        "description": seed_obj.description,
-        "tags": (seed_obj.source_metadata or {}).get("tags", []),
-        "story_hook": (seed_obj.source_metadata or {}).get("story_hook", ""),
-    }
-
-    generated = await meta_agent.generate_content(
-        seed=seed,
-        voice_profile=user.voice_profile or {},
-        platforms=platforms,
-        top_hooks=top_hooks,
-    )
-
-    created = []
-    for platform, variations in generated.items():
-        items = _save_variations(user.id, seed_obj.id, platform, variations, db)
-        created.extend(items)
-
-    seed_obj.is_used = True
-    await db.commit()
-
-    return {
-        "generated": [
-            {
-                "id": str(c.id),
-                "platform": c.platform,
-                "text": c.content_text,
-                "variation": c.variation_index,
-            }
-            for c in created
-        ]
-    }
-
-
-@router.post("/generate-from-idea")
-async def generate_from_idea(
-    payload: dict,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    topic = payload.get("topic", "").strip()
-    platforms = payload.get("platforms", ["linkedin", "twitter"])
-    if not topic:
-        raise HTTPException(status_code=400, detail="topic is required")
-
-    top_hooks = await _get_top_hooks(user.id, platforms, db)
-
-    generated = await meta_agent.generate_from_idea(
-        topic, user.voice_profile or {}, platforms
-    )
-    # Rerun with hooks if we got them (idea generation doesn't use hooks by default)
-    if top_hooks and not generated:
-        generated = await meta_agent.generate_from_idea(
-            topic, user.voice_profile or {}, platforms
+    if data.seed_id:
+        r = await db.execute(
+            select(ContentSeed).where(
+                ContentSeed.id == data.seed_id,
+                ContentSeed.user_id == current_user.id
+            )
         )
+        s = r.scalar_one_or_none()
+        if not s:
+            raise HTTPException(404, "Seed not found")
+        seed = {"title": s.title, "story": s.description, "hook": s.hook}
+    elif data.topic:
+        seed = await generate_seed(data.topic, current_user.growth_profile, "idea")
+    else:
+        raise HTTPException(400, "Provide seed_id or topic")
 
-    created = []
-    for platform, variations in generated.items():
-        items = _save_variations(user.id, None, platform, variations, db)
-        created.extend(items)
+    observations = (current_user.voice_profile or {}).get("observations", [])
+    results = await generate_all(seed, data.platforms, current_user.growth_profile, observations)
 
-    await db.commit()
-    return {
-        "generated": [
-            {
-                "id": str(c.id),
-                "platform": c.platform,
-                "text": c.content_text,
-                "variation": c.variation_index,
-            }
-            for c in created
-        ]
-    }
-
-
-@router.post("/generate-from-trend")
-async def generate_from_trend(
-    payload: dict,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    trend_id = payload.get("trend_id")
-    platforms = payload.get("platforms", ["linkedin", "twitter"])
-    if not trend_id:
-        raise HTTPException(status_code=400, detail="trend_id is required")
-
-    stmt = select(Trend).where(Trend.id == UUID(trend_id))
-    result = await db.execute(stmt)
-    trend = result.scalar_one_or_none()
-    if not trend:
-        raise HTTPException(status_code=404, detail="Trend not found")
-
-    top_hooks = await _get_top_hooks(user.id, platforms, db)
-    trend_data = {"topic": trend.topic, "related_keywords": trend.related_keywords or []}
-
-    generated = await meta_agent.generate_from_trend(
-        trend_data, user.voice_profile or {}, platforms
-    )
-
-    created = []
-    for platform, variations in generated.items():
-        items = _save_variations(user.id, None, platform, variations, db)
-        created.extend(items)
+    saved = {}
+    for platform, cd in results.items():
+        if "error" in cd:
+            continue
+        record = Content(
+            user_id=current_user.id,
+            seed_id=uuid.UUID(data.seed_id) if data.seed_id else None,
+            platform=platform,
+            content_text=cd.get("full_content", ""),
+            hook=cd.get("hook"),
+            status=ContentStatus.draft,
+            virality_score=cd.get("virality_score", 0),
+            virality_reasoning=cd.get("virality_reasoning")
+        )
+        db.add(record)
+        await db.flush()
+        saved[platform] = {**cd, "content_id": str(record.id)}
 
     await db.commit()
-    return {
-        "generated": [
-            {
-                "id": str(c.id),
-                "platform": c.platform,
-                "text": c.content_text,
-                "variation": c.variation_index,
-            }
-            for c in created
-        ]
-    }
-
-
-@router.post("/repurpose")
-async def repurpose(
-    payload: dict,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    source_text = payload.get("source_text", "").strip()
-    target_platforms = payload.get("target_platforms", ["linkedin", "twitter"])
-    if not source_text:
-        raise HTTPException(status_code=400, detail="source_text is required")
-
-    generated = await meta_agent.repurpose(
-        source_text, target_platforms, user.voice_profile or {}
-    )
-
-    created = []
-    for platform, variations in generated.items():
-        items = _save_variations(user.id, None, platform, variations, db)
-        created.extend(items)
-
-    await db.commit()
-    return {
-        "generated": [
-            {
-                "id": str(c.id),
-                "platform": c.platform,
-                "text": c.content_text,
-                "variation": c.variation_index,
-            }
-            for c in created
-        ]
-    }
+    return {"generated": saved}
 
 
 @router.post("/refine")
 async def refine(
-    payload: dict,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    data: RefineRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    content_id = payload.get("content_id")
-    instruction = payload.get("instruction", "").strip()
-    if not content_id or not instruction:
-        raise HTTPException(status_code=400, detail="content_id and instruction are required")
-
-    stmt = select(Content).where(
-        Content.id == UUID(content_id), Content.user_id == user.id
+    r = await db.execute(
+        select(Content).where(
+            Content.id == data.content_id,
+            Content.user_id == current_user.id
+        )
     )
-    result = await db.execute(stmt)
-    content = result.scalar_one_or_none()
+    content = r.scalar_one_or_none()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(404, "Content not found")
 
-    refined_text = await meta_agent.refine(
-        content_text=content.content_text,
-        instruction=instruction,
-        platform=content.platform.value,
-        voice_profile=user.voice_profile or {},
+    revised = await call_openrouter(
+        [
+            {"role": "system", "content": "You are Meta. Revise this content per the instruction. Return only the revised text."},
+            {"role": "user", "content": f"Content:\n{content.content_text}\n\nInstruction: {data.instruction}"}
+        ],
+        max_tokens=500,
+        temperature=0.8
     )
-
-    content.content_text = refined_text
-    content.updated_at = datetime.utcnow()
-
-    # Update voice profile signals based on what the user asked for
-    _update_voice_profile(user, instruction)
-
-    # Save as tune sample — approved edits teach the voice profile
-    sample = TuneSample(
-        user_id=user.id,
-        sample_text=refined_text,
-        platform=content.platform.value,
-        source=TuneSampleSource.approved_post,
-    )
-    db.add(sample)
+    content.content_text = revised
     await db.commit()
+    return {"content_id": data.content_id, "revised": revised}
 
-    return {"refined_content": refined_text, "content_id": str(content.id)}
 
-
-@router.post("/approve/{content_id}")
-async def approve_content(
-    content_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+@router.post("/approve")
+async def approve(
+    data: ApproveRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Content).where(
-        Content.id == UUID(content_id), Content.user_id == user.id
+    r = await db.execute(
+        select(Content).where(
+            Content.id == data.content_id,
+            Content.user_id == current_user.id
+        )
     )
-    result = await db.execute(stmt)
-    content = result.scalar_one_or_none()
+    content = r.scalar_one_or_none()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(404, "Content not found")
 
-    content.status = ContentStatus.approved
+    if data.scheduled_time:
+        content.scheduled_time = datetime.fromisoformat(data.scheduled_time)
+        content.status = ContentStatus.scheduled
+    else:
+        content.status = ContentStatus.approved
 
-    # Save as tune sample — approved content teaches what resonates
-    sample = TuneSample(
-        user_id=user.id,
-        sample_text=content.content_text,
-        platform=content.platform.value,
-        source=TuneSampleSource.approved_post,
-    )
-    db.add(sample)
     await db.commit()
-
-    return {"success": True, "status": "approved"}
+    return {"status": content.status, "content_id": data.content_id}
 
 
 @router.get("/content")
-async def list_content(
-    platform: str = None,
-    status: str = None,
-    limit: int = 20,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    stmt = select(Content).where(Content.user_id == user.id)
-    if platform:
-        stmt = stmt.where(Content.platform == platform)
-    if status:
-        stmt = stmt.where(Content.status == status)
-    stmt = stmt.order_by(desc(Content.created_at)).limit(limit)
-    result = await db.execute(stmt)
-    items = result.scalars().all()
-
-    return [
-        {
-            "id": str(c.id),
-            "platform": c.platform,
-            "content_type": c.content_type,
-            "text": c.content_text,
-            "variation": c.variation_index,
-            "status": c.status,
-            "scheduled_time": c.scheduled_time.isoformat() if c.scheduled_time else None,
-            "published_at": c.published_at.isoformat() if c.published_at else None,
-            "created_at": c.created_at.isoformat(),
-        }
-        for c in items
-    ]
-
-
-@router.get("/content/{content_id}")
 async def get_content(
-    content_id: str,
-    user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    r = await db.execute(
+        select(Content)
+        .where(Content.user_id == current_user.id)
+        .order_by(Content.created_at.desc())
+        .limit(30)
+    )
+    items = r.scalars().all()
+    return {
+        "content": [
+            {
+                "id": str(c.id),
+                "platform": c.platform,
+                "content_text": c.content_text,
+                "hook": c.hook,
+                "status": c.status,
+                "virality_score": c.virality_score,
+                "scheduled_time": c.scheduled_time.isoformat() if c.scheduled_time else None,
+                "created_at": c.created_at.isoformat()
+            }
+            for c in items
+        ]
+    }
+import uuid
+from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.agents.meta_agent import generate_all
+from app.agents.skippy_agent import generate_seed
+from app.database import get_db
+from app.dependencies import get_current_user
+from app.models.content import Content, ContentStatus
+from app.models.content_seed import ContentSeed
+from app.models.user import User
+from app.services.model_router import call_openrouter
+
+router = APIRouter(prefix="/api/meta", tags=["meta"])
+
+
+class GenRequest(BaseModel):
+    seed_id: Optional[str] = None
+    topic: Optional[str] = None
+    platforms: List[str] = ["linkedin", "twitter"]
+
+
+class RefineRequest(BaseModel):
+    content_id: str
+    instruction: str
+
+
+class ApproveRequest(BaseModel):
+    content_id: str
+    scheduled_time: Optional[str] = None
+
+
+@router.post("/generate")
+async def generate(
+    data: GenRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Content).where(
-        Content.id == UUID(content_id), Content.user_id == user.id
+    if not current_user.growth_profile:
+        raise HTTPException(400, "Complete onboarding first")
+
+    if data.seed_id:
+        r = await db.execute(
+            select(ContentSeed).where(
+                ContentSeed.id == data.seed_id,
+                ContentSeed.user_id == current_user.id,
+            )
+        )
+        s = r.scalar_one_or_none()
+        if not s:
+            raise HTTPException(404, "Seed not found")
+        seed = {"title": s.title, "story": s.description, "hook": s.hook}
+    elif data.topic:
+        seed = await generate_seed(data.topic, current_user.growth_profile, "idea")
+    else:
+        raise HTTPException(400, "Provide seed_id or topic")
+
+    observations = (current_user.voice_profile or {}).get("observations", [])
+    results = await generate_all(
+        seed, data.platforms, current_user.growth_profile, observations
     )
-    result = await db.execute(stmt)
-    content = result.scalar_one_or_none()
+
+    saved = {}
+    for platform, cd in results.items():
+        if "error" in cd:
+            continue
+        record = Content(
+            user_id=current_user.id,
+            seed_id=uuid.UUID(data.seed_id) if data.seed_id else None,
+            platform=platform,
+            content_text=cd.get("full_content", ""),
+            hook=cd.get("hook"),
+            status=ContentStatus.draft,
+            virality_score=cd.get("virality_score", 0),
+            virality_reasoning=cd.get("virality_reasoning"),
+        )
+        db.add(record)
+        await db.flush()
+        saved[platform] = {**cd, "content_id": str(record.id)}
+
+    await db.commit()
+    return {"generated": saved}
+
+
+@router.post("/refine")
+async def refine(
+    data: RefineRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    r = await db.execute(
+        select(Content).where(
+            Content.id == data.content_id, Content.user_id == current_user.id
+        )
+    )
+    content = r.scalar_one_or_none()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(404, "Content not found")
 
+    revised = await call_openrouter(
+        messages=[
+            {
+                "role": "system",
+                "content": "You are Meta. Revise this content per the instruction. Return only the revised text, nothing else.",
+            },
+            {
+                "role": "user",
+                "content": f"Content:\n{content.content_text}\n\nInstruction: {data.instruction}",
+            },
+        ],
+        max_tokens=500,
+        temperature=0.8,
+    )
+
+    content.content_text = revised
+    await db.commit()
+    return {"content_id": data.content_id, "revised": revised}
+
+
+@router.post("/approve")
+async def approve(
+    data: ApproveRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    r = await db.execute(
+        select(Content).where(
+            Content.id == data.content_id, Content.user_id == current_user.id
+        )
+    )
+    content = r.scalar_one_or_none()
+    if not content:
+        raise HTTPException(404, "Content not found")
+
+    if data.scheduled_time:
+        content.scheduled_time = datetime.fromisoformat(data.scheduled_time)
+        content.status = ContentStatus.scheduled
+    else:
+        content.status = ContentStatus.approved
+
+    await db.commit()
+    return {"status": content.status, "content_id": data.content_id}
+
+
+@router.get("/content")
+async def get_content(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    r = await db.execute(
+        select(Content)
+        .where(Content.user_id == current_user.id)
+        .order_by(Content.created_at.desc())
+        .limit(30)
+    )
+    items = r.scalars().all()
     return {
-        "id": str(content.id),
-        "platform": content.platform,
-        "content_type": content.content_type,
-        "text": content.content_text,
-        "variation": content.variation_index,
-        "status": content.status,
-        "scheduled_time": content.scheduled_time.isoformat() if content.scheduled_time else None,
-        "published_at": content.published_at.isoformat() if content.published_at else None,
-        "seed_id": str(content.seed_id) if content.seed_id else None,
-        "created_at": content.created_at.isoformat(),
+        "content": [
+            {
+                "id": str(c.id),
+                "platform": c.platform,
+                "content_text": c.content_text,
+                "hook": c.hook,
+                "status": c.status,
+                "virality_score": c.virality_score,
+                "virality_reasoning": c.virality_reasoning,
+                "scheduled_time": c.scheduled_time.isoformat()
+                if c.scheduled_time
+                else None,
+                "created_at": c.created_at.isoformat(),
+            }
+            for c in items
+        ]
     }
-
-
-def _update_voice_profile(user: User, instruction: str):
-    """Parse refine instruction keywords and update voice_profile signals."""
-    profile = user.voice_profile or {}
-    instruction_lower = instruction.lower()
-
-    if any(w in instruction_lower for w in ["casual", "informal", "relaxed", "conversational"]):
-        profile["formality"] = "informal"
-    elif any(w in instruction_lower for w in ["formal", "professional", "corporate"]):
-        profile["formality"] = "formal"
-
-    if any(w in instruction_lower for w in ["shorter", "concise", "brief", "tighter", "punchy"]):
-        profile["length_preference"] = "short"
-    elif any(w in instruction_lower for w in ["longer", "detailed", "expand", "more depth"]):
-        profile["length_preference"] = "long"
-
-    if any(w in instruction_lower for w in ["no emoji", "remove emoji", "without emoji"]):
-        profile["emoji_usage"] = "none"
-    elif any(w in instruction_lower for w in ["more emoji", "add emoji"]):
-        profile["emoji_usage"] = "high"
-
-    if any(w in instruction_lower for w in ["funny", "humor", "witty", "joke", "playful"]):
-        profile["humor"] = "high"
-    elif any(w in instruction_lower for w in ["serious", "professional", "no jokes"]):
-        profile["humor"] = "low"
-
-    user.voice_profile = profile
