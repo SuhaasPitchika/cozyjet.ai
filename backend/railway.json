@@ -1,6 +1,6 @@
 {
   "deploy": {
-    "startCommand": "celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2",
+    "startCommand": "celery -A app.tasks.celery_app beat --loglevel=info",
     "healthcheckPath": "/health"
   }
 }
