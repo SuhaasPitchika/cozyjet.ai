@@ -1,21 +1,31 @@
+import logging
 import os
 from pathlib import Path
 from typing import Optional, List
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logger = logging.getLogger("cozyjet.config")
+
 # Always load backend/.env (not cwd-relative) so uvicorn picks it up from any working directory.
 _BACKEND_DIR = Path(__file__).resolve().parent.parent
 _ENV_FILE = _BACKEND_DIR / ".env"
 
 
-def _build_allowed_origins() -> List[str]:
+def _build_allowed_origins(frontend_url: str = "") -> List[str]:
     origins = [
         "http://localhost:3000",
         "http://localhost:5000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5000",
     ]
+    # Always include the configured FRONTEND_URL (critical for production)
+    if frontend_url and frontend_url not in origins:
+        origins.append(frontend_url)
+    # Also check the env var directly in case it wasn't passed yet
+    env_frontend = os.environ.get("FRONTEND_URL", "").strip()
+    if env_frontend and env_frontend not in origins:
+        origins.append(env_frontend)
     for domain in os.environ.get("REPLIT_DOMAINS", "").split(","):
         domain = domain.strip()
         if domain:
@@ -117,12 +127,18 @@ class Settings(BaseSettings):
             db = os.environ.get("PGDATABASE", "cozyjet")
             self.DATABASE_URL = f"postgresql://{u}:{pw}@{h}:{p}/{db}"
 
-        # ALLOWED_ORIGINS — always inject Replit domains
-        self.ALLOWED_ORIGINS = _build_allowed_origins()
+        # ALLOWED_ORIGINS — always inject FRONTEND_URL + Replit domains
+        self.ALLOWED_ORIGINS = _build_allowed_origins(self.FRONTEND_URL)
 
         # Celery mirrors Redis
         if self.REDIS_URL and not self.CELERY_BROKER_URL:
             self.CELERY_BROKER_URL = self.REDIS_URL
+
+        # Warn about missing critical keys so they show up in startup logs
+        if not self.OPENROUTER_API_KEY:
+            logger.warning("OPENROUTER_API_KEY is not set — AI features will fail")
+        if not self.DATABASE_URL:
+            logger.warning("DATABASE_URL is not set — database features will fail")
 
         return self
 

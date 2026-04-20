@@ -1,5 +1,8 @@
-from fastapi import FastAPI, Depends
+import logging
+
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -14,10 +17,16 @@ from app.api.tune import router as tune_router
 from app.api.analytics import router as analytics_router
 from app.api.websockets import router as ws_router
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
+logger = logging.getLogger("cozyjet.main")
+
 app = FastAPI(title="CozyJet API", version="1.0.0")
 
-_default_origins = [settings.FRONTEND_URL, "http://localhost:3000"]
-allowed_origins = settings.ALLOWED_ORIGINS or _default_origins
+# CORS — ALLOWED_ORIGINS is built in config and always includes FRONTEND_URL
+allowed_origins = settings.ALLOWED_ORIGINS or [settings.FRONTEND_URL, "http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +43,28 @@ app.include_router(meta_router)
 app.include_router(tune_router)
 app.include_router(analytics_router)
 app.include_router(ws_router)
+
+
+@app.on_event("startup")
+async def on_startup():
+    logger.info("=== CozyJet API starting ===")
+    logger.info(f"Environment : {settings.ENVIRONMENT}")
+    logger.info(f"Frontend URL: {settings.FRONTEND_URL}")
+    logger.info(f"CORS origins: {sorted(allowed_origins)}")
+    logger.info(f"OpenRouter key set : {bool(settings.OPENROUTER_API_KEY)}")
+    logger.info(f"Gemini key set     : {bool(settings.GEMINI_API_KEY)}")
+    logger.info(f"ElevenLabs key set : {bool(settings.ELEVENLABS_API_KEY)}")
+    logger.info(f"Database URL set   : {bool(settings.DATABASE_URL)}")
+    logger.info("=== Startup complete ===")
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled error on {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "path": request.url.path},
+    )
 
 
 @app.get("/health")
