@@ -2,6 +2,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Optional, List
+from urllib.parse import urlparse
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -12,6 +13,16 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 _ENV_FILE = _BACKEND_DIR / ".env"
 
 
+def _normalize_origin(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    parsed = urlparse(raw)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return raw.rstrip("/")
+
+
 def _build_allowed_origins(frontend_url: str = "") -> List[str]:
     origins = [
         "http://localhost:3000",
@@ -20,10 +31,11 @@ def _build_allowed_origins(frontend_url: str = "") -> List[str]:
         "http://127.0.0.1:5000",
     ]
     # Always include the configured FRONTEND_URL (critical for production)
-    if frontend_url and frontend_url not in origins:
-        origins.append(frontend_url)
+    normalized_frontend = _normalize_origin(frontend_url)
+    if normalized_frontend and normalized_frontend not in origins:
+        origins.append(normalized_frontend)
     # Also check the env var directly in case it wasn't passed yet
-    env_frontend = os.environ.get("FRONTEND_URL", "").strip()
+    env_frontend = _normalize_origin(os.environ.get("FRONTEND_URL", ""))
     if env_frontend and env_frontend not in origins:
         origins.append(env_frontend)
     for domain in os.environ.get("REPLIT_DOMAINS", "").split(","):
@@ -103,6 +115,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _resolve(self) -> "Settings":
+        self.FRONTEND_URL = _normalize_origin(self.FRONTEND_URL) or self.FRONTEND_URL
+
         # JWT secret — prefer explicit, fall back to Replit SESSION_SECRET
         if not self.JWT_SECRET_KEY:
             if self.ENVIRONMENT.lower() in ("production", "staging"):

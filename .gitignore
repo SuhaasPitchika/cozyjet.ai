@@ -13,3 +13,6 @@ replit.nix
 node_modules
 .next
 
+__pycache__/
+*.py[cod]
+
