@@ -1,9 +1,12 @@
-# Install backend deps + register `app` on PYTHONPATH (fixes ModuleNotFoundError: No module named 'app').
 [phases.install]
 cmds = [
-  "pip install -r backend/requirements.txt",
-  "pip install ./backend",
+  "npm install"
+]
+
+[phases.build]
+cmds = [
+  "npm run build"
 ]
 
 [start]
-cmd = "python backend/start.py --config prd"
+cmd = "node scripts/start-prod.js"

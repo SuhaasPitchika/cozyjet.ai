@@ -1,30 +1,41 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from "next";
+
+const backendOrigin =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['*.replit.dev', '*.worf.replit.dev', '*.janeway.replit.dev', '*.spock.replit.dev', '*.picard.replit.dev'],
+  allowedDevOrigins: [
+    "*.replit.dev",
+    "*.worf.replit.dev",
+    "*.janeway.replit.dev",
+    "*.spock.replit.dev",
+    "*.picard.replit.dev",
+  ],
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
+  transpilePackages: ["three", "@react-three/fiber", "@react-three/drei"],
 
   async rewrites() {
     return [
       {
-        // Proxy /backend/* → FastAPI on localhost:8000
-        source: '/backend/:path*',
-        destination: 'http://localhost:8000/:path*',
+        source: "/backend/:path*",
+        destination: `${backendOrigin.replace(/\/$/, "")}/:path*`,
       },
     ];
   },
 
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'placehold.co',       port: '', pathname: '/**' },
-      { protocol: 'https', hostname: 'images.unsplash.com',port: '', pathname: '/**' },
-      { protocol: 'https', hostname: 'picsum.photos',      port: '', pathname: '/**' },
+      { protocol: "https", hostname: "placehold.co", port: "", pathname: "/**" },
+      { protocol: "https", hostname: "images.unsplash.com", port: "", pathname: "/**" },
+      { protocol: "https", hostname: "picsum.photos", port: "", pathname: "/**" },
     ],
   },
 };

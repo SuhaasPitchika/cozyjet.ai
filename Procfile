@@ -1,1 +1,1 @@
-web: python backend/start.py --config prd
+web: node scripts/start-prod.js
