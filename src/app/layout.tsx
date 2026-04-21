@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { FirebaseClientProvider } from "@/firebase";
 import { ReplitAuthProvider } from "@/contexts/replit-auth-context";
 import Script from "next/script";
 import { Inter, Press_Start_2P, Space_Grotesk, VT323 } from 'next/font/google';
@@ -112,10 +111,8 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-background text-foreground">
         <Script src="https://auth.util.repl.co/script.js" strategy="beforeInteractive" />
         <ReplitAuthProvider>
-          <FirebaseClientProvider>
-            {children}
-            <Toaster />
-          </FirebaseClientProvider>
+          {children}
+          <Toaster />
         </ReplitAuthProvider>
       </body>
     </html>

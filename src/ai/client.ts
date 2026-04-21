@@ -26,6 +26,12 @@ export const snooksIntelligenceClient = (input: {
   userContext: string | object;
 }) => callAPI('snooks', input);
 
+export const snooksComplianceCheckClient = (input: {
+  content: string;
+  platform: string;
+  exclusionList: string[];
+}) => callAPI('snooks', input);
+
 export const skippyWorkspaceClient = (input: {
   integration: string;
   rawContent: string;
