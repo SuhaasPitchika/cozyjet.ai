@@ -104,8 +104,10 @@ def main() -> None:
         "asgi:app",
         "--host", "0.0.0.0",
         "--port", port,
-        "--reload",
-    ] + uvicorn_extra
+    ]
+    if os.environ.get("ENVIRONMENT", "development").lower() == "development":
+        cmd.append("--reload")
+    cmd += uvicorn_extra
 
     log.info(f"Starting uvicorn: {' '.join(cmd)}")
     os.execvp(python, cmd)  # Replace this process — uvicorn inherits the env
