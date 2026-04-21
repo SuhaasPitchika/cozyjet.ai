@@ -1,1 +1,11 @@
-{"deploy":{"startCommand":"celery -A app.tasks.celery_app beat --loglevel=info","healthcheckPath":"/health"}}
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT",
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}
