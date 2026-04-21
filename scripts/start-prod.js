@@ -3,9 +3,10 @@
 const { spawn } = require("child_process");
 
 const port = process.env.PORT || "3000";
-const binary = process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
+const node = process.execPath;
+const nextCli = require.resolve("next/dist/bin/next");
 
-const next = spawn(binary, ["start", "-p", port, "-H", "0.0.0.0"], {
+const next = spawn(node, [nextCli, "start", "-p", port, "-H", "0.0.0.0"], {
   stdio: "inherit",
   env: { ...process.env, NODE_ENV: "production" },
 });
