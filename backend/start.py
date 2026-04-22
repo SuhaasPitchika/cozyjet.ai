@@ -105,7 +105,7 @@ def main() -> None:
         "--host", "0.0.0.0",
         "--port", port,
     ]
-    if os.environ.get("ENVIRONMENT", "development").lower() == "development":
+    if os.environ.get("ENVIRONMENT", "").lower() == "development":
         cmd.append("--reload")
     cmd += uvicorn_extra
 

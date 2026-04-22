@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = ""
     SESSION_SECRET: str = ""
     JWT_ALGORITHM: str = "HS256"
+    ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
@@ -110,6 +111,11 @@ class Settings(BaseSettings):
 
         if not self.JWT_SECRET_KEY:
             self.JWT_SECRET_KEY = self.SESSION_SECRET or "dev-secret-change-in-production"
+
+        if not self.ALGORITHM:
+            self.ALGORITHM = self.JWT_ALGORITHM
+        else:
+            self.JWT_ALGORITHM = self.ALGORITHM
 
         if not self.OPENROUTER_API_KEY:
             self.OPENROUTER_API_KEY = self.OPEN_ROUTER or ""
