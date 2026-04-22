@@ -1,1 +1,1 @@
-web: node scripts/start-prod.js
+web: node .next/standalone/server.js

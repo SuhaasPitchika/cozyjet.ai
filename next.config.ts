@@ -7,6 +7,7 @@ const backendOrigin =
   "http://localhost:8000";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   allowedDevOrigins: [
     "*.replit.dev",
     "*.worf.replit.dev",

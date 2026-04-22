@@ -9,4 +9,4 @@ cmds = [
 ]
 
 [start]
-cmd = "node scripts/start-prod.js"
+cmd = "node .next/standalone/server.js"
