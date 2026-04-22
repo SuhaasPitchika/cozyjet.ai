@@ -52,6 +52,7 @@ def _openrouter_client() -> AsyncOpenAI:
     return AsyncOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=settings.OPENROUTER_API_KEY,
+        timeout=settings.EXTERNAL_API_TIMEOUT,
         default_headers={
             "HTTP-Referer": referer,
             "X-Title": "CozyJet",
@@ -150,6 +151,7 @@ async def call_gemini(
 ) -> str:
     import google.generativeai as genai
     from google.generativeai.types import GenerationConfig
+    from ..config import settings
 
     model = _get_gemini_model("gemini-1.5-flash")
     full_prompt = f"{system_prompt}\n\n{user_message}"
@@ -157,11 +159,17 @@ async def call_gemini(
 
     loop = asyncio.get_event_loop()
     try:
-        response = await loop.run_in_executor(
-            None,
-            lambda: model.generate_content(full_prompt, generation_config=config)
+        response = await asyncio.wait_for(
+            loop.run_in_executor(
+                None,
+                lambda: model.generate_content(full_prompt, generation_config=config),
+            ),
+            timeout=settings.EXTERNAL_API_TIMEOUT,
         )
         return response.text.strip()
+    except asyncio.TimeoutError:
+        logger.error("Gemini call timed out after %ds", settings.EXTERNAL_API_TIMEOUT)
+        raise TimeoutError(f"Gemini API did not respond within {settings.EXTERNAL_API_TIMEOUT}s")
     except Exception as e:
         logger.error(f"Gemini call failed: {e}")
         raise
@@ -301,19 +309,34 @@ async def call_elevenlabs(text: str, voice_id: Optional[str] = None) -> bytes:
         )
         return b"".join(audio_iter)
 
-    return await loop.run_in_executor(None, _generate)
+    try:
+        return await asyncio.wait_for(
+            loop.run_in_executor(None, _generate),
+            timeout=settings.EXTERNAL_API_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        logger.error("ElevenLabs TTS timed out after %ds", settings.EXTERNAL_API_TIMEOUT)
+        raise TimeoutError(f"ElevenLabs API did not respond within {settings.EXTERNAL_API_TIMEOUT}s")
 
 
 async def call_elevenlabs_transcribe(audio_bytes: bytes, filename: str = "audio.webm") -> str:
     import httpx
     from ..config import settings
 
-    async with httpx.AsyncClient(timeout=60) as http:
-        resp = await http.post(
-            "https://api.elevenlabs.io/v1/speech-to-text",
-            headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
-            files={"file": (filename, audio_bytes, "audio/webm")},
-            data={"model_id": "scribe_v1"},
-        )
-        resp.raise_for_status()
-        return resp.json().get("text", "")
+    timeout = max(settings.EXTERNAL_API_TIMEOUT, 60)  # transcription needs more time
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as http:
+            resp = await http.post(
+                "https://api.elevenlabs.io/v1/speech-to-text",
+                headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
+                files={"file": (filename, audio_bytes, "audio/webm")},
+                data={"model_id": "scribe_v1"},
+            )
+            resp.raise_for_status()
+            return resp.json().get("text", "")
+    except httpx.TimeoutException:
+        logger.error("ElevenLabs transcription timed out after %ds", timeout)
+        raise TimeoutError(f"ElevenLabs transcription did not respond within {timeout}s")
+    except httpx.HTTPStatusError as e:
+        logger.error("ElevenLabs transcription HTTP error: %s", e.response.status_code)
+        raise
