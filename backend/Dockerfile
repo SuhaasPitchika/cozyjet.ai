@@ -1,6 +1,8 @@
-FROM node:18  # Or your specific language image
+FROM node:18
 WORKDIR /app
-COPY . .
+COPY package*.json ./
 RUN npm install
+COPY . .
+EXPOSE 8080
 CMD ["npm", "start"]
 
