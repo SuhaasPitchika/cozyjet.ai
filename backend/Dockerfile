@@ -1,8 +1,17 @@
-FROM node:18
+FROM python:3.12-slim
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . .
-EXPOSE 8080
-CMD ["npm", "start"]
+
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir .
+
+EXPOSE 8000
+
+CMD ["python", "start.py", "--config", "prd"]
 
