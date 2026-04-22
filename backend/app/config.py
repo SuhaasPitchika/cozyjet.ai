@@ -63,6 +63,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Alias so existing code using settings.ALGORITHM keeps working
+    @property
+    def ALGORITHM(self) -> str:  # noqa: N802
+        return self.JWT_ALGORITHM
+
+    # Timeout (seconds) for external API calls (OpenRouter, Gemini, ElevenLabs)
+    EXTERNAL_API_TIMEOUT: int = 30
+
     ENCRYPTION_KEY: str = "ZmRlYWRiZWVmZmVlZGZhY2ViYWRkZWVkY2FmZWJhYmU="
 
     DATABASE_URL: str = ""
