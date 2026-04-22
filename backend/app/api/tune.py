@@ -32,7 +32,7 @@ async def analyze(
     db: AsyncSession = Depends(get_db),
 ):
     raw = await call_openrouter(
-        [
+        messages=[
             {
                 "role": "system",
                 "content": "Extract specific writing style observations. Concrete rules not vague descriptions. Return JSON only with key observations as array.",

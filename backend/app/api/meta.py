@@ -108,7 +108,7 @@ async def refine(
         raise HTTPException(404, "Content not found")
 
     revised = await call_openrouter(
-        [
+        messages=[
             {"role": "system", "content": "You are Meta. Revise this content per the instruction. Return only the revised text."},
             {"role": "user", "content": f"Content:\n{content.content_text}\n\nInstruction: {data.instruction}"},
         ],

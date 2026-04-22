@@ -117,7 +117,7 @@ async def chat(
     if done:
         try:
             extraction = await call_openrouter(
-                [
+                messages=[
                     {
                         "role": "system",
                         "content": "Extract growth profile. Return ONLY valid JSON. No markdown. No explanation.",
